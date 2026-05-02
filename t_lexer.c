@@ -70,7 +70,7 @@ Token make(TokenType t, const char *v, int line){
 Token lex_ident(Lexer *l){
     char buf[256]; int i=0;
 
-    while(isalnum(peek(l)) || peek(l)=='.' || peek(l)=='-' || peek(l)=='_'){
+    while(isalnum(peek(l)) || peek(l)=='.' || peek(l)=='_'){
         buf[i++] = advance(l);
     }
     buf[i]=0;
@@ -221,6 +221,23 @@ Token* lex(const char *src, int *out_count){
         }
 
         /* math operators */
+        if(c=='-' && count>0 &&
+           (tokens[count-1].type==TOKEN_EQUALS ||
+            tokens[count-1].type==TOKEN_LPAREN ||
+            tokens[count-1].type==TOKEN_LBRACKET ||
+            tokens[count-1].type==TOKEN_COMMA ||
+            tokens[count-1].type==TOKEN_OPERATOR) &&
+           isdigit(l.src[l.pos+1])){
+            advance(&l);
+            char buf[256]; int i=0;
+            buf[i++]='-';
+            while(isdigit(peek(&l)) || peek(&l)=='.'){
+                buf[i++]=advance(&l);
+            }
+            buf[i]=0;
+            tokens[count++]=make(TOKEN_NUMBER,buf,l.line);
+            continue;
+        }
         if(c=='+'||c=='-'||c=='*'||c=='/'){
             advance(&l);
             char buf[2]={c,0};

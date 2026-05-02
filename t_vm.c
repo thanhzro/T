@@ -162,7 +162,11 @@ TValue frame_get(Frame *f, const char *key){
 
 /* ===== EXPR ===== */
 int is_number(const char *s){
-    for(int i=0;s[i];i++)
+    if(!s[0]) return 0;
+    int i=0;
+    if(s[0]=='-') i=1;
+    if(!s[i]) return 0;
+    for(;s[i];i++)
         if((s[i]<'0'||s[i]>'9') && s[i]!='.') return 0;
     return 1;
 }
