@@ -50,7 +50,14 @@ typedef struct ExprNode {
     char value[64];
     char op[4];
     struct ExprNode *l,*r;
+    struct ArrayLiteralNode *arr_node;
 } ExprNode;
+
+typedef struct ArrayLiteralNode {
+    int node_type;
+    struct ExprNode **values;
+    int count;
+} ArrayLiteralNode;
 
 typedef struct {
     NodeType node_type;
@@ -178,6 +185,16 @@ TValue eval_expr(Frame *f, ExprNode *e){
     }
     if(e->type==1){
         return frame_get(f,e->value);
+    }
+
+    if(e->type==3){
+        TValue arr;
+        arr.type=TV_ARRAY;
+        arr.arr.items=malloc(sizeof(TValue)*e->arr_node->count);
+        arr.arr.count=e->arr_node->count;
+        for(int i=0;i<e->arr_node->count;i++)
+            arr.arr.items[i]=eval_expr(f,e->arr_node->values[i]);
+        return arr;
     }
     if(e->type==2){
         TValue a=eval_expr(f,e->l);

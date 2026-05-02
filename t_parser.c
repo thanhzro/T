@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 /* ===== TOKEN ===== */
 typedef enum {
@@ -19,29 +18,30 @@ typedef struct {
     int line;
 } Token;
 
-/* ===== NODE TYPES ===== */
+/* ===== NODE TYPE ===== */
 typedef enum {
-    NODE_ASSIGN,
-    NODE_GATE,
-    NODE_F,
-    NODE_VAR_ASSIGN,
-    NODE_ARRAY_ASSIGN,
-    NODE_SHOW,
-    NODE_ASK,
-    NODE_FUNC_DEF,
-    NODE_FUNC_CALL,
-    NODE_RETURN,
-    NODE_FILE_READ,
-    NODE_FILE_WRITE
+    NODE_ASSIGN, NODE_GATE, NODE_F,
+    NODE_VAR_ASSIGN, NODE_ARRAY_ASSIGN,
+    NODE_SHOW, NODE_ASK,
+    NODE_FUNC_DEF, NODE_FUNC_CALL, NODE_RETURN,
+    NODE_FILE_READ, NODE_FILE_WRITE,
+    NODE_ARRAY_LITERAL
 } NodeType;
 
 /* ===== AST ===== */
 
+typedef struct ArrayLiteralNode {
+    NodeType node_type;
+    struct ExprNode **values;
+    int count;
+} ArrayLiteralNode;
+
 typedef struct ExprNode {
-    int type;
+    int type; /* 0 literal, 1 ident/coord, 2 binop, 3 array literal */
     char value[64];
     char op[4];
-    struct ExprNode *l,*r;
+    struct ExprNode *l, *r;
+    ArrayLiteralNode *arr_node;
 } ExprNode;
 
 typedef struct {
@@ -113,15 +113,23 @@ typedef struct {
 
 typedef struct {
     Token *tokens;
-    int pos, count;
+    int pos;
+    int count;
 } Parser;
 
-Token* parser_peek(Parser *p){ return &p->tokens[p->pos]; }
-Token* parser_advance(Parser *p){ return &p->tokens[p->pos++]; }
+Token* parser_peek(Parser *p){
+    if(p->pos >= p->count) return &p->tokens[p->count-1];
+    return &p->tokens[p->pos];
+}
+
+Token* parser_advance(Parser *p){
+    if(p->pos < p->count) p->pos++;
+    return &p->tokens[p->pos-1];
+}
 
 int parser_match(Parser *p, TokenType t, const char *v){
     Token *tk = parser_peek(p);
-    if(tk->type==t && (!v || strcmp(tk->value,v)==0)){
+    if(tk->type==t && (!v || !strcmp(tk->value,v))){
         parser_advance(p);
         return 1;
     }
@@ -133,186 +141,168 @@ void parser_error(Parser *p, const char *msg){
     exit(1);
 }
 
-/* ===== EXPR ===== */
-
-ExprNode* new_expr(int type, const char *v){
-    ExprNode *e=malloc(sizeof(ExprNode));
-    e->type=type;
-    if(v) strcpy(e->value,v);
-    e->l=e->r=NULL;
+ExprNode* new_expr(int type, const char *value){
+    ExprNode *e = malloc(sizeof(ExprNode));
+    e->type = type;
+    if(value) strcpy(e->value, value);
+    else e->value[0]=0;
+    e->l = e->r = NULL;
+    e->op[0]=0;
+    e->arr_node = NULL;
     return e;
 }
 
+/* ===== FORWARD ===== */
 ExprNode* parse_expr(Parser *p);
-
-ExprNode* parse_factor(Parser *p){
-    Token *t=parser_peek(p);
-
-    if(t->type==TOKEN_NUMBER || t->type==TOKEN_STRING){
-        parser_advance(p);
-        return new_expr(0,t->value);
-    }
-
-    if(t->type==TOKEN_COORD || t->type==TOKEN_IDENT ||
-       (t->type==TOKEN_KEYWORD && strcmp(t->value,"now")==0)){
-        parser_advance(p);
-        return new_expr(1,t->value);
-    }
-
-    if(parser_match(p,TOKEN_LPAREN,NULL)){
-        ExprNode *e=parse_expr(p);
-        parser_match(p,TOKEN_RPAREN,NULL);
-        return e;
-    }
-
-    parser_error(p,"Invalid factor");
-    return NULL;
-}
-
-ExprNode* parse_term(Parser *p){
-    ExprNode *e=parse_factor(p);
-
-    while(parser_peek(p)->type==TOKEN_OPERATOR &&
-         (!strcmp(parser_peek(p)->value,"*") ||
-          !strcmp(parser_peek(p)->value,"/"))){
-        Token *op=parser_advance(p);
-        ExprNode *r=parse_factor(p);
-
-        ExprNode *n=new_expr(2,NULL);
-        strcpy(n->op,op->value);
-        n->l=e; n->r=r;
-        e=n;
-    }
-    return e;
-}
-
-ExprNode* parse_expr(Parser *p){
-    ExprNode *e=parse_term(p);
-
-    while(parser_peek(p)->type==TOKEN_OPERATOR &&
-         (!strcmp(parser_peek(p)->value,"+") ||
-          !strcmp(parser_peek(p)->value,"-"))){
-        Token *op=parser_advance(p);
-        ExprNode *r=parse_term(p);
-
-        ExprNode *n=new_expr(2,NULL);
-        strcpy(n->op,op->value);
-        n->l=e; n->r=r;
-        e=n;
-    }
-    return e;
-}
+void* parse_stmt(Parser *p);
 
 /* ===== ARRAY ===== */
-
-ExprNode** parse_array(Parser *p,int *count){
-    parser_match(p,TOKEN_LBRACKET,NULL);
-
-    ExprNode **vals=malloc(sizeof(ExprNode*)*64);
+ExprNode** parse_array(Parser *p, int *count){
+    parser_match(p, TOKEN_LBRACKET, NULL);
+    ExprNode **vals = malloc(sizeof(ExprNode*)*64);
     int c=0;
-
-    while(!parser_match(p,TOKEN_RBRACKET,NULL)){
-        vals[c++]=parse_expr(p);
-        parser_match(p,TOKEN_COMMA,NULL);
+    while(!parser_match(p, TOKEN_RBRACKET, NULL)){
+        vals[c++] = parse_expr(p);
+        parser_match(p, TOKEN_COMMA, NULL);
     }
-
-    *count=c;
+    *count = c;
     return vals;
 }
 
-/* ===== STATEMENTS ===== */
+/* ===== FACTOR ===== */
+ExprNode* parse_factor(Parser *p){
+    Token *t = parser_peek(p);
 
-void* parse_stmt(Parser *p){
-    Token *t=parser_peek(p);
-
-    /* write / append */
-    if(t->type==TOKEN_KEYWORD &&
-       (!strcmp(t->value,"write") || !strcmp(t->value,"append"))){
-
-        int is_append = !strcmp(t->value,"append");
-
-        parser_advance(p);
-        parser_match(p,TOKEN_LPAREN,NULL);
-
-        Token *path=parser_advance(p);
-
-        parser_match(p,TOKEN_RPAREN,NULL);
-        parser_match(p,TOKEN_OPERATOR,"<<");
-
-        Token *src=parser_advance(p);
-
-        FileWriteNode *n=malloc(sizeof(FileWriteNode));
-        n->node_type=NODE_FILE_WRITE;
-        strcpy(n->path,path->value);
-        strcpy(n->source,src->value);
-        n->append_mode=is_append;
-
-        return n;
+    if(t->type == TOKEN_LBRACKET){
+        int c;
+        ExprNode **vals = parse_array(p, &c);
+        ExprNode *e = new_expr(3, NULL);
+        e->arr_node = malloc(sizeof(ArrayLiteralNode));
+        e->arr_node->node_type = NODE_ARRAY_LITERAL;
+        e->arr_node->values = vals;
+        e->arr_node->count = c;
+        return e;
     }
 
-    /* past */
+    if(t->type==TOKEN_NUMBER || t->type==TOKEN_STRING){
+        parser_advance(p);
+        return new_expr(0, t->value);
+    }
+
+    if(t->type==TOKEN_IDENT || t->type==TOKEN_COORD ||
+       (t->type==TOKEN_KEYWORD && !strcmp(t->value,"now"))){
+        parser_advance(p);
+        return new_expr(1, t->value);
+    }
+
+    if(parser_match(p, TOKEN_LPAREN, NULL)){
+        ExprNode *e = parse_expr(p);
+        parser_match(p, TOKEN_RPAREN, NULL);
+        return e;
+    }
+
+    parser_error(p, "Invalid factor");
+    return NULL;
+}
+
+/* ===== TERM / EXPR ===== */
+ExprNode* parse_term(Parser *p){
+    ExprNode *left = parse_factor(p);
+
+    while(parser_peek(p)->type==TOKEN_OPERATOR &&
+          (!strcmp(parser_peek(p)->value,"*") ||
+           !strcmp(parser_peek(p)->value,"/"))){
+        Token *op = parser_advance(p);
+        ExprNode *right = parse_factor(p);
+
+        ExprNode *e = new_expr(2, NULL);
+        strcpy(e->op, op->value);
+        e->l = left;
+        e->r = right;
+        left = e;
+    }
+    return left;
+}
+
+ExprNode* parse_expr(Parser *p){
+    ExprNode *left = parse_term(p);
+
+    while(parser_peek(p)->type==TOKEN_OPERATOR &&
+          (!strcmp(parser_peek(p)->value,"+") ||
+           !strcmp(parser_peek(p)->value,"-"))){
+        Token *op = parser_advance(p);
+        ExprNode *right = parse_term(p);
+
+        ExprNode *e = new_expr(2, NULL);
+        strcpy(e->op, op->value);
+        e->l = left;
+        e->r = right;
+        left = e;
+    }
+    return left;
+}
+
+/* ===== STATEMENT ===== */
+void* parse_stmt(Parser *p){
+    Token *t = parser_peek(p);
+
+    /* past(x) ~> P1 */
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"past")){
         parser_advance(p);
         parser_match(p,TOKEN_LPAREN,NULL);
 
-        Token *name=parser_advance(p);
+        Token *name = parser_advance(p);
 
-        AssignNode *a=malloc(sizeof(AssignNode));
-        a->node_type=NODE_ASSIGN;
-        a->has_index=0;
-        a->index=NULL;
+        int has_index=0;
+        ExprNode *idx=NULL;
 
         if(parser_match(p,TOKEN_LBRACKET,NULL)){
-            a->has_index=1;
-            a->index=parse_expr(p);
+            has_index=1;
+            idx = parse_expr(p);
             parser_match(p,TOKEN_RBRACKET,NULL);
         }
 
         parser_match(p,TOKEN_RPAREN,NULL);
         parser_match(p,TOKEN_OPERATOR,"~>");
-        Token *target=parser_advance(p);
+        Token *target = parser_advance(p);
 
+        AssignNode *a = malloc(sizeof(AssignNode));
+        a->node_type = NODE_ASSIGN;
+        a->expr = new_expr(1,name->value);
+        a->has_index = has_index;
+        a->index = idx;
         strcpy(a->target,target->value);
-        a->expr=new_expr(1,name->value);
-
         return a;
     }
 
     /* Gate */
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"Gate")){
         parser_advance(p);
-        Token *src=parser_advance(p);
+        Token *src = parser_advance(p);
 
         parser_match(p,TOKEN_LPAREN,NULL);
+        Token *op = parser_advance(p);
+        Token *val = parser_advance(p);
 
-        Token *op=parser_advance(p);
-        Token *val=parser_advance(p);
-
-        GateNode *g=malloc(sizeof(GateNode));
-        g->node_type=NODE_GATE;
-
+        GateNode *g = malloc(sizeof(GateNode));
+        g->node_type = NODE_GATE;
         strcpy(g->source,src->value);
         strcpy(g->op,op->value);
-        g->value=atof(val->value);
-        g->logic[0]=0;
+        g->value = atof(val->value);
 
         if(parser_peek(p)->type==TOKEN_LOGIC){
-            Token *lg=parser_advance(p);
+            Token *lg = parser_advance(p);
             strcpy(g->logic,lg->value);
-
-            Token *op2=parser_advance(p);
-            Token *val2=parser_advance(p);
-
+            Token *op2 = parser_advance(p);
+            Token *val2 = parser_advance(p);
             strcpy(g->op2,op2->value);
-            g->value2=atof(val2->value);
-        }
+            g->value2 = atof(val2->value);
+        } else g->logic[0]=0;
 
         parser_match(p,TOKEN_RPAREN,NULL);
         parser_match(p,TOKEN_OPERATOR,">>");
-
-        Token *target=parser_advance(p);
+        Token *target = parser_advance(p);
         strcpy(g->target,target->value);
-
         return g;
     }
 
@@ -320,116 +310,108 @@ void* parse_stmt(Parser *p){
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"F")){
         parser_advance(p);
         parser_match(p,TOKEN_LPAREN,NULL);
-        Token *src=parser_advance(p);
+        Token *src = parser_advance(p);
         parser_match(p,TOKEN_RPAREN,NULL);
         parser_match(p,TOKEN_LBRACE,NULL);
 
-        void **body=malloc(sizeof(void*)*128);
+        void **body = malloc(sizeof(void*)*128);
         int c=0;
         while(!parser_match(p,TOKEN_RBRACE,NULL)){
-            body[c++]=parse_stmt(p);
+            body[c++] = parse_stmt(p);
         }
 
-        FNode *f=malloc(sizeof(FNode));
-        f->node_type=NODE_F;
+        FNode *f = malloc(sizeof(FNode));
+        f->node_type = NODE_F;
         strcpy(f->source,src->value);
-        f->body=body;
-        f->body_count=c;
+        f->body = body;
+        f->body_count = c;
         return f;
     }
 
     /* return */
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"return")){
         parser_advance(p);
-        ReturnNode *r=malloc(sizeof(ReturnNode));
-        r->node_type=NODE_RETURN;
-        r->expr=parse_expr(p);
+        ReturnNode *r = malloc(sizeof(ReturnNode));
+        r->node_type = NODE_RETURN;
+        r->expr = parse_expr(p);
         return r;
     }
 
     /* func call */
-    if(t->type==TOKEN_IDENT &&
-       p->pos+1 < p->count &&
-       p->tokens[p->pos+1].type==TOKEN_LPAREN){
-
-        Token *name=parser_advance(p);
+    if(t->type==TOKEN_IDENT && p->tokens[p->pos+1].type==TOKEN_LPAREN){
+        Token *name = parser_advance(p);
         parser_match(p,TOKEN_LPAREN,NULL);
 
-        FuncCallNode *fc=malloc(sizeof(FuncCallNode));
-        fc->node_type=NODE_FUNC_CALL;
+        FuncCallNode *fc = malloc(sizeof(FuncCallNode));
+        fc->node_type = NODE_FUNC_CALL;
         strcpy(fc->name,name->value);
         fc->arg_count=0;
 
         while(!parser_match(p,TOKEN_RPAREN,NULL)){
-            Token *an=parser_advance(p);
+            Token *argn = parser_advance(p);
             parser_match(p,TOKEN_EQUALS,NULL);
-
             fc->arg_values[fc->arg_count]=parse_expr(p);
-            strcpy(fc->arg_names[fc->arg_count],an->value);
+            strcpy(fc->arg_names[fc->arg_count],argn->value);
             fc->arg_count++;
-
             parser_match(p,TOKEN_COMMA,NULL);
         }
 
         parser_match(p,TOKEN_OPERATOR,"~>");
-        Token *target=parser_advance(p);
+        Token *target = parser_advance(p);
         strcpy(fc->target,target->value);
-
         return fc;
     }
 
-    /* expr >> coord */
-    ExprNode *e=parse_expr(p);
-    parser_match(p,TOKEN_OPERATOR,">>");
-    Token *target=parser_advance(p);
+    /* expr >> target */
+    ExprNode *e = parse_expr(p);
+    if(parser_match(p,TOKEN_OPERATOR,">>")){
+        Token *target = parser_advance(p);
+        AssignNode *a = malloc(sizeof(AssignNode));
+        a->node_type = NODE_ASSIGN;
+        a->expr = e;
+        a->has_index = 0;
+        strcpy(a->target,target->value);
+        return a;
+    }
 
-    AssignNode *a=malloc(sizeof(AssignNode));
-    a->node_type=NODE_ASSIGN;
-    a->expr=e;
-    a->has_index=0;
-    a->index=NULL;
-
-    strcpy(a->target,target->value);
-
-    return a;
+    parser_error(p,"Invalid statement");
+    return NULL;
 }
 
-/* ===== FUNC ===== */
-
+/* ===== FUNC DEF ===== */
 FuncDefNode* parse_func(Parser *p){
     parser_match(p,TOKEN_KEYWORD,"func");
-    Token *name=parser_advance(p);
+    Token *name = parser_advance(p);
 
-    FuncDefNode *fn=malloc(sizeof(FuncDefNode));
-    fn->node_type=NODE_FUNC_DEF;
+    FuncDefNode *fn = malloc(sizeof(FuncDefNode));
+    fn->node_type = NODE_FUNC_DEF;
     strcpy(fn->name,name->value);
 
     parser_match(p,TOKEN_LPAREN,NULL);
-
     fn->param_count=0;
+
     while(!parser_match(p,TOKEN_RPAREN,NULL)){
-        Token *param=parser_advance(p);
+        Token *param = parser_advance(p);
         strcpy(fn->params[fn->param_count++],param->value);
         parser_match(p,TOKEN_COMMA,NULL);
     }
 
     parser_match(p,TOKEN_LBRACE,NULL);
 
-    fn->body=malloc(sizeof(void*)*128);
-    fn->body_count=0;
-
+    void **body = malloc(sizeof(void*)*128);
+    int c=0;
     while(!parser_match(p,TOKEN_RBRACE,NULL)){
-        fn->body[fn->body_count++]=parse_stmt(p);
+        body[c++] = parse_stmt(p);
     }
 
+    fn->body = body;
+    fn->body_count = c;
     return fn;
 }
 
 /* ===== PROGRAM ===== */
-
 ProgramNode* parse(Token *tokens, int count){
     Parser p={tokens,0,count};
-
     ProgramNode *prog=malloc(sizeof(ProgramNode));
     prog->tminus=malloc(sizeof(void*)*256); prog->tminus_count=0;
     prog->t0=malloc(sizeof(void*)*256); prog->t0_count=0;
@@ -437,26 +419,31 @@ ProgramNode* parse(Token *tokens, int count){
 
     while(parser_peek(&p)->type!=TOKEN_EOF){
         Token *t=parser_peek(&p);
+        if(t->type!=TOKEN_SECTION) parser_error(&p,"Expected section");
 
         if(!strcmp(t->value,"[T-]")){
             parser_advance(&p);
-            while(parser_peek(&p)->type!=TOKEN_SECTION){
+            while(parser_peek(&p)->type!=TOKEN_SECTION &&
+                  parser_peek(&p)->type!=TOKEN_EOF){
+
                 Token *cur=parser_peek(&p);
 
                 if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"func")){
-                    prog->tminus[prog->tminus_count++]=parse_func(&p);
+                    prog->tminus[prog->tminus_count++] = parse_func(&p);
                 }
                 else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"arr")){
                     parser_advance(&p);
                     Token *name=parser_advance(&p);
                     parser_match(&p,TOKEN_EQUALS,NULL);
 
-                    int c; ExprNode **vals=parse_array(&p,&c);
+                    int c;
+                    ExprNode **vals = parse_array(&p,&c);
 
                     ArrayAssignNode *a=malloc(sizeof(ArrayAssignNode));
                     a->node_type=NODE_ARRAY_ASSIGN;
                     strcpy(a->name,name->value);
-                    a->values=vals; a->count=c;
+                    a->values=vals;
+                    a->count=c;
 
                     prog->tminus[prog->tminus_count++]=a;
                 }
@@ -473,24 +460,6 @@ ProgramNode* parse(Token *tokens, int count){
 
                     prog->tminus[prog->tminus_count++]=a;
                 }
-                else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"read")){
-                    parser_advance(&p);
-                    parser_match(&p,TOKEN_LPAREN,NULL);
-
-                    Token *path=parser_advance(&p);
-
-                    parser_match(&p,TOKEN_RPAREN,NULL);
-                    parser_match(&p,TOKEN_OPERATOR,"~>");
-
-                    Token *target=parser_advance(&p);
-
-                    FileReadNode *n=malloc(sizeof(FileReadNode));
-                    n->node_type=NODE_FILE_READ;
-                    strcpy(n->path,path->value);
-                    strcpy(n->target,target->value);
-
-                    prog->tminus[prog->tminus_count++]=n;
-                }
                 else if(cur->type==TOKEN_IDENT){
                     Token *name=parser_advance(&p);
                     parser_match(&p,TOKEN_EQUALS,NULL);
@@ -502,22 +471,35 @@ ProgramNode* parse(Token *tokens, int count){
 
                     prog->tminus[prog->tminus_count++]=v;
                 }
+                else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"read")){
+                    parser_advance(&p);
+                    parser_match(&p,TOKEN_LPAREN,NULL);
+                    Token *path_tok=parser_advance(&p);
+                    parser_match(&p,TOKEN_RPAREN,NULL);
+                    parser_match(&p,TOKEN_OPERATOR,"~>");
+                    Token *target=parser_advance(&p);
+
+                    FileReadNode *n=malloc(sizeof(FileReadNode));
+                    n->node_type=NODE_FILE_READ;
+                    strcpy(n->path,path_tok->value);
+                    strcpy(n->target,target->value);
+                    prog->tminus[prog->tminus_count++]=n;
+                }
                 else parser_error(&p,"Invalid T-");
             }
         }
-
         else if(!strcmp(t->value,"[T0]")){
             parser_advance(&p);
-            while(parser_peek(&p)->type!=TOKEN_SECTION)
-                prog->t0[prog->t0_count++]=parse_stmt(&p);
+            while(parser_peek(&p)->type!=TOKEN_SECTION &&
+                  parser_peek(&p)->type!=TOKEN_EOF){
+                prog->t0[prog->t0_count++] = parse_stmt(&p);
+            }
         }
-
         else if(!strcmp(t->value,"[T+]")){
             parser_advance(&p);
             while(parser_peek(&p)->type!=TOKEN_EOF){
-                parser_advance(&p);
-                parser_advance(&p);
-
+                parser_advance(&p); // show
+                parser_advance(&p); // shall
                 parser_match(&p,TOKEN_LPAREN,NULL);
                 Token *coord=parser_advance(&p);
                 parser_match(&p,TOKEN_RPAREN,NULL);
@@ -530,6 +512,5 @@ ProgramNode* parse(Token *tokens, int count){
             }
         }
     }
-
     return prog;
 }
