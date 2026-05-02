@@ -165,7 +165,9 @@ TValue frame_get(Frame *f, const char *key){
         }
         cur=cur->parent;
     }
-    return make_error("!EMPTY_COORD");
+    char errbuf[128];
+    sprintf(errbuf,"!EMPTY_COORD(%s)",key);
+    return make_error(errbuf);
 }
 
 /* ===== EXPR ===== */
@@ -467,7 +469,9 @@ ExecResult exec_node(Frame *f, void *node){
         }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
-            frame_set(f,fc->target,make_error("!NO_FUNC"));
+            char errbuf[128];
+    sprintf(errbuf,"!NO_FUNC(%s)",fc->name);
+    frame_set(f,fc->target,make_error(errbuf));
             return res;
         }
 
