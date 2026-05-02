@@ -309,9 +309,14 @@ ExecResult exec_node(Frame *f, void *node){
         FNode *fn=node;
         TValue arr=frame_get(f,fn->source);
 
-        int has_gate=0;
-        for(int i=0;i<fn->body_count;i++)
+        int has_gate=0, has_now_assign=0;
+        for(int i=0;i<fn->body_count;i++){
             if(*(NodeType*)fn->body[i]==NODE_GATE) has_gate=1;
+            if(*(NodeType*)fn->body[i]==NODE_ASSIGN){
+                AssignNode *a=(AssignNode*)fn->body[i];
+                if(!strcmp(a->target,"now")) has_now_assign=1;
+            }
+        }
 
         if(has_gate){
             GateNode *gn=NULL;
@@ -327,13 +332,24 @@ ExecResult exec_node(Frame *f, void *node){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
                 exec_node(cf,gn);
-
                 TValue resv=frame_get(cf,gn->target);
                 if(resv.type!=TV_ERROR)
                     out.arr.items[out.arr.count++]=arr.arr.items[j];
             }
-
             frame_set(f,gn->target,out);
+        }
+        else if(has_now_assign){
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.count=0;
+
+            for(int i=0;i<arr.arr.count;i++){
+                Frame *cf=new_frame(f);
+                frame_set(cf,"now",arr.arr.items[i]);
+                exec_block(cf,fn->body,fn->body_count);
+                out.arr.items[out.arr.count++]=frame_get(cf,"now");
+            }
+            frame_set(f,fn->source,out);
         }
         else{
             for(int i=0;i<fn->body_count;i++){
@@ -344,21 +360,16 @@ ExecResult exec_node(Frame *f, void *node){
                         frame_set(f,a->target,make_number(0));
                 }
             }
-
             for(int i=0;i<arr.arr.count;i++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[i]);
-
                 exec_block(cf,fn->body,fn->body_count);
-
-                for(int k=0;k<cf->count;k++){
+                for(int k=0;k<cf->count;k++)
                     if(strcmp(cf->keys[k],"now")!=0)
                         frame_set(f,cf->keys[k],cf->values[k]);
-                }
             }
         }
     }
-
     else if(t==NODE_FUNC_CALL){
         FuncCallNode *fc=node;
 
