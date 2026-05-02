@@ -185,7 +185,17 @@ TValue eval_expr(Frame *f, ExprNode *e){
 
         if(a.type==TV_ERROR || b.type==TV_ERROR) return a;
 
-        if(!strcmp(e->op,"+")) return make_number(a.num+b.num);
+        if(!strcmp(e->op,"+")){
+            if(a.type==TV_STRING || b.type==TV_STRING){
+                char buf[512];
+                char sa[256], sb[256];
+                if(a.type==TV_NUMBER) sprintf(sa,"%g",a.num); else strcpy(sa,a.str);
+                if(b.type==TV_NUMBER) sprintf(sb,"%g",b.num); else strcpy(sb,b.str);
+                strcpy(buf,sa); strcat(buf,sb);
+                return make_string(buf);
+            }
+            return make_number(a.num+b.num);
+        }
         if(!strcmp(e->op,"-")) return make_number(a.num-b.num);
         if(!strcmp(e->op,"*")) return make_number(a.num*b.num);
         if(!strcmp(e->op,"/")){
