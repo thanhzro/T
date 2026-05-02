@@ -501,14 +501,16 @@ ProgramNode* parse(Token *tokens, int count){
                 parser_advance(&p); // show
                 parser_advance(&p); // shall
                 parser_match(&p,TOKEN_LPAREN,NULL);
-                Token *coord=parser_advance(&p);
-                parser_match(&p,TOKEN_RPAREN,NULL);
 
-                ShowNode *s=malloc(sizeof(ShowNode));
-                s->node_type=NODE_SHOW;
-                strcpy(s->coord,coord->value);
+                while(!parser_match(&p,TOKEN_RPAREN,NULL)){
+                    Token *coord=parser_advance(&p);
+                    parser_match(&p,TOKEN_COMMA,NULL);
 
-                prog->tplus[prog->tplus_count++]=s;
+                    ShowNode *s=malloc(sizeof(ShowNode));
+                    s->node_type=NODE_SHOW;
+                    strcpy(s->coord,coord->value);
+                    prog->tplus[prog->tplus_count++]=s;
+                }
             }
         }
     }
