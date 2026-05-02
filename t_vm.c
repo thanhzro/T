@@ -276,9 +276,12 @@ ExecResult exec_node(Frame *f, void *node){
             TValue arr = frame_get(f,a->expr->value);
             TValue idx = eval_expr(f,a->index);
 
-            if(arr.type!=TV_ARRAY) val=make_error("!NOT_ARRAY");
+            if(arr.type!=TV_ARRAY){
+                char eb[128]; sprintf(eb,"!NOT_ARRAY(%s)",a->expr->value);
+                val=make_error(eb);
+            }
             else if(idx.num<0 || idx.num>=arr.arr.count)
-                val=make_error("!OUT_OF_BOUNDS");
+                { char eb[128]; sprintf(eb,"!OUT_OF_BOUNDS(%d)",(int)idx.num); val=make_error(eb); }
             else val=arr.arr.items[(int)idx.num];
         } else {
             val = eval_expr(f,a->expr);
@@ -384,7 +387,7 @@ ExecResult exec_node(Frame *f, void *node){
             else if(val.type==TV_STRING)
                 frame_set(f,fc->target,make_number(strlen(val.str)));
             else
-                frame_set(f,fc->target,make_error("!TYPE_ERROR"));
+                { char eb[128]; sprintf(eb,"!TYPE_ERROR(%s)",fc->name); frame_set(f,fc->target,make_error(eb)); }
             return res;
         }
 
@@ -514,7 +517,7 @@ ExecResult exec_node(Frame *f, void *node){
         FILE *fp=fopen(n->path,"r");
 
         if(!fp){
-            frame_set(f,n->target,make_error("!FILE_NOT_FOUND"));
+            { char eb[128]; sprintf(eb,"!FILE_NOT_FOUND(%s)",n->path); frame_set(f,n->target,make_error(eb)); }
         } else {
             TValue arr; arr.type=TV_ARRAY;
             arr.arr.items=malloc(sizeof(TValue)*256);
