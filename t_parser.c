@@ -509,8 +509,10 @@ ProgramNode* parse(Token *tokens, int count){
                     ShowNode *s=malloc(sizeof(ShowNode));
                     s->node_type=NODE_SHOW;
                     strcpy(s->coord,coord->value);
+
                     prog->tplus[prog->tplus_count++]=s;
                 }
+
             }
         }
     }
