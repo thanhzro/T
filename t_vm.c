@@ -399,6 +399,23 @@ ExecResult exec_node(Frame *f, void *node){
             return res;
         }
 
+        if(!strcmp(fc->name,"abs")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(val.num<0 ? -val.num : val.num));
+            return res;
+        }
+        if(!strcmp(fc->name,"max")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            frame_set(f,fc->target,make_number(a.num>b.num ? a.num : b.num));
+            return res;
+        }
+        if(!strcmp(fc->name,"min")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            frame_set(f,fc->target,make_number(a.num<b.num ? a.num : b.num));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             frame_set(f,fc->target,make_error("!NO_FUNC"));
