@@ -134,8 +134,20 @@ FuncDefNode* find_func(const char *name){
 
 /* ===== VALUE ===== */
 TValue make_number(double x){ TValue v={TV_NUMBER}; v.num=x; return v; }
-TValue make_string(const char *s){ TValue v={TV_STRING}; strcpy(v.str,s); return v; }
-TValue make_error(const char *s){ TValue v={TV_ERROR}; strcpy(v.str,s); return v; }
+
+TValue make_string(const char *s){
+    TValue v={TV_STRING};
+    strncpy(v.str,s,255);
+    v.str[255]=0;
+    return v;
+}
+
+TValue make_error(const char *s){
+    TValue v={TV_ERROR};
+    strncpy(v.str,s,255);
+    v.str[255]=0;
+    return v;
+}
 
 /* ===== FRAME ===== */
 Frame* new_frame(Frame *parent){
@@ -152,7 +164,8 @@ void frame_set(Frame *f, const char *key, TValue v){
             return;
         }
     }
-    strcpy(f->keys[f->count],key);
+    strncpy(f->keys[f->count],key,63);
+    f->keys[f->count][63]=0;
     f->values[f->count]=v;
     f->count++;
 }
@@ -167,7 +180,8 @@ TValue frame_get(Frame *f, const char *key){
         cur=cur->parent;
     }
     char errbuf[128];
-    sprintf(errbuf,"!EMPTY_COORD(%s)",key);
+    snprintf(errbuf,127,"!EMPTY_COORD(%s)",key);
+    errbuf[127]=0;
     return make_error(errbuf);
 }
 
@@ -200,6 +214,7 @@ TValue eval_expr(Frame *f, ExprNode *e){
             arr.arr.items[i]=eval_expr(f,e->arr_node->values[i]);
         return arr;
     }
+
     if(e->type==2){
         TValue a=eval_expr(f,e->l);
         TValue b=eval_expr(f,e->r);
@@ -210,9 +225,10 @@ TValue eval_expr(Frame *f, ExprNode *e){
             if(a.type==TV_STRING || b.type==TV_STRING){
                 char buf[512];
                 char sa[256], sb[256];
-                if(a.type==TV_NUMBER) sprintf(sa,"%g",a.num); else strcpy(sa,a.str);
-                if(b.type==TV_NUMBER) sprintf(sb,"%g",b.num); else strcpy(sb,b.str);
-                strcpy(buf,sa); strcat(buf,sb);
+                if(a.type==TV_NUMBER) snprintf(sa,255,"%g",a.num); else { strncpy(sa,a.str,255); sa[255]=0; }
+                if(b.type==TV_NUMBER) snprintf(sb,255,"%g",b.num); else { strncpy(sb,b.str,255); sb[255]=0; }
+                strncpy(buf,sa,511); buf[511]=0;
+                strncat(buf,sb,511-strlen(buf));
                 return make_string(buf);
             }
             return make_number(a.num+b.num);
@@ -284,11 +300,17 @@ ExecResult exec_node(Frame *f, void *node){
             TValue idx = eval_expr(f,a->index);
 
             if(arr.type!=TV_ARRAY){
-                char eb[128]; sprintf(eb,"!NOT_ARRAY(%s)",a->expr->value);
+                char eb[128];
+                snprintf(eb,127,"!NOT_ARRAY(%s)",a->expr->value);
+                eb[127]=0;
                 val=make_error(eb);
             }
-            else if(idx.num<0 || idx.num>=arr.arr.count)
-                { char eb[128]; sprintf(eb,"!OUT_OF_BOUNDS(%d)",(int)idx.num); val=make_error(eb); }
+            else if(idx.num<0 || idx.num>=arr.arr.count){
+                char eb[128];
+                snprintf(eb,127,"!OUT_OF_BOUNDS(%d)",(int)idx.num);
+                eb[127]=0;
+                val=make_error(eb);
+            }
             else val=arr.arr.items[(int)idx.num];
         } else {
             val = eval_expr(f,a->expr);
@@ -321,7 +343,8 @@ ExecResult exec_node(Frame *f, void *node){
         if(pass) frame_set(f,g->target,v);
         else{
             char buf[128];
-            sprintf(buf,"!(%s)",g->target);
+            snprintf(buf,127,"!(%s)",g->target);
+            buf[127]=0;
             frame_set(f,g->target,make_error(buf));
         }
     }
@@ -392,60 +415,22 @@ ExecResult exec_node(Frame *f, void *node){
             }
         }
     }
+
     else if(t==NODE_FUNC_CALL){
         FuncCallNode *fc=node;
 
-        /* BUILT-IN */
         if(!strcmp(fc->name,"len")){
             TValue val=eval_expr(f,fc->arg_values[0]);
             if(val.type==TV_ARRAY)
                 frame_set(f,fc->target,make_number(val.arr.count));
             else if(val.type==TV_STRING)
                 frame_set(f,fc->target,make_number(strlen(val.str)));
-            else
-                { char eb[128]; sprintf(eb,"!TYPE_ERROR(%s)",fc->name); frame_set(f,fc->target,make_error(eb)); }
-            return res;
-        }
-
-        if(!strcmp(fc->name,"split")){
-            TValue str=eval_expr(f,fc->arg_values[0]);
-            TValue sep=eval_expr(f,fc->arg_values[1]);
-
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
-            out.arr.count=0;
-
-            char buf[256]; strcpy(buf,str.str);
-            char *token=strtok(buf,sep.str);
-            while(token){
-                if(is_number(token))
-                    out.arr.items[out.arr.count++]=make_number(atof(token));
-                else
-                    out.arr.items[out.arr.count++]=make_string(token);
-                token=strtok(NULL,sep.str);
+            else{
+                char eb[128];
+                snprintf(eb,127,"!TYPE_ERROR(%s)",fc->name);
+                eb[127]=0;
+                frame_set(f,fc->target,make_error(eb));
             }
-
-            frame_set(f,fc->target,out);
-            return res;
-        }
-
-        if(!strcmp(fc->name,"join")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            TValue sep=eval_expr(f,fc->arg_values[1]);
-
-            char buf[1024]; buf[0]=0;
-            for(int i=0;i<arr.arr.count;i++){
-                if(i) strcat(buf,sep.str);
-                TValue it=arr.arr.items[i];
-                if(it.type==TV_NUMBER){
-                    char tmp[64]; sprintf(tmp,"%g",it.num);
-                    strcat(buf,tmp);
-                } else if(it.type==TV_STRING){
-                    strcat(buf,it.str);
-                }
-            }
-
-            frame_set(f,fc->target,make_string(buf));
             return res;
         }
 
@@ -457,6 +442,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(total));
             return res;
         }
+
         if(!strcmp(fc->name,"avg")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             if(arr.arr.count==0){
@@ -469,32 +455,57 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(total/arr.arr.count));
             return res;
         }
+
+        if(!strcmp(fc->name,"split")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue sep=eval_expr(f,fc->arg_values[1]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.count=0;
+            char buf[256]; strncpy(buf,str.str,255); buf[255]=0;
+            char *token=strtok(buf,sep.str);
+            while(token){
+                if(is_number(token)) out.arr.items[out.arr.count++]=make_number(atof(token));
+                else out.arr.items[out.arr.count++]=make_string(token);
+                token=strtok(NULL,sep.str);
+            }
+            frame_set(f,fc->target,out);
+            return res;
+        }
+        if(!strcmp(fc->name,"join")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue sep=eval_expr(f,fc->arg_values[1]);
+            char buf[1024]; buf[0]=0;
+            for(int i=0;i<arr.arr.count;i++){
+                if(i) strncat(buf,sep.str,1023-strlen(buf));
+                TValue it=arr.arr.items[i];
+                if(it.type==TV_NUMBER){ char tmp[64]; snprintf(tmp,63,"%g",it.num); strncat(buf,tmp,1023-strlen(buf)); }
+                else strncat(buf,it.str,1023-strlen(buf));
+            }
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
         if(!strcmp(fc->name,"trim")){
             TValue val=eval_expr(f,fc->arg_values[0]);
-            if(val.type!=TV_STRING){
-                char eb[128]; sprintf(eb,"!TYPE_ERROR(%s)",fc->name);
-                frame_set(f,fc->target,make_error(eb));
-                return res;
-            }
             char *s=val.str;
             while(*s==' '||*s=='\t') s++;
-            char tmp[256]; strcpy(tmp,s);
+            char tmp[256]; strncpy(tmp,s,255); tmp[255]=0;
             int len=strlen(tmp);
-            while(len>0 && (tmp[len-1]==' '||tmp[len-1]=='\t')) len--;
+            while(len>0&&(tmp[len-1]==' '||tmp[len-1]=='\t')) len--;
             tmp[len]=0;
             frame_set(f,fc->target,make_string(tmp));
             return res;
         }
         if(!strcmp(fc->name,"upper")){
             TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[256]; strcpy(tmp,val.str);
+            char tmp[256]; strncpy(tmp,val.str,255); tmp[255]=0;
             for(int i=0;tmp[i];i++) tmp[i]=toupper(tmp[i]);
             frame_set(f,fc->target,make_string(tmp));
             return res;
         }
         if(!strcmp(fc->name,"lower")){
             TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[256]; strcpy(tmp,val.str);
+            char tmp[256]; strncpy(tmp,val.str,255); tmp[255]=0;
             for(int i=0;tmp[i];i++) tmp[i]=tolower(tmp[i]);
             frame_set(f,fc->target,make_string(tmp));
             return res;
@@ -508,11 +519,11 @@ ExecResult exec_node(Frame *f, void *node){
             int olen=strlen(old_s.str);
             while(*src){
                 if(strncmp(src,old_s.str,olen)==0){
-                    strcat(result,new_s.str);
+                    strncat(result,new_s.str,1023-strlen(result));
                     src+=olen;
                 } else {
                     char tmp[2]={*src,0};
-                    strcat(result,tmp);
+                    strncat(result,tmp,1023-strlen(result));
                     src++;
                 }
             }
@@ -522,42 +533,39 @@ ExecResult exec_node(Frame *f, void *node){
         if(!strcmp(fc->name,"contains")){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sub=eval_expr(f,fc->arg_values[1]);
-            int found=strstr(str.str,sub.str)!=NULL;
-            frame_set(f,fc->target,make_number(found));
+            frame_set(f,fc->target,make_number(strstr(str.str,sub.str)!=NULL));
             return res;
         }
         if(!strcmp(fc->name,"indexOf")){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sub=eval_expr(f,fc->arg_values[1]);
             char *found=strstr(str.str,sub.str);
-            if(found)
-                frame_set(f,fc->target,make_number((int)(found-str.str)));
-            else
-                frame_set(f,fc->target,make_number(-1));
+            frame_set(f,fc->target,make_number(found ? (int)(found-str.str) : -1));
             return res;
         }
         if(!strcmp(fc->name,"abs")){
             TValue val=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(val.num<0 ? -val.num : val.num));
+            frame_set(f,fc->target,make_number(val.num<0?-val.num:val.num));
             return res;
         }
         if(!strcmp(fc->name,"max")){
             TValue a=eval_expr(f,fc->arg_values[0]);
             TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(a.num>b.num ? a.num : b.num));
+            frame_set(f,fc->target,make_number(a.num>b.num?a.num:b.num));
             return res;
         }
         if(!strcmp(fc->name,"min")){
             TValue a=eval_expr(f,fc->arg_values[0]);
             TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(a.num<b.num ? a.num : b.num));
+            frame_set(f,fc->target,make_number(a.num<b.num?a.num:b.num));
             return res;
         }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
-    sprintf(errbuf,"!NO_FUNC(%s)",fc->name);
-    frame_set(f,fc->target,make_error(errbuf));
+            snprintf(errbuf,127,"!NO_FUNC(%s)",fc->name);
+            errbuf[127]=0;
+            frame_set(f,fc->target,make_error(errbuf));
             return res;
         }
 
@@ -574,6 +582,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,r.value);
         else
             frame_set(f,fc->target,make_error("!NO_RETURN"));
+
         free(nf);
     }
 
@@ -601,7 +610,10 @@ ExecResult exec_node(Frame *f, void *node){
         FILE *fp=fopen(n->path,"r");
 
         if(!fp){
-            { char eb[128]; sprintf(eb,"!FILE_NOT_FOUND(%s)",n->path); frame_set(f,n->target,make_error(eb)); }
+            char eb[128];
+            snprintf(eb,127,"!FILE_NOT_FOUND(%s)",n->path);
+            eb[127]=0;
+            frame_set(f,n->target,make_error(eb));
         } else {
             TValue arr; arr.type=TV_ARRAY;
             arr.arr.items=malloc(sizeof(TValue)*256);
@@ -611,9 +623,9 @@ ExecResult exec_node(Frame *f, void *node){
             while(fgets(line,256,fp)){
                 line[strcspn(line,"\n")]=0;
                 if(is_number(line))
-                arr.arr.items[arr.arr.count++]=make_number(atof(line));
-            else
-                arr.arr.items[arr.arr.count++]=make_string(line);
+                    arr.arr.items[arr.arr.count++]=make_number(atof(line));
+                else
+                    arr.arr.items[arr.arr.count++]=make_string(line);
             }
 
             fclose(fp);
@@ -648,16 +660,20 @@ ExecResult exec_node(Frame *f, void *node){
 
         if(s->format[0]){
             char out[512]; char tmp[256];
-            if(v.type==TV_NUMBER) sprintf(tmp,"%g",v.num);
-            else if(v.type==TV_STRING) strcpy(tmp,v.str);
-            else strcpy(tmp,v.str);
+            if(v.type==TV_NUMBER) snprintf(tmp,255,"%g",v.num);
+            else { strncpy(tmp,v.str,255); tmp[255]=0; }
+
             char *ph=strstr(s->format,"{}");
             if(ph){
                 int pre=(int)(ph-s->format);
-                strncpy(out,s->format,pre); out[pre]=0;
-                strcat(out,tmp);
-                strcat(out,ph+2);
-            } else strcpy(out,s->format);
+                strncpy(out,s->format,pre);
+                out[pre]=0;
+                strncat(out,tmp,511-strlen(out));
+                strncat(out,ph+2,511-strlen(out));
+            } else {
+                strncpy(out,s->format,511);
+                out[511]=0;
+            }
             printf("%s\n",out);
         }
         else if(v.type==TV_NUMBER) printf("%g\n",v.num);
