@@ -484,6 +484,33 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(tmp));
             return res;
         }
+        if(!strcmp(fc->name,"replace")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue old_s=eval_expr(f,fc->arg_values[1]);
+            TValue new_s=eval_expr(f,fc->arg_values[2]);
+            char result[1024]; result[0]=0;
+            char *src=str.str;
+            int olen=strlen(old_s.str);
+            while(*src){
+                if(strncmp(src,old_s.str,olen)==0){
+                    strcat(result,new_s.str);
+                    src+=olen;
+                } else {
+                    char tmp[2]={*src,0};
+                    strcat(result,tmp);
+                    src++;
+                }
+            }
+            frame_set(f,fc->target,make_string(result));
+            return res;
+        }
+        if(!strcmp(fc->name,"contains")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue sub=eval_expr(f,fc->arg_values[1]);
+            int found=strstr(str.str,sub.str)!=NULL;
+            frame_set(f,fc->target,make_number(found));
+            return res;
+        }
         if(!strcmp(fc->name,"abs")){
             TValue val=eval_expr(f,fc->arg_values[0]);
             frame_set(f,fc->target,make_number(val.num<0 ? -val.num : val.num));
