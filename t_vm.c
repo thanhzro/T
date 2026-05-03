@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 /* ===== NODE TYPE ===== */
 typedef enum {
@@ -451,6 +452,36 @@ ExecResult exec_node(Frame *f, void *node){
             for(int i=0;i<arr.arr.count;i++)
                 total+=arr.arr.items[i].num;
             frame_set(f,fc->target,make_number(total/arr.arr.count));
+            return res;
+        }
+        if(!strcmp(fc->name,"trim")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            if(val.type!=TV_STRING){
+                char eb[128]; sprintf(eb,"!TYPE_ERROR(%s)",fc->name);
+                frame_set(f,fc->target,make_error(eb));
+                return res;
+            }
+            char *s=val.str;
+            while(*s==' '||*s=='\t') s++;
+            char tmp[256]; strcpy(tmp,s);
+            int len=strlen(tmp);
+            while(len>0 && (tmp[len-1]==' '||tmp[len-1]=='\t')) len--;
+            tmp[len]=0;
+            frame_set(f,fc->target,make_string(tmp));
+            return res;
+        }
+        if(!strcmp(fc->name,"upper")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            char tmp[256]; strcpy(tmp,val.str);
+            for(int i=0;tmp[i];i++) tmp[i]=toupper(tmp[i]);
+            frame_set(f,fc->target,make_string(tmp));
+            return res;
+        }
+        if(!strcmp(fc->name,"lower")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            char tmp[256]; strcpy(tmp,val.str);
+            for(int i=0;tmp[i];i++) tmp[i]=tolower(tmp[i]);
+            frame_set(f,fc->target,make_string(tmp));
             return res;
         }
         if(!strcmp(fc->name,"abs")){
