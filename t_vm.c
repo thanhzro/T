@@ -574,6 +574,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,r.value);
         else
             frame_set(f,fc->target,make_error("!NO_RETURN"));
+        free(nf);
     }
 
     else if(t==NODE_RETURN){
