@@ -388,6 +388,7 @@ ExecResult exec_node(Frame *f, void *node){
                 for(int k=0;k<cf->count;k++)
                     if(strcmp(cf->keys[k],"now")!=0)
                         frame_set(f,cf->keys[k],cf->values[k]);
+                free(cf);
             }
         }
     }
