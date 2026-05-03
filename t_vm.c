@@ -72,8 +72,8 @@ typedef struct {
 typedef struct {
     NodeType node_type;
     char source[64];
-    char op[4]; double value;
-    char op2[4]; double value2;
+    char op[4]; double value; char str_val[256];
+    char op2[4]; double value2; char str_val2[256];
     char logic[4];
     char target[64];
 } GateNode;
@@ -239,6 +239,12 @@ int gate_check(double v, const char *op, double val){
     return 0;
 }
 
+int gate_check_str(const char *v, const char *op, const char *val){
+    if(!strcmp(op,"==")) return !strcmp(v,val);
+    if(!strcmp(op,"!=")) return strcmp(v,val)!=0;
+    return 0;
+}
+
 ExecResult exec_node(Frame *f, void *node);
 
 ExecResult exec_block(Frame *f, void **body, int count){
@@ -295,11 +301,19 @@ ExecResult exec_node(Frame *f, void *node){
         GateNode *g=node;
         TValue v=frame_get(f,g->source);
 
-        int pass1=gate_check(v.num,g->op,g->value);
+        int pass1;
+        if(v.type==TV_STRING)
+            pass1=gate_check_str(v.str,g->op,g->str_val);
+        else
+            pass1=gate_check(v.num,g->op,g->value);
         int pass=pass1;
 
         if(g->logic[0]){
-            int pass2=gate_check(v.num,g->op2,g->value2);
+            int pass2;
+            if(v.type==TV_STRING)
+                pass2=gate_check_str(v.str,g->op2,g->str_val2);
+            else
+                pass2=gate_check(v.num,g->op2,g->value2);
             if(!strcmp(g->logic,"&&")) pass=pass1 && pass2;
             else pass=pass1 || pass2;
         }

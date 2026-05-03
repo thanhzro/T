@@ -55,8 +55,8 @@ typedef struct {
 typedef struct {
     NodeType node_type;
     char source[64];
-    char op[4];   double value;
-    char op2[4];  double value2;
+    char op[4];   double value;   char str_val[256];
+    char op2[4];  double value2;  char str_val2[256];
     char logic[4];
     char target[64];
 } GateNode;
@@ -289,6 +289,7 @@ void* parse_stmt(Parser *p){
         strcpy(g->source,src->value);
         strcpy(g->op,op->value);
         g->value = atof(val->value);
+        strcpy(g->str_val,val->value);
 
         if(parser_peek(p)->type==TOKEN_LOGIC){
             Token *lg = parser_advance(p);
@@ -297,6 +298,7 @@ void* parse_stmt(Parser *p){
             Token *val2 = parser_advance(p);
             strcpy(g->op2,op2->value);
             g->value2 = atof(val2->value);
+            strcpy(g->str_val2,val2->value);
         } else g->logic[0]=0;
 
         parser_match(p,TOKEN_RPAREN,NULL);
