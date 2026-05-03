@@ -511,6 +511,16 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(found));
             return res;
         }
+        if(!strcmp(fc->name,"indexOf")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue sub=eval_expr(f,fc->arg_values[1]);
+            char *found=strstr(str.str,sub.str);
+            if(found)
+                frame_set(f,fc->target,make_number((int)(found-str.str)));
+            else
+                frame_set(f,fc->target,make_number(-1));
+            return res;
+        }
         if(!strcmp(fc->name,"abs")){
             TValue val=eval_expr(f,fc->arg_values[0]);
             frame_set(f,fc->target,make_number(val.num<0 ? -val.num : val.num));
