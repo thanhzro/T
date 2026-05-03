@@ -65,7 +65,7 @@ typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignN
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
 typedef struct { NodeType node_type; char source[64]; void **body; int body_count; } FNode;
-typedef struct { NodeType node_type; char coord[64]; } ShowNode;
+typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
     NodeType node_type;
@@ -438,7 +438,7 @@ ProgramNode* parse(Token *tokens, int count){
 
     while(parser_peek(&p)->type!=TOKEN_EOF){
         Token *t=parser_peek(&p);
-        if(t->type!=TOKEN_SECTION) parser_error(&p,"Expected section");
+        if(t->type!=TOKEN_SECTION) break;
 
         if(!strcmp(t->value,"[T-]")){
             parser_advance(&p);
@@ -516,7 +516,7 @@ ProgramNode* parse(Token *tokens, int count){
         }
         else if(!strcmp(t->value,"[T+]")){
             parser_advance(&p);
-            while(parser_peek(&p)->type!=TOKEN_EOF){
+            while(parser_peek(&p)->type==TOKEN_KEYWORD && !strcmp(parser_peek(&p)->value,"show")){
                 parser_advance(&p); // show
                 parser_advance(&p); // shall
                 parser_match(&p,TOKEN_LPAREN,NULL);

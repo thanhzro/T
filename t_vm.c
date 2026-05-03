@@ -81,7 +81,7 @@ typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignN
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
 typedef struct { NodeType node_type; char source[64]; void **body; int body_count; } FNode;
-typedef struct { NodeType node_type; char coord[64]; } ShowNode;
+typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
     NodeType node_type;
@@ -562,7 +562,21 @@ ExecResult exec_node(Frame *f, void *node){
         ShowNode *s=node;
         TValue v=frame_get(f,s->coord);
 
-        if(v.type==TV_NUMBER) printf("%g\n",v.num);
+        if(s->format[0]){
+            char out[512]; char tmp[256];
+            if(v.type==TV_NUMBER) sprintf(tmp,"%g",v.num);
+            else if(v.type==TV_STRING) strcpy(tmp,v.str);
+            else strcpy(tmp,v.str);
+            char *ph=strstr(s->format,"{}");
+            if(ph){
+                int pre=(int)(ph-s->format);
+                strncpy(out,s->format,pre); out[pre]=0;
+                strcat(out,tmp);
+                strcat(out,ph+2);
+            } else strcpy(out,s->format);
+            printf("%s\n",out);
+        }
+        else if(v.type==TV_NUMBER) printf("%g\n",v.num);
         else if(v.type==TV_STRING) printf("%s\n",v.str);
         else if(v.type==TV_ARRAY){
             printf("[");
