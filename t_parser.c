@@ -55,8 +55,8 @@ typedef struct {
 typedef struct {
     NodeType node_type;
     char source[64];
-    char op[4]; double value;
-    char op2[4]; double value2;
+    char op[4];   double value;
+    char op2[4];  double value2;
     char logic[4];
     char target[64];
 } GateNode;
@@ -246,25 +246,6 @@ ExprNode* parse_expr(Parser *p){
 void* parse_stmt(Parser *p){
     Token *t = parser_peek(p);
 
-    /* write / append */
-    if(t->type==TOKEN_KEYWORD &&
-       (!strcmp(t->value,"write") || !strcmp(t->value,"append"))){
-        int is_append = !strcmp(t->value,"append");
-        parser_advance(p);
-        parser_match(p,TOKEN_LPAREN,NULL);
-        Token *path_tok=parser_advance(p);
-        parser_match(p,TOKEN_RPAREN,NULL);
-        parser_match(p,TOKEN_OPERATOR,"<<");
-        Token *src=parser_advance(p);
-
-        FileWriteNode *n=malloc(sizeof(FileWriteNode));
-        n->node_type=NODE_FILE_WRITE;
-        strcpy(n->path,path_tok->value);
-        strcpy(n->source,src->value);
-        n->append_mode=is_append;
-        return n;
-    }
-
     /* past(x) ~> P1 */
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"past")){
         parser_advance(p);
@@ -440,6 +421,7 @@ ProgramNode* parse(Token *tokens, int count){
         Token *t=parser_peek(&p);
         if(t->type!=TOKEN_SECTION) break;
 
+        /* ===== T- ===== */
         if(!strcmp(t->value,"[T-]")){
             parser_advance(&p);
             while(parser_peek(&p)->type!=TOKEN_SECTION &&
@@ -507,6 +489,8 @@ ProgramNode* parse(Token *tokens, int count){
                 else parser_error(&p,"Invalid T-");
             }
         }
+
+        /* ===== T0 ===== */
         else if(!strcmp(t->value,"[T0]")){
             parser_advance(&p);
             while(parser_peek(&p)->type!=TOKEN_SECTION &&
@@ -514,24 +498,74 @@ ProgramNode* parse(Token *tokens, int count){
                 prog->t0[prog->t0_count++] = parse_stmt(&p);
             }
         }
+
+        /* ===== T+ ===== */
         else if(!strcmp(t->value,"[T+]")){
             parser_advance(&p);
-            while(parser_peek(&p)->type==TOKEN_KEYWORD && !strcmp(parser_peek(&p)->value,"show")){
-                parser_advance(&p); // show
-                parser_advance(&p); // shall
-                parser_match(&p,TOKEN_LPAREN,NULL);
 
-                while(!parser_match(&p,TOKEN_RPAREN,NULL)){
-                    Token *coord=parser_advance(&p);
-                    parser_match(&p,TOKEN_COMMA,NULL);
+            while(parser_peek(&p)->type!=TOKEN_SECTION &&
+                  parser_peek(&p)->type!=TOKEN_EOF){
 
-                    ShowNode *s=malloc(sizeof(ShowNode));
-                    s->node_type=NODE_SHOW;
-                    strcpy(s->coord,coord->value);
+                /* show */
+                if(parser_peek(&p)->type==TOKEN_KEYWORD &&
+                   !strcmp(parser_peek(&p)->value,"show")){
+                    parser_advance(&p); // show
+                    parser_match(&p,TOKEN_KEYWORD,"shall");
+                    parser_match(&p,TOKEN_LPAREN,NULL);
 
-                    prog->tplus[prog->tplus_count++]=s;
+                    while(1){
+                        Token *coord=parser_advance(&p);
+
+                        ShowNode *s=malloc(sizeof(ShowNode));
+                        s->node_type=NODE_SHOW;
+                        strcpy(s->coord,coord->value);
+                        s->format[0]=0;
+
+                        /* optional as "format" */
+                        if(parser_peek(&p)->type==TOKEN_KEYWORD &&
+                           !strcmp(parser_peek(&p)->value,"as")){
+                            parser_advance(&p);
+                            Token *fmt=parser_advance(&p);
+                            strcpy(s->format,fmt->value);
+                        }
+
+                        prog->tplus[prog->tplus_count++]=s;
+
+                        if(!parser_match(&p,TOKEN_COMMA,NULL)) break;
+                    }
+
+                    parser_match(&p,TOKEN_RPAREN,NULL);
+                    continue;
                 }
 
+                /* write / append */
+                if(parser_peek(&p)->type==TOKEN_KEYWORD &&
+                   (!strcmp(parser_peek(&p)->value,"write") ||
+                    !strcmp(parser_peek(&p)->value,"append"))){
+
+                    int is_append=!strcmp(parser_peek(&p)->value,"append");
+                    parser_advance(&p);
+
+                    parser_match(&p,TOKEN_LPAREN,NULL);
+                    Token *path=parser_advance(&p);
+                    parser_match(&p,TOKEN_RPAREN,NULL);
+
+                    parser_match(&p,TOKEN_KEYWORD,"shall");
+                    parser_match(&p,TOKEN_LPAREN,NULL);
+                    Token *src=parser_advance(&p);
+                    parser_match(&p,TOKEN_RPAREN,NULL);
+
+                    FileWriteNode *n=malloc(sizeof(FileWriteNode));
+                    n->node_type=NODE_FILE_WRITE;
+                    strcpy(n->path,path->value);
+                    strcpy(n->source,src->value);
+                    n->append_mode=is_append;
+
+                    prog->tplus[prog->tplus_count++]=n;
+                    continue;
+                }
+
+                parser_error(&p,"Invalid T+");
             }
         }
     }
