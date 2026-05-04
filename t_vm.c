@@ -560,6 +560,29 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(a.num<b.num?a.num:b.num));
             return res;
         }
+        if(!strcmp(fc->name,"chars")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*strlen(val.str)+1);
+            out.arr.count=0;
+            for(int i=0;val.str[i];i++){
+                char tmp[2]={val.str[i],0};
+                out.arr.items[out.arr.count++]=make_string(tmp);
+            }
+            frame_set(f,fc->target,out);
+            return res;
+        }
+        if(!strcmp(fc->name,"charCode")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number((double)val.str[0]));
+            return res;
+        }
+        if(!strcmp(fc->name,"fromChar")){
+            TValue val=eval_expr(f,fc->arg_values[0]);
+            char tmp[2]={(char)(int)val.num,0};
+            frame_set(f,fc->target,make_string(tmp));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
