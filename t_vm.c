@@ -362,7 +362,17 @@ ExecResult exec_node(Frame *f, void *node){
             }
         }
 
-        if(has_gate){
+        /* Check if Gate target is "now" -> conditional transform */
+        int gate_targets_now=0;
+        for(int i=0;i<fn->body_count;i++){
+            if(*(NodeType*)fn->body[i]==NODE_GATE){
+                GateNode *gcheck=(GateNode*)fn->body[i];
+                if(!strcmp(gcheck->target,"now")) gate_targets_now=1;
+            }
+        }
+
+        if(has_gate && has_now_assign && gate_targets_now){
+            /* CONDITIONAL TRANSFORM — pass Gate: transform, fail Gate: keep */
             GateNode *gn=NULL;
             for(int i=0;i<fn->body_count;i++)
                 if(*(NodeType*)fn->body[i]==NODE_GATE)
@@ -383,6 +393,38 @@ ExecResult exec_node(Frame *f, void *node){
                             exec_node(cf,fn->body[k]);
                     }
                     out.arr.items[out.arr.count++]=frame_get(cf,"now");
+                } else {
+                    out.arr.items[out.arr.count++]=arr.arr.items[j];
+                }
+            }
+            frame_set(f,fn->source,out);
+        }
+        else if(has_gate){  /* FILTER or FILTER+TRANSFORM */
+            /* FILTER MODE — pass Gate: keep, fail Gate: remove */
+            GateNode *gn=NULL;
+            for(int i=0;i<fn->body_count;i++)
+                if(*(NodeType*)fn->body[i]==NODE_GATE)
+                    gn=(GateNode*)fn->body[i];
+
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.count=0;
+
+            for(int j=0;j<arr.arr.count;j++){
+                Frame *cf=new_frame(f);
+                frame_set(cf,"now",arr.arr.items[j]);
+                exec_node(cf,gn);
+                TValue resv=frame_get(cf,gn->target);
+                if(resv.type!=TV_ERROR){
+                    for(int k=0;k<fn->body_count;k++){
+                        if(*(NodeType*)fn->body[k]!=NODE_GATE)
+                            exec_node(cf,fn->body[k]);
+                    }
+                    TValue nowval=frame_get(cf,"now");
+                    if(nowval.type!=TV_ERROR)
+                        out.arr.items[out.arr.count++]=nowval;
+                    else
+                        out.arr.items[out.arr.count++]=arr.arr.items[j];
                 }
             }
             frame_set(f,gn->target,out);
