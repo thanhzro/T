@@ -42,3 +42,17 @@ func upper(str) {
     join(arr=P2, sep="") ~> O5
     return O5
 }
+
+func lower(str) {
+    past(str) ~> P1
+    chars(str=P1) ~> P2
+    F(P2) {
+        charCode(str=now) ~> O1
+        Gate O1 (>= 65) >> O2
+        Gate O2 (<= 90) >> O3
+        O1 + 32 >> O4
+        fromChar(val=O4) ~> now
+    }
+    join(arr=P2, sep="") ~> O5
+    return O5
+}
