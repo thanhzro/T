@@ -412,6 +412,9 @@ FuncDefNode* parse_func(Parser *p){
 }
 
 /* ===== PROGRAM ===== */
+Token* lex(const char *src, int *out_count);
+ProgramNode* parse(Token *tokens, int count);
+
 ProgramNode* parse(Token *tokens, int count){
     Parser p={tokens,0,count};
     ProgramNode *prog=malloc(sizeof(ProgramNode));
@@ -487,6 +490,43 @@ ProgramNode* parse(Token *tokens, int count){
                     strcpy(n->path,path_tok->value);
                     strcpy(n->target,target->value);
                     prog->tminus[prog->tminus_count++]=n;
+                }
+                else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"import")){
+                    parser_advance(&p);
+                    Token *fname=parser_advance(&p);
+
+                    char fpath[512];
+                    const char *home=getenv("HOME");
+                    snprintf(fpath,511,"%s/t-lang/lib/%s",home,fname->value);
+
+                    FILE *fp=fopen(fpath,"r");
+                    if(!fp){
+                        snprintf(fpath,511,"%s",fname->value);
+                        fp=fopen(fpath,"r");
+                    }
+                    if(!fp){
+                        printf("Import error: cannot find %s\n",fname->value);
+                        exit(1);
+                    }
+
+                    fseek(fp,0,SEEK_END);
+                    long size=ftell(fp);
+                    fseek(fp,0,SEEK_SET);
+                    char *src=malloc(size+1);
+                    fread(src,1,size,fp);
+                    src[size]=0;
+                    fclose(fp);
+
+                    int tok_count;
+                    Token *toks=lex(src,&tok_count);
+                    ProgramNode *lib=parse(toks,tok_count);
+
+                    for(int i=0;i<lib->tminus_count;i++){
+                        if(*(NodeType*)lib->tminus[i]==NODE_FUNC_DEF){
+                            prog->tminus[prog->tminus_count++]=lib->tminus[i];
+                        }
+                    }
+                    free(src);
                 }
                 else parser_error(&p,"Invalid T-");
             }

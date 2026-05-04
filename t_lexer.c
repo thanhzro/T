@@ -78,10 +78,10 @@ Token lex_ident(Lexer *l){
     /* keywords */
     const char *kw[] = {
         "past","now","shall","show","Gate","F",
-        "func","return","ask","read","write","append","arr"
+        "func","return","ask","read","write","append","arr","as","import","import"
     };
 
-    for(int j=0;j<13;j++){
+    for(int j=0;j<15;j++){
         if(strcmp(buf,kw[j])==0)
             return make(TOKEN_KEYWORD,buf,l->line);
     }
