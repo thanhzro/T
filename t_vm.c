@@ -377,8 +377,13 @@ ExecResult exec_node(Frame *f, void *node){
                 frame_set(cf,"now",arr.arr.items[j]);
                 exec_node(cf,gn);
                 TValue resv=frame_get(cf,gn->target);
-                if(resv.type!=TV_ERROR)
-                    out.arr.items[out.arr.count++]=arr.arr.items[j];
+                if(resv.type!=TV_ERROR){
+                    for(int k=0;k<fn->body_count;k++){
+                        if(*(NodeType*)fn->body[k]!=NODE_GATE)
+                            exec_node(cf,fn->body[k]);
+                    }
+                    out.arr.items[out.arr.count++]=frame_get(cf,"now");
+                }
             }
             frame_set(f,gn->target,out);
         }
