@@ -28,3 +28,17 @@ func min2(a, b) {
     Gate P1 (<= P2) >> O1
     return O1
 }
+
+func upper(str) {
+    past(str) ~> P1
+    chars(str=P1) ~> P2
+    F(P2) {
+        charCode(str=now) ~> O1
+        Gate O1 (>= 97) >> O2
+        Gate O2 (<= 122) >> O3
+        O1 - 32 >> O4
+        fromChar(val=O4) ~> now
+    }
+    join(arr=P2, sep="") ~> O5
+    return O5
+}
