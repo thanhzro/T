@@ -34,8 +34,7 @@ func upper(str) {
     chars(str=P1) ~> P2
     F(P2) {
         charCode(str=now) ~> O1
-        Gate O1 (>= 97) >> O2
-        Gate O2 (<= 122) >> O3
+        Gate O1 (>= 97 && <= 122) >> now
         O1 - 32 >> O4
         fromChar(val=O4) ~> now
     }
@@ -48,8 +47,7 @@ func lower(str) {
     chars(str=P1) ~> P2
     F(P2) {
         charCode(str=now) ~> O1
-        Gate O1 (>= 65) >> O2
-        Gate O2 (<= 90) >> O3
+        Gate O1 (>= 65 && <= 90) >> now
         O1 + 32 >> O4
         fromChar(val=O4) ~> now
     }

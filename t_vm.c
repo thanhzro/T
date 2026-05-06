@@ -360,6 +360,10 @@ ExecResult exec_node(Frame *f, void *node){
                 AssignNode *a=(AssignNode*)fn->body[i];
                 if(!strcmp(a->target,"now")) has_now_assign=1;
             }
+            if(*(NodeType*)fn->body[i]==NODE_FUNC_CALL){
+                FuncCallNode *fc=(FuncCallNode*)fn->body[i];
+                if(!strcmp(fc->target,"now")) has_now_assign=1;
+            }
         }
 
         /* Check if Gate target is "now" -> conditional transform */
@@ -385,12 +389,20 @@ ExecResult exec_node(Frame *f, void *node){
             for(int j=0;j<arr.arr.count;j++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
+                /* Chay cac node truoc Gate truoc */
+                for(int k=0;k<fn->body_count;k++){
+                    if(*(NodeType*)fn->body[k]!=NODE_GATE)
+                        exec_node(cf,fn->body[k]);
+                    else break;
+                }
                 exec_node(cf,gn);
                 TValue resv=frame_get(cf,gn->target);
                 if(resv.type!=TV_ERROR){
+                    /* Chay cac node sau Gate */
+                    int after_gate=0;
                     for(int k=0;k<fn->body_count;k++){
-                        if(*(NodeType*)fn->body[k]!=NODE_GATE)
-                            exec_node(cf,fn->body[k]);
+                        if(*(NodeType*)fn->body[k]==NODE_GATE){ after_gate=1; continue; }
+                        if(after_gate) exec_node(cf,fn->body[k]);
                     }
                     out.arr.items[out.arr.count++]=frame_get(cf,"now");
                 } else {
@@ -540,20 +552,6 @@ ExecResult exec_node(Frame *f, void *node){
             int len=strlen(tmp);
             while(len>0&&(tmp[len-1]==' '||tmp[len-1]=='\t')) len--;
             tmp[len]=0;
-            frame_set(f,fc->target,make_string(tmp));
-            return res;
-        }
-        if(!strcmp(fc->name,"upper")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[256]; strncpy(tmp,val.str,255); tmp[255]=0;
-            for(int i=0;tmp[i];i++) tmp[i]=toupper(tmp[i]);
-            frame_set(f,fc->target,make_string(tmp));
-            return res;
-        }
-        if(!strcmp(fc->name,"lower")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[256]; strncpy(tmp,val.str,255); tmp[255]=0;
-            for(int i=0;tmp[i];i++) tmp[i]=tolower(tmp[i]);
             frame_set(f,fc->target,make_string(tmp));
             return res;
         }
