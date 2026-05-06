@@ -239,6 +239,10 @@ TValue eval_expr(Frame *f, ExprNode *e){
             if(b.num==0) return make_error("!DIV0");
             return make_number(a.num/b.num);
         }
+        if(!strcmp(e->op,"%")){
+            if(b.num==0) return make_error("!DIV0");
+            return make_number((int)a.num%(int)b.num);
+        }
     }
     return make_error("!ERR");
 }
@@ -412,11 +416,14 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fn->source,out);
         }
         else if(has_gate){  /* FILTER or FILTER+TRANSFORM */
-            /* FILTER MODE — pass Gate: keep, fail Gate: remove */
+            /* FILTER MODE — node truoc Gate -> Gate -> node sau Gate (neu pass) */
             GateNode *gn=NULL;
+            int gate_idx=-1;
             for(int i=0;i<fn->body_count;i++)
-                if(*(NodeType*)fn->body[i]==NODE_GATE)
+                if(*(NodeType*)fn->body[i]==NODE_GATE && gate_idx==-1){
                     gn=(GateNode*)fn->body[i];
+                    gate_idx=i;
+                }
 
             TValue out; out.type=TV_ARRAY;
             out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
@@ -425,19 +432,21 @@ ExecResult exec_node(Frame *f, void *node){
             for(int j=0;j<arr.arr.count;j++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
+                for(int k=0;k<gate_idx;k++)
+                    exec_node(cf,fn->body[k]);
                 exec_node(cf,gn);
                 TValue resv=frame_get(cf,gn->target);
                 if(resv.type!=TV_ERROR){
-                    for(int k=0;k<fn->body_count;k++){
+                    for(int k=gate_idx+1;k<fn->body_count;k++)
                         if(*(NodeType*)fn->body[k]!=NODE_GATE)
                             exec_node(cf,fn->body[k]);
-                    }
                     TValue nowval=frame_get(cf,"now");
                     if(nowval.type!=TV_ERROR)
                         out.arr.items[out.arr.count++]=nowval;
                     else
                         out.arr.items[out.arr.count++]=arr.arr.items[j];
                 }
+                free(cf);
             }
             frame_set(f,gn->target,out);
         }

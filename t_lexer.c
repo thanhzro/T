@@ -238,7 +238,7 @@ Token* lex(const char *src, int *out_count){
             tokens[count++]=make(TOKEN_NUMBER,buf,l.line);
             continue;
         }
-        if(c=='+'||c=='-'||c=='*'||c=='/'){
+        if(c=='+'||c=='-'||c=='*'||c=='/'||c=='%'){
             advance(&l);
             char buf[2]={c,0};
             tokens[count++] = make(TOKEN_OPERATOR,buf,l.line);

@@ -211,7 +211,8 @@ ExprNode* parse_term(Parser *p){
 
     while(parser_peek(p)->type==TOKEN_OPERATOR &&
           (!strcmp(parser_peek(p)->value,"*") ||
-           !strcmp(parser_peek(p)->value,"/"))){
+           !strcmp(parser_peek(p)->value,"/") ||
+           !strcmp(parser_peek(p)->value,"%"))){
         Token *op = parser_advance(p);
         ExprNode *right = parse_factor(p);
 
