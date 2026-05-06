@@ -33,9 +33,10 @@ struct TValue {
 
 /* ===== FRAME ===== */
 typedef struct Frame {
-    char keys[256][64];
-    TValue values[256];
+    char **keys;
+    TValue *values;
     int count;
+    int capacity;
     struct Frame *parent;
 } Frame;
 
@@ -152,6 +153,10 @@ TValue make_error(const char *s){
 /* ===== FRAME ===== */
 Frame* new_frame(Frame *parent){
     Frame *f=malloc(sizeof(Frame));
+    f->capacity=16;
+    f->keys=malloc(sizeof(char*)*f->capacity);
+    for(int i=0;i<f->capacity;i++) f->keys[i]=malloc(64);
+    f->values=malloc(sizeof(TValue)*f->capacity);
     f->count=0;
     f->parent=parent;
     return f;
@@ -163,6 +168,12 @@ void frame_set(Frame *f, const char *key, TValue v){
             f->values[i]=v;
             return;
         }
+    }
+    if(f->count>=f->capacity-1){
+        f->capacity*=2;
+        f->keys=realloc(f->keys,sizeof(char*)*f->capacity);
+        for(int i=f->count;i<f->capacity;i++) f->keys[i]=malloc(64);
+        f->values=realloc(f->values,sizeof(TValue)*f->capacity);
     }
     strncpy(f->keys[f->count],key,63);
     f->keys[f->count][63]=0;
