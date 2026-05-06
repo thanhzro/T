@@ -383,7 +383,7 @@ ExecResult exec_node(Frame *f, void *node){
                     gn=(GateNode*)fn->body[i];
 
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
@@ -419,7 +419,7 @@ ExecResult exec_node(Frame *f, void *node){
                     gn=(GateNode*)fn->body[i];
 
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
