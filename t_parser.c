@@ -64,7 +64,7 @@ typedef struct {
 typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignNode;
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
-typedef struct { NodeType node_type; char source[64]; void **body; int body_count; } FNode;
+typedef struct { NodeType node_type; char source[64]; void **body; int body_count; int body_capacity; } FNode;
 typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
@@ -74,6 +74,7 @@ typedef struct {
     int param_count;
     void **body;
     int body_count;
+    int body_capacity;
 } FuncDefNode;
 
 typedef struct {
@@ -104,9 +105,9 @@ typedef struct {
 } FileWriteNode;
 
 typedef struct {
-    void **tminus; int tminus_count;
-    void **t0; int t0_count;
-    void **tplus; int tplus_count;
+    void **tminus; int tminus_count; int tminus_cap;
+    void **t0; int t0_count; int t0_cap;
+    void **tplus; int tplus_count; int tplus_cap;
 } ProgramNode;
 
 /* ===== PARSER ===== */
@@ -317,9 +318,11 @@ void* parse_stmt(Parser *p){
         parser_match(p,TOKEN_RPAREN,NULL);
         parser_match(p,TOKEN_LBRACE,NULL);
 
-        void **body = malloc(sizeof(void*)*128);
+        int bcap=8;
+        void **body = malloc(sizeof(void*)*bcap);
         int c=0;
         while(!parser_match(p,TOKEN_RBRACE,NULL)){
+            if(c>=bcap-1){ bcap*=2; body=realloc(body,sizeof(void*)*bcap); }
             body[c++] = parse_stmt(p);
         }
 
@@ -419,9 +422,9 @@ ProgramNode* parse(Token *tokens, int count);
 ProgramNode* parse(Token *tokens, int count){
     Parser p={tokens,0,count};
     ProgramNode *prog=malloc(sizeof(ProgramNode));
-    prog->tminus=malloc(sizeof(void*)*256); prog->tminus_count=0;
-    prog->t0=malloc(sizeof(void*)*256); prog->t0_count=0;
-    prog->tplus=malloc(sizeof(void*)*256); prog->tplus_count=0;
+    prog->tminus_cap=16; prog->tminus=malloc(sizeof(void*)*prog->tminus_cap); prog->tminus_count=0;
+    prog->t0_cap=16; prog->t0=malloc(sizeof(void*)*prog->t0_cap); prog->t0_count=0;
+    prog->tplus_cap=16; prog->tplus=malloc(sizeof(void*)*prog->tplus_cap); prog->tplus_count=0;
 
     while(parser_peek(&p)->type!=TOKEN_EOF){
         Token *t=parser_peek(&p);
@@ -436,6 +439,15 @@ ProgramNode* parse(Token *tokens, int count){
                 Token *cur=parser_peek(&p);
 
                 if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"func")){
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
                     prog->tminus[prog->tminus_count++] = parse_func(&p);
                 }
                 else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"arr")){
@@ -452,6 +464,18 @@ ProgramNode* parse(Token *tokens, int count){
                     a->values=vals;
                     a->count=c;
 
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
+
                     prog->tminus[prog->tminus_count++]=a;
                 }
                 else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"ask")){
@@ -465,6 +489,18 @@ ProgramNode* parse(Token *tokens, int count){
                     strcpy(a->name,name->value);
                     strcpy(a->prompt,str->value);
 
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
+
                     prog->tminus[prog->tminus_count++]=a;
                 }
                 else if(cur->type==TOKEN_IDENT){
@@ -475,6 +511,18 @@ ProgramNode* parse(Token *tokens, int count){
                     v->node_type=NODE_VAR_ASSIGN;
                     strcpy(v->name,name->value);
                     v->expr=parse_expr(&p);
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
 
                     prog->tminus[prog->tminus_count++]=v;
                 }
@@ -490,6 +538,15 @@ ProgramNode* parse(Token *tokens, int count){
                     n->node_type=NODE_FILE_READ;
                     strcpy(n->path,path_tok->value);
                     strcpy(n->target,target->value);
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
                     prog->tminus[prog->tminus_count++]=n;
                 }
                 else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"import")){
@@ -524,6 +581,15 @@ ProgramNode* parse(Token *tokens, int count){
 
                     for(int i=0;i<lib->tminus_count;i++){
                         if(*(NodeType*)lib->tminus[i]==NODE_FUNC_DEF){
+                            if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+                            if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+                            if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
+
+
+
                             prog->tminus[prog->tminus_count++]=lib->tminus[i];
                         }
                     }
@@ -538,6 +604,15 @@ ProgramNode* parse(Token *tokens, int count){
             parser_advance(&p);
             while(parser_peek(&p)->type!=TOKEN_SECTION &&
                   parser_peek(&p)->type!=TOKEN_EOF){
+                if(prog->t0_count>=prog->t0_cap-1){ prog->t0_cap*=2; prog->t0=realloc(prog->t0,sizeof(void*)*prog->t0_cap); }
+
+                if(prog->t0_count>=prog->t0_cap-1){ prog->t0_cap*=2; prog->t0=realloc(prog->t0,sizeof(void*)*prog->t0_cap); }
+
+
+                if(prog->t0_count>=prog->t0_cap-1){ prog->t0_cap*=2; prog->t0=realloc(prog->t0,sizeof(void*)*prog->t0_cap); }
+
+
+
                 prog->t0[prog->t0_count++] = parse_stmt(&p);
             }
         }
@@ -564,6 +639,18 @@ ProgramNode* parse(Token *tokens, int count){
                         s->node_type=NODE_SHOW;
                         strcpy(s->coord,coord->value);
                         s->format[0]=0;
+
+                        if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+
+
+                        if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+
+
+
+                        if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+
+
+
 
                         prog->tplus[prog->tplus_count++]=s;
 
@@ -607,6 +694,18 @@ ProgramNode* parse(Token *tokens, int count){
                     strcpy(n->path,path->value);
                     strcpy(n->source,src->value);
                     n->append_mode=is_append;
+
+                    if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+
+
+                    if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+
+
+
+                    if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+
+
+
 
                     prog->tplus[prog->tplus_count++]=n;
                     continue;
