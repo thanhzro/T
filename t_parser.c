@@ -555,6 +555,7 @@ ProgramNode* parse(Token *tokens, int count){
                     parser_match(&p,TOKEN_KEYWORD,"shall");
                     parser_match(&p,TOKEN_LPAREN,NULL);
 
+                    int show_start=prog->tplus_count;
                     while(1){
                         Token *coord=parser_advance(&p);
 
@@ -563,20 +564,23 @@ ProgramNode* parse(Token *tokens, int count){
                         strcpy(s->coord,coord->value);
                         s->format[0]=0;
 
-                        /* optional as "format" */
-                        if(parser_peek(&p)->type==TOKEN_KEYWORD &&
-                           !strcmp(parser_peek(&p)->value,"as")){
-                            parser_advance(&p);
-                            Token *fmt=parser_advance(&p);
-                            strcpy(s->format,fmt->value);
-                        }
-
                         prog->tplus[prog->tplus_count++]=s;
 
                         if(!parser_match(&p,TOKEN_COMMA,NULL)) break;
                     }
 
                     parser_match(&p,TOKEN_RPAREN,NULL);
+
+                    /* optional as "format" — applies to all coords in this show */
+                    if(parser_peek(&p)->type==TOKEN_KEYWORD &&
+                       !strcmp(parser_peek(&p)->value,"as")){
+                        parser_advance(&p);
+                        Token *fmt=parser_advance(&p);
+                        for(int si=show_start;si<prog->tplus_count;si++){
+                            ShowNode *sn=(ShowNode*)prog->tplus[si];
+                            strcpy(sn->format,fmt->value);
+                        }
+                    }
                     continue;
                 }
 
