@@ -134,7 +134,8 @@ Token* lex(const char *src, int *out_count){
 
     Lexer l = {src,0,1};
 
-    Token *tokens = malloc(sizeof(Token)*1024);
+    int capacity=1024;
+    Token *tokens = malloc(sizeof(Token)*capacity);
     int count=0;
 
     while(peek(&l)!=0){
@@ -158,65 +159,79 @@ Token* lex(const char *src, int *out_count){
 
         /* SECTION */
         if(match(&l,"[T-]")){
-            tokens[count++] = make(TOKEN_SECTION,"[T-]",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_SECTION,"[T-]",l.line);
             continue;
         }
         if(match(&l,"[T0]")){
-            tokens[count++] = make(TOKEN_SECTION,"[T0]",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_SECTION,"[T0]",l.line);
             continue;
         }
         if(match(&l,"[T+]")){
-            tokens[count++] = make(TOKEN_SECTION,"[T+]",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_SECTION,"[T+]",l.line);
             continue;
         }
 
         /* multi-char operators */
         if(match(&l,">>")){
-            tokens[count++] = make(TOKEN_OPERATOR,">>",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_OPERATOR,">>",l.line);
             continue;
         }
         if(match(&l,"<<")){
-            tokens[count++] = make(TOKEN_OPERATOR,"<<",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_OPERATOR,"<<",l.line);
             continue;
         }
         if(match(&l,"~>")){
-            tokens[count++] = make(TOKEN_OPERATOR,"~>",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_OPERATOR,"~>",l.line);
             continue;
         }
         if(match(&l,">=")){
-            tokens[count++] = make(TOKEN_COMPARE,">=",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_COMPARE,">=",l.line);
             continue;
         }
         if(match(&l,"<=")){
-            tokens[count++] = make(TOKEN_COMPARE,"<=",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_COMPARE,"<=",l.line);
             continue;
         }
         if(match(&l,"==")){
-            tokens[count++] = make(TOKEN_COMPARE,"==",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_COMPARE,"==",l.line);
             continue;
         }
         if(match(&l,"!=")){
-            tokens[count++] = make(TOKEN_COMPARE,"!=",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_COMPARE,"!=",l.line);
             continue;
         }
         if(match(&l,"&&")){
-            tokens[count++] = make(TOKEN_LOGIC,"&&",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_LOGIC,"&&",l.line);
             continue;
         }
         if(match(&l,"||")){
-            tokens[count++] = make(TOKEN_LOGIC,"||",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_LOGIC,"||",l.line);
             continue;
         }
 
         /* single compare */
         if(c=='>'){
             advance(&l);
-            tokens[count++] = make(TOKEN_COMPARE,">",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_COMPARE,">",l.line);
             continue;
         }
         if(c=='<'){
             advance(&l);
-            tokens[count++] = make(TOKEN_COMPARE,"<",l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_COMPARE,"<",l.line);
             continue;
         }
 
@@ -235,13 +250,15 @@ Token* lex(const char *src, int *out_count){
                 buf[i++]=advance(&l);
             }
             buf[i]=0;
-            tokens[count++]=make(TOKEN_NUMBER,buf,l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++]=make(TOKEN_NUMBER,buf,l.line);
             continue;
         }
-        if(c=='+'||c=='-'||c=='*'||c=='/'){
+        if(c=='+'||c=='-'||c=='*'||c=='/'||c=='%'){
             advance(&l);
             char buf[2]={c,0};
-            tokens[count++] = make(TOKEN_OPERATOR,buf,l.line);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = make(TOKEN_OPERATOR,buf,l.line);
             continue;
         }
 
@@ -257,19 +274,22 @@ Token* lex(const char *src, int *out_count){
 
         /* string */
         if(c=='"'){
-            tokens[count++] = lex_string(&l);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = lex_string(&l);
             continue;
         }
 
         /* number */
         if(isdigit(c)){
-            tokens[count++] = lex_number(&l);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = lex_number(&l);
             continue;
         }
 
         /* ident / coord */
         if(isalpha(c)){
-            tokens[count++] = lex_ident(&l);
+            if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
+        tokens[count++] = lex_ident(&l);
             continue;
         }
 

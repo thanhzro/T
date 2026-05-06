@@ -239,6 +239,10 @@ TValue eval_expr(Frame *f, ExprNode *e){
             if(b.num==0) return make_error("!DIV0");
             return make_number(a.num/b.num);
         }
+        if(!strcmp(e->op,"%")){
+            if(b.num==0) return make_error("!DIV0");
+            return make_number((int)a.num%(int)b.num);
+        }
     }
     return make_error("!ERR");
 }
@@ -360,6 +364,10 @@ ExecResult exec_node(Frame *f, void *node){
                 AssignNode *a=(AssignNode*)fn->body[i];
                 if(!strcmp(a->target,"now")) has_now_assign=1;
             }
+            if(*(NodeType*)fn->body[i]==NODE_FUNC_CALL){
+                FuncCallNode *fc=(FuncCallNode*)fn->body[i];
+                if(!strcmp(fc->target,"now")) has_now_assign=1;
+            }
         }
 
         /* Check if Gate target is "now" -> conditional transform */
@@ -379,18 +387,26 @@ ExecResult exec_node(Frame *f, void *node){
                     gn=(GateNode*)fn->body[i];
 
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
+                /* Chay cac node truoc Gate truoc */
+                for(int k=0;k<fn->body_count;k++){
+                    if(*(NodeType*)fn->body[k]!=NODE_GATE)
+                        exec_node(cf,fn->body[k]);
+                    else break;
+                }
                 exec_node(cf,gn);
                 TValue resv=frame_get(cf,gn->target);
                 if(resv.type!=TV_ERROR){
+                    /* Chay cac node sau Gate */
+                    int after_gate=0;
                     for(int k=0;k<fn->body_count;k++){
-                        if(*(NodeType*)fn->body[k]!=NODE_GATE)
-                            exec_node(cf,fn->body[k]);
+                        if(*(NodeType*)fn->body[k]==NODE_GATE){ after_gate=1; continue; }
+                        if(after_gate) exec_node(cf,fn->body[k]);
                     }
                     out.arr.items[out.arr.count++]=frame_get(cf,"now");
                 } else {
@@ -400,32 +416,37 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fn->source,out);
         }
         else if(has_gate){  /* FILTER or FILTER+TRANSFORM */
-            /* FILTER MODE — pass Gate: keep, fail Gate: remove */
+            /* FILTER MODE — node truoc Gate -> Gate -> node sau Gate (neu pass) */
             GateNode *gn=NULL;
+            int gate_idx=-1;
             for(int i=0;i<fn->body_count;i++)
-                if(*(NodeType*)fn->body[i]==NODE_GATE)
+                if(*(NodeType*)fn->body[i]==NODE_GATE && gate_idx==-1){
                     gn=(GateNode*)fn->body[i];
+                    gate_idx=i;
+                }
 
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
+                for(int k=0;k<gate_idx;k++)
+                    exec_node(cf,fn->body[k]);
                 exec_node(cf,gn);
                 TValue resv=frame_get(cf,gn->target);
                 if(resv.type!=TV_ERROR){
-                    for(int k=0;k<fn->body_count;k++){
+                    for(int k=gate_idx+1;k<fn->body_count;k++)
                         if(*(NodeType*)fn->body[k]!=NODE_GATE)
                             exec_node(cf,fn->body[k]);
-                    }
                     TValue nowval=frame_get(cf,"now");
                     if(nowval.type!=TV_ERROR)
                         out.arr.items[out.arr.count++]=nowval;
                     else
                         out.arr.items[out.arr.count++]=arr.arr.items[j];
                 }
+                free(cf);
             }
             frame_set(f,gn->target,out);
         }
@@ -507,7 +528,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sep=eval_expr(f,fc->arg_values[1]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.items=malloc(sizeof(TValue)*(strlen(str.str)+1));
             out.arr.count=0;
             char buf[256]; strncpy(buf,str.str,255); buf[255]=0;
             char *token=strtok(buf,sep.str);
@@ -540,20 +561,6 @@ ExecResult exec_node(Frame *f, void *node){
             int len=strlen(tmp);
             while(len>0&&(tmp[len-1]==' '||tmp[len-1]=='\t')) len--;
             tmp[len]=0;
-            frame_set(f,fc->target,make_string(tmp));
-            return res;
-        }
-        if(!strcmp(fc->name,"upper")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[256]; strncpy(tmp,val.str,255); tmp[255]=0;
-            for(int i=0;tmp[i];i++) tmp[i]=toupper(tmp[i]);
-            frame_set(f,fc->target,make_string(tmp));
-            return res;
-        }
-        if(!strcmp(fc->name,"lower")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[256]; strncpy(tmp,val.str,255); tmp[255]=0;
-            for(int i=0;tmp[i];i++) tmp[i]=tolower(tmp[i]);
             frame_set(f,fc->target,make_string(tmp));
             return res;
         }
