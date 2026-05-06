@@ -505,8 +505,8 @@ ProgramNode* parse(Token *tokens, int count){
                         fp=fopen(fpath,"r");
                     }
                     if(!fp){
-                        printf("Import error: cannot find %s\n",fname->value);
-                        exit(1);
+                        printf("Import warning: cannot find %s — skipped\n",fname->value);
+                        continue;
                     }
 
                     fseek(fp,0,SEEK_END);
