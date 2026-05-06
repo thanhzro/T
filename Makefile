@@ -1,5 +1,5 @@
 CC = gcc
-SRC = t_lexer.c t_parser.c t_vm.c main.c
+SRC = src/t_lexer.c src/t_parser.c src/t_vm.c src/main.c
 BIN = t
 
 all: $(BIN) test
@@ -8,9 +8,9 @@ $(BIN):
 	$(CC) $(SRC) -o $(BIN)
 
 test: $(BIN)
-	./$(BIN) accumulator.t
-	./$(BIN) filter.t
-	./$(BIN) sumavg.t
+	./$(BIN) tests/accumulator.t
+	./$(BIN) tests/filter.t
+	./$(BIN) tests/sumavg.t
 
 clean:
 	rm -f $(BIN)

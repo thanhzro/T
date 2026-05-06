@@ -1,0 +1,9 @@
+[T-]
+import "std.t"
+ten = "hello"
+
+[T0]
+upper(str=ten) ~> O1
+
+[T+]
+show shall(O1)
