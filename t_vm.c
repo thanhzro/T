@@ -519,7 +519,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sep=eval_expr(f,fc->arg_values[1]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*256);
+            out.arr.items=malloc(sizeof(TValue)*(strlen(str.str)+1));
             out.arr.count=0;
             char buf[256]; strncpy(buf,str.str,255); buf[255]=0;
             char *token=strtok(buf,sep.str);
