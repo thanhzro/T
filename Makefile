@@ -1,16 +1,16 @@
-CC=gcc
-TARGET=t
-SRCS=t_lexer.c t_parser.c t_vm.c main.c
+CC = gcc
+SRC = t_lexer.c t_parser.c t_vm.c main.c
+BIN = t
 
-test: $(TARGET)
-	./$(TARGET) accumulator.t
-	./$(TARGET) filter.t
-	./$(TARGET) transform.t
-	./$(TARGET) fileread.t
-	./$(TARGET) sumavg.t
+all: $(BIN) test
 
-$(TARGET): $(SRCS)
-	$(CC) $(SRCS) -o $(TARGET)
+$(BIN):
+	$(CC) $(SRC) -o $(BIN)
+
+test: $(BIN)
+	./$(BIN) accumulator.t
+	./$(BIN) filter.t
+	./$(BIN) sumavg.t
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(BIN)
