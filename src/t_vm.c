@@ -970,6 +970,20 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
+        if(!strcmp(fc->name,"slice_arr")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue from=eval_expr(f,fc->arg_values[1]);
+            TValue to=eval_expr(f,fc->arg_values[2]);
+            int a=(int)from.num, b=(int)to.num;
+            if(a<0) a=0;
+            if(b>arr.arr.count) b=arr.arr.count;
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*(b-a+1));
+            out.arr.count=0;
+            for(int i=a;i<b;i++) out.arr.items[out.arr.count++]=arr.arr.items[i];
+            frame_set(f,fc->target,out);
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];

@@ -9,12 +9,9 @@ func chunk(arr, n) {
     loop {
         L - i >> remaining
         min(a=N, b=remaining) ~> actual_n
-        range(n=actual_n) ~> rng
-        F(rng) {
-            i + now >> real_idx
-            get(arr=A1, idx=real_idx) ~> now
-        }
-        push_arr(arr=result, sub=rng) ~> result
+        i + actual_n >> end
+        slice_arr(arr=A1, from=i, to=end) ~> sub
+        push_arr(arr=result, sub=sub) ~> result
         i + N >> i
         Gate i (>= L) >> done
     }
