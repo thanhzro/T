@@ -249,7 +249,7 @@ TValue eval_expr(Frame *f, ExprNode *e){
         char out[512]; out[0]=0;
         int si=0;
         while(s[si]){
-            if(s[si]=='{'){ 
+            if(s[si]=='{' && (isalpha(s[si+1])||s[si+1]=='_')){ 
                 int j=si+1; char vname[64]; int vn=0;
                 while(s[j] && s[j]!='}') vname[vn++]=s[j++];
                 vname[vn]=0;

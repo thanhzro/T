@@ -124,7 +124,11 @@ Token lex_string(Lexer *l){
     char buf[256]; int i=0;
 
     while(peek(l)!='"' && peek(l)!=0){
-        buf[i++] = advance(l);
+        char ch = advance(l);
+        if(ch == '\\' && peek(l) == '"'){ buf[i++] = '"'; advance(l); }
+        else if(ch == '\\' && peek(l) == 'n'){ buf[i++] = '\n'; advance(l); }
+        else if(ch == '\\' && peek(l) == 't'){ buf[i++] = '\t'; advance(l); }
+        else buf[i++] = ch;
     }
     if(peek(l)!='"') error(l,"Unterminated string");
 
