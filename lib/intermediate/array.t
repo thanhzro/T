@@ -84,3 +84,34 @@ func groupBy(arr) {
     }
     result >> out
 }
+
+func take(arr, n) {
+    past(arr) ~> A1
+    past(n) ~> N
+    slice_arr(arr=A1, from=0, to=N) ~> out
+}
+
+func drop(arr, n) {
+    past(arr) ~> A1
+    past(n) ~> N
+    len(val=A1) ~> L
+    slice_arr(arr=A1, from=N, to=L) ~> out
+}
+
+func zip_with(a, b) {
+    past(a) ~> A1
+    past(b) ~> A2
+    len(val=A1) ~> L1
+    len(val=A2) ~> L2
+    min(a=L1, b=L2) ~> L
+    range(n=L) ~> IDX
+    F(IDX) {
+        get(arr=A1, idx=now) ~> v1
+        get(arr=A2, idx=now) ~> v2
+        [] >> pair
+        push(arr=pair, val=v1) ~> pair
+        push(arr=pair, val=v2) ~> pair
+        pair >> now
+    }
+    IDX >> out
+}
