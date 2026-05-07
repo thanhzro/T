@@ -696,6 +696,22 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
+        if(!strcmp(fc->name,"slice")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue from=eval_expr(f,fc->arg_values[1]);
+            TValue to=eval_expr(f,fc->arg_values[2]);
+            int a=(int)from.num, b=(int)to.num;
+            int len=strlen(str.str);
+            if(a<0) a=0;
+            if(b>len) b=len;
+            if(a>=b){ frame_set(f,fc->target,make_string("")); return res; }
+            char buf[256]; int n=b-a;
+            if(n>255) n=255;
+            strncpy(buf,str.str+a,n);
+            buf[n]=0;
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];

@@ -128,3 +128,14 @@ func reverse(arr) {
     }
     return O3
 }
+
+func repeat(str, n) {
+    past(str) ~> P1
+    past(n) ~> P2
+    range(n=P2) ~> O1
+    "" >> result
+    F(O1) {
+        result + P1 >> result
+    }
+    return result
+}
