@@ -54,6 +54,7 @@ typedef struct ExprNode {
     char op[4];
     struct ExprNode *l,*r;
     struct ArrayLiteralNode *arr_node;
+    void *inline_call;
 } ExprNode;
 
 typedef struct ArrayLiteralNode {
@@ -208,12 +209,26 @@ int is_number(const char *s){
     return 1;
 }
 
+ExecResult exec_node(Frame *f, void *node);
+
 TValue eval_expr(Frame *f, ExprNode *e){
     if(e->type==0){
         if(is_number(e->value)) return make_number(atof(e->value));
         return make_string(e->value);
     }
     if(e->type==4) return make_string(e->value);
+    if(e->type==5){
+        /* inline func call */
+        exec_node(f,e->inline_call);
+        FuncCallNode *ifc=(FuncCallNode*)e->inline_call;
+        return frame_get(f,ifc->target);
+    }
+    if(e->type==5){
+        /* inline func call */
+        exec_node(f,e->inline_call);
+        FuncCallNode *ifc=(FuncCallNode*)e->inline_call;
+        return frame_get(f,ifc->target);
+    }
     if(e->type==1){
         return frame_get(f,e->value);
     }

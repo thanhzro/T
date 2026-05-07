@@ -38,11 +38,12 @@ typedef struct ArrayLiteralNode {
 } ArrayLiteralNode;
 
 typedef struct ExprNode {
-    int type; /* 0 literal, 1 ident/coord, 2 binop, 3 array literal */
+    int type; /* 0 literal, 1 ident/coord, 2 binop, 3 array literal, 4 string, 5 inline call */
     char value[64];
     char op[4];
     struct ExprNode *l, *r;
     ArrayLiteralNode *arr_node;
+    void *inline_call;
 } ExprNode;
 
 typedef struct {
@@ -148,6 +149,7 @@ void parser_expect(Parser *p, TokenType t, const char *v, const char *msg){
     if(!parser_match(p,t,v)) parser_error(p,msg);
 }
 
+static int inline_counter=0;
 ExprNode* new_expr(int type, const char *value){
     ExprNode *e = malloc(sizeof(ExprNode));
     e->type = type;
@@ -383,7 +385,31 @@ void* parse_stmt(Parser *p){
         while(!parser_match(p,TOKEN_RPAREN,NULL)){
             Token *argn = parser_advance(p);
             parser_match(p,TOKEN_EQUALS,NULL);
-            fc->arg_values[fc->arg_count]=parse_expr(p);
+            /* Check for nested func call: ident( */
+            Token *peek1=parser_peek(p);
+            if((peek1->type==TOKEN_IDENT||peek1->type==TOKEN_COORD) && p->tokens[p->pos+1].type==TOKEN_LPAREN){
+                Token *fname=parser_advance(p);
+                parser_match(p,TOKEN_LPAREN,NULL);
+                FuncCallNode *nfc=malloc(sizeof(FuncCallNode));
+                nfc->node_type=NODE_FUNC_CALL;
+                strcpy(nfc->name,fname->value);
+                nfc->arg_count=0;
+                char tmpname[32]; snprintf(tmpname,31,"__t%d",inline_counter++);
+                strcpy(nfc->target,tmpname);
+                while(!parser_match(p,TOKEN_RPAREN,NULL)){
+                    Token *an=parser_advance(p);
+                    parser_match(p,TOKEN_EQUALS,NULL);
+                    nfc->arg_values[nfc->arg_count]=parse_expr(p);
+                    strcpy(nfc->arg_names[nfc->arg_count],an->value);
+                    nfc->arg_count++;
+                    parser_match(p,TOKEN_COMMA,NULL);
+                }
+                ExprNode *e5=new_expr(5,"");
+                e5->inline_call=nfc;
+                fc->arg_values[fc->arg_count]=e5;
+            } else {
+                fc->arg_values[fc->arg_count]=parse_expr(p);
+            }
             strcpy(fc->arg_names[fc->arg_count],argn->value);
             fc->arg_count++;
             parser_match(p,TOKEN_COMMA,NULL);
