@@ -385,6 +385,8 @@ ExecResult exec_node(Frame *f, void *node){
     else if(t==NODE_F){
         FNode *fn=node;
         TValue arr=frame_get(f,fn->source);
+        if(arr.type==TV_ERROR) fprintf(stderr,"Warning line 0: F(%s) — source is empty or error\n",fn->source);
+        if(arr.type!=TV_ARRAY){ arr.type=TV_ARRAY; arr.arr.count=0; }
 
         int has_gate=0, has_now_assign=0;
         for(int i=0;i<fn->body_count;i++){
@@ -820,6 +822,7 @@ ExecResult exec_node(Frame *f, void *node){
             char errbuf[128];
             snprintf(errbuf,127,"!NO_FUNC(%s)",fc->name);
             errbuf[127]=0;
+            fprintf(stderr,"Warning: function '%s' not found — did you import std.t?\n",fc->name);
             frame_set(f,fc->target,make_error(errbuf));
             return res;
         }
