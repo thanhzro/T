@@ -11,6 +11,7 @@ test: $(BIN)
 	./$(BIN) tests/accumulator.t
 	./$(BIN) tests/filter.t
 	./$(BIN) tests/sumavg.t
+	./$(BIN) tests/basic.t
 
 clean:
 	rm -f $(BIN)
