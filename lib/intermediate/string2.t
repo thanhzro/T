@@ -36,3 +36,12 @@ func truncate(str, n) {
     push(arr=opts, val=dotted) ~> opts
     get(arr=opts, idx=idx) ~> out
 }
+
+func title(str) {
+    past(str) ~> A1
+    split(str=A1, sep=" ") ~> words
+    F(words) {
+        capitalize(str=now) ~> now
+    }
+    join(arr=words, sep=" ") ~> out
+}
