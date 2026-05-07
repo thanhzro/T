@@ -59,20 +59,14 @@ func lower(str) {
 
 func first(arr) {
     past(arr) ~> P1
-    F(P1) {
-        Gate idx (== 0) >> O1
-    }
-    return O1
+    get(arr=P1, idx=0) ~> out
 }
 
 func last(arr) {
     past(arr) ~> P1
-    len(val=P1) ~> O2
-    O2 - 1 >> O3
-    F(P1) {
-        Gate idx (== O3) >> O1
-    }
-    return O1
+    len(val=P1) ~> L1
+    L1 - 1 >> L2
+    get(arr=P1, idx=L2) ~> out
 }
 
 func clamp(val, lo, hi) {
@@ -84,19 +78,6 @@ func clamp(val, lo, hi) {
     return O2
 }
 
-func startsWith(str, prefix) {
-    past(str) ~> P1
-    past(prefix) ~> P2
-    len(val=P2) ~> O2
-    chars(str=P1) ~> P3
-    chars(str=P2) ~> P4
-    F(P4) {
-        Gate idx (== idx) >> O1
-    }
-    join(arr=P4, sep="") ~> O3
-    contains(str=P1, sub=O3) ~> O4
-    return O4
-}
 
 func startsWith(str, prefix) {
     past(str) ~> P1
@@ -118,16 +99,6 @@ func endsWith(str, suffix) {
 }
 
 
-func reverse(arr) {
-    past(arr) ~> P1
-    len(val=P1) ~> O2
-    range(n=O2) ~> O3
-    F(O3) {
-        O2 - 1 - now >> O4
-        get(arr=P1, idx=O4) ~> now
-    }
-    return O3
-}
 
 func repeat(str, n) {
     past(str) ~> P1
@@ -184,4 +155,22 @@ func join(arr, sep) {
         result + A2 >> result
     }
     result >> out
+}
+
+func max_arr(arr) {
+    past(arr) ~> A1
+    first(arr=A1) ~> O1
+    F(A1) {
+        max(a=O1, b=now) ~> O1
+    }
+    O1 >> out
+}
+
+func min_arr(arr) {
+    past(arr) ~> A1
+    first(arr=A1) ~> O1
+    F(A1) {
+        min(a=O1, b=now) ~> O1
+    }
+    O1 >> out
 }
