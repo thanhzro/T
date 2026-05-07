@@ -984,6 +984,20 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
+        if(!strcmp(fc->name,"range_step")){
+            TValue from=eval_expr(f,fc->arg_values[0]);
+            TValue to=eval_expr(f,fc->arg_values[1]);
+            TValue step=eval_expr(f,fc->arg_values[2]);
+            int count=0;
+            for(double v=from.num;v<to.num;v+=step.num) count++;
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*count);
+            out.arr.count=0;
+            for(double v=from.num;v<to.num;v+=step.num)
+                out.arr.items[out.arr.count++]=make_number(v);
+            frame_set(f,fc->target,out);
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
