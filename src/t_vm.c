@@ -975,16 +975,33 @@ ExecResult exec_node(Frame *f, void *node){
             if(v.type==TV_NUMBER) snprintf(tmp,255,"%g",v.num);
             else { strncpy(tmp,v.str,255); tmp[255]=0; }
 
-            char *ph=strstr(s->format,"{}");
+            /* First do {varname} interpolation on format */
+            char fmt2[512]; fmt2[0]=0;
+            const char *fs=s->format; int fi=0;
+            while(fs[fi]){
+                if(fs[fi]=='{' && fs[fi+1]!='}'){
+                    int j=fi+1; char vn[64]; int vni=0;
+                    while(fs[j] && fs[j]!='}') vn[vni++]=fs[j++];
+                    vn[vni]=0;
+                    if(fs[j]=='}'){
+                        TValue vv=frame_get(f,vn);
+                        char vtmp[256];
+                        if(vv.type==TV_NUMBER) snprintf(vtmp,255,"%g",vv.num);
+                        else { strncpy(vtmp,vv.str,255); vtmp[255]=0; }
+                        strncat(fmt2,vtmp,511-strlen(fmt2));
+                        fi=j+1;
+                    } else { char ch[2]={fs[fi],0}; strncat(fmt2,ch,511-strlen(fmt2)); fi++; }
+                } else { char ch[2]={fs[fi],0}; strncat(fmt2,ch,511-strlen(fmt2)); fi++; }
+            }
+
+            char *ph=strstr(fmt2,"{}");
             if(ph){
-                int pre=(int)(ph-s->format);
-                strncpy(out,s->format,pre);
-                out[pre]=0;
+                int pre=(int)(ph-fmt2);
+                strncpy(out,fmt2,pre); out[pre]=0;
                 strncat(out,tmp,511-strlen(out));
                 strncat(out,ph+2,511-strlen(out));
             } else {
-                strncpy(out,s->format,511);
-                out[511]=0;
+                strncpy(out,fmt2,511); out[511]=0;
             }
             printf("%s\n",out);
         }
