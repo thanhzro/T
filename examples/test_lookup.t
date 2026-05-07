@@ -1,5 +1,5 @@
 [T-]
-import "lib/std.t"
+import "lib/basic/std.t"
 read("hocsinh.csv") ~> P1
 ask ten = "Nhap ten: "
 

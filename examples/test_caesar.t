@@ -1,5 +1,5 @@
 [T-]
-import "lib/std.t"
+import "lib/basic/std.t"
 msg = "hello"
 shift = 3
 

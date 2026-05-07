@@ -1,5 +1,5 @@
 [T-]
-import "lib/std.t"
+import "lib/basic/std.t"
 scores = [80, 90, 70, 60]
 
 [T0]
