@@ -1111,13 +1111,15 @@ ExecResult exec_node(Frame *f, void *node){
         if(!strcmp(fc->name,"regex_find")){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue pat=eval_expr(f,fc->arg_values[1]);
-            regex_t re; regmatch_t m;
+            regex_t re; regmatch_t m[2];
             int r=regcomp(&re,pat.str,REG_EXTENDED);
             if(r){ frame_set(f,fc->target,make_error("BAD_REGEX")); return res; }
-            r=regexec(&re,str.str,1,&m,0);
+            r=regexec(&re,str.str,2,m,0);
             if(r){ regfree(&re); frame_set(f,fc->target,make_error("NO_MATCH")); return res; }
-            char buf[256]; int len=m.rm_eo-m.rm_so;
-            strncpy(buf,str.str+m.rm_so,len); buf[len]=0;
+            /* Return capture group 1 if exists, else full match */
+            regmatch_t *use=(m[1].rm_so>=0)?&m[1]:&m[0];
+            char buf[256]; int len=use->rm_eo-use->rm_so;
+            strncpy(buf,str.str+use->rm_so,len); buf[len]=0;
             regfree(&re);
             frame_set(f,fc->target,make_string(buf));
             return res;
