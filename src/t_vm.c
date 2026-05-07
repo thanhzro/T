@@ -668,16 +668,7 @@ ExecResult exec_node(Frame *f, void *node){
                 frame_set(f,fc->target,arr.arr.items[i]);
             return res;
         }
-        if(!strcmp(fc->name,"reverse")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
-            out.arr.count=arr.arr.count;
-            for(int i=0;i<arr.arr.count;i++)
-                out.arr.items[i]=arr.arr.items[arr.arr.count-1-i];
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
         if(!strcmp(fc->name,"slice")){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue from=eval_expr(f,fc->arg_values[1]);

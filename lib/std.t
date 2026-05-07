@@ -142,3 +142,14 @@ func repeat(str, n) {
 
 
 
+
+func reverse(arr) {
+    past(arr) ~> A1
+    len(val=A1) ~> L1
+    range(n=L1) ~> O1
+    F(O1) {
+        L1 - 1 - idx >> O4
+        get(arr=A1, idx=O4) ~> now
+    }
+    O1 >> out
+}
