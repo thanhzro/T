@@ -802,6 +802,19 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
+        if(!strcmp(fc->name,"join")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue sep=eval_expr(f,fc->arg_values[1]);
+            char buf[1024]; buf[0]=0;
+            for(int i=0;i<arr.arr.count;i++){
+                if(i) strncat(buf,sep.str,1023-strlen(buf));
+                TValue it=arr.arr.items[i];
+                if(it.type==TV_NUMBER){ char tmp[64]; snprintf(tmp,63,"%g",it.num); strncat(buf,tmp,1023-strlen(buf)); }
+                else strncat(buf,it.str,1023-strlen(buf));
+            }
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
