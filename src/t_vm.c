@@ -212,6 +212,7 @@ TValue eval_expr(Frame *f, ExprNode *e){
         if(is_number(e->value)) return make_number(atof(e->value));
         return make_string(e->value);
     }
+    if(e->type==4) return make_string(e->value);
     if(e->type==1){
         return frame_get(f,e->value);
     }
@@ -709,6 +710,27 @@ ExecResult exec_node(Frame *f, void *node){
             if(n>255) n=255;
             strncpy(buf,str.str+a,n);
             buf[n]=0;
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
+        if(!strcmp(fc->name,"padLeft")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue n=eval_expr(f,fc->arg_values[1]);
+            TValue ch=eval_expr(f,fc->arg_values[2]);
+            int total=(int)n.num, slen=strlen(str.str);
+            char buf[512]; buf[0]=0;
+            for(int i=0;i<total-slen;i++) strncat(buf,ch.str,511-strlen(buf));
+            strncat(buf,str.str,511-strlen(buf));
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
+        if(!strcmp(fc->name,"padRight")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue n=eval_expr(f,fc->arg_values[1]);
+            TValue ch=eval_expr(f,fc->arg_values[2]);
+            int total=(int)n.num, slen=strlen(str.str);
+            char buf[512]; strncpy(buf,str.str,511); buf[511]=0;
+            for(int i=0;i<total-slen;i++) strncat(buf,ch.str,511-strlen(buf));
             frame_set(f,fc->target,make_string(buf));
             return res;
         }

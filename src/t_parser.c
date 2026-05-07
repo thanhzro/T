@@ -190,10 +190,8 @@ ExprNode* parse_factor(Parser *p){
         return e;
     }
 
-    if(t->type==TOKEN_NUMBER || t->type==TOKEN_STRING){
-        parser_advance(p);
-        return new_expr(0, t->value);
-    }
+    if(t->type==TOKEN_NUMBER){ parser_advance(p); return new_expr(0, t->value); }
+    if(t->type==TOKEN_STRING){ parser_advance(p); return new_expr(4, t->value); }
 
     if(t->type==TOKEN_IDENT || t->type==TOKEN_COORD ||
        (t->type==TOKEN_KEYWORD && !strcmp(t->value,"now"))){
