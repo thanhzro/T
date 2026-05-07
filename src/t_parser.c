@@ -379,6 +379,16 @@ void* parse_stmt(Parser *p){
     ExprNode *e = parse_expr(p);
     if(parser_match(p,TOKEN_OPERATOR,">>")){
         Token *target = parser_advance(p);
+        /* expr >> "file.txt" or expr >> "file.txt" + */
+        if(target->type==TOKEN_STRING){
+            FileWriteNode *n = malloc(sizeof(FileWriteNode));
+            n->node_type = NODE_FILE_WRITE;
+            strncpy(n->path, target->value, 255);
+            n->append_mode = parser_match(p,TOKEN_OPERATOR,"+");
+            /* source is the expr target name — evaluate and store */
+            strncpy(n->source, e->value, 63);
+            return n;
+        }
         AssignNode *a = malloc(sizeof(AssignNode));
         a->node_type = NODE_ASSIGN;
         a->expr = e;
@@ -718,6 +728,26 @@ ProgramNode* parse(Token *tokens, int count){
                     continue;
                 }
 
+                /* expr >> "file.txt" hoặc expr >> "file.txt" + */
+                {
+                    Token *cur2=parser_peek(&p);
+                    if(cur2->type==TOKEN_IDENT || cur2->type==TOKEN_COORD){
+                        Token *src=parser_advance(&p);
+                        if(parser_match(&p,TOKEN_OPERATOR,">>")){
+                            Token *path=parser_advance(&p);
+                            if(path->type==TOKEN_STRING){
+                                FileWriteNode *n=malloc(sizeof(FileWriteNode));
+                                n->node_type=NODE_FILE_WRITE;
+                                strncpy(n->path,path->value,255);
+                                strncpy(n->source,src->value,63);
+                                n->append_mode=parser_match(&p,TOKEN_OPERATOR,"+");
+                                if(prog->tplus_count>=prog->tplus_cap-1){ prog->tplus_cap*=2; prog->tplus=realloc(prog->tplus,sizeof(void*)*prog->tplus_cap); }
+                                prog->tplus[prog->tplus_count++]=n;
+                                continue;
+                            }
+                        }
+                    }
+                }
                 parser_error(&p,"Invalid T+");
             }
         }
