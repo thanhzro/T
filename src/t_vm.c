@@ -1063,6 +1063,27 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
+        if(!strcmp(fc->name,"file_exists")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            FILE *fp=fopen(v.str,"r");
+            if(fp){ fclose(fp); frame_set(f,fc->target,make_number(1)); }
+            else frame_set(f,fc->target,make_number(0));
+            return res;
+        }
+        if(!strcmp(fc->name,"file_size")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            FILE *fp=fopen(v.str,"rb");
+            if(!fp){ frame_set(f,fc->target,make_number(-1)); return res; }
+            fseek(fp,0,SEEK_END); long sz=ftell(fp); fclose(fp);
+            frame_set(f,fc->target,make_number((double)sz));
+            return res;
+        }
+        if(!strcmp(fc->name,"file_delete")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            int r=remove(v.str);
+            frame_set(f,fc->target,make_number(r==0?1:0));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
