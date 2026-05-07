@@ -216,7 +216,31 @@ TValue eval_expr(Frame *f, ExprNode *e){
         if(is_number(e->value)) return make_number(atof(e->value));
         return make_string(e->value);
     }
-    if(e->type==4) return make_string(e->value);
+    if(e->type==4){
+        /* String interpolation: "{name}" -> value of name */
+        const char *s=e->value;
+        if(!strchr(s,'{')) return make_string(s);
+        char out[512]; out[0]=0;
+        int si=0;
+        while(s[si]){
+            if(s[si]=='{'){ 
+                int j=si+1; char vname[64]; int vn=0;
+                while(s[j] && s[j]!='}') vname[vn++]=s[j++];
+                vname[vn]=0;
+                if(s[j]=='}'){
+                    TValue val=frame_get(f,vname);
+                    char tmp[256];
+                    if(val.type==TV_NUMBER) snprintf(tmp,255,"%g",val.num);
+                    else { strncpy(tmp,val.str,255); tmp[255]=0; }
+                    strncat(out,tmp,511-strlen(out));
+                    si=j+1;
+                } else { strncat(out,"{",511-strlen(out)); si++; }
+            } else {
+                char ch[2]={s[si],0}; strncat(out,ch,511-strlen(out)); si++;
+            }
+        }
+        return make_string(out);
+    }
     if(e->type==5){
         /* inline func call */
         exec_node(f,e->inline_call);
