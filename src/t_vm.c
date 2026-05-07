@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 /* ===== NODE TYPE ===== */
 typedef enum {
@@ -870,6 +871,25 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
+        if(!strcmp(fc->name,"random")){
+            TValue mn=eval_expr(f,fc->arg_values[0]);
+            TValue mx=eval_expr(f,fc->arg_values[1]);
+            double r=(double)rand()/RAND_MAX;
+            double val=mn.num+r*(mx.num-mn.num);
+            frame_set(f,fc->target,make_number(val));
+            return res;
+        }
+        if(!strcmp(fc->name,"timestamp")){
+            frame_set(f,fc->target,make_number((double)time(NULL)));
+            return res;
+        }
+        if(!strcmp(fc->name,"rand_int")){
+            TValue mn=eval_expr(f,fc->arg_values[0]);
+            TValue mx=eval_expr(f,fc->arg_values[1]);
+            int val=(int)mn.num+(rand()%((int)mx.num-(int)mn.num+1));
+            frame_set(f,fc->target,make_number(val));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
@@ -1032,6 +1052,7 @@ typedef struct {
 } ProgramNode;
 
 void run_program(ProgramNode *prog){
+    srand((unsigned)time(NULL));
     Frame *global=new_frame(NULL);
 
     for(int i=0;i<prog->tminus_count;i++){
