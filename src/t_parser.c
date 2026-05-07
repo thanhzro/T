@@ -21,7 +21,7 @@ typedef struct {
 
 /* ===== NODE TYPE ===== */
 typedef enum {
-    NODE_ASSIGN, NODE_GATE, NODE_F,
+    NODE_ASSIGN, NODE_GATE, NODE_F, NODE_LOOP,
     NODE_VAR_ASSIGN, NODE_ARRAY_ASSIGN,
     NODE_SHOW, NODE_ASK,
     NODE_FUNC_DEF, NODE_FUNC_CALL, NODE_RETURN,
@@ -68,6 +68,7 @@ typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignN
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
 typedef struct { NodeType node_type; char source[64]; void **body; int body_count; int body_capacity; } FNode;
+typedef struct { NodeType node_type; void **body; int body_count; } LoopNode;
 typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
@@ -363,6 +364,21 @@ void* parse_stmt(Parser *p){
         return f;
     }
 
+    /* loop */
+    if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"loop")){
+        parser_advance(p);
+        parser_expect(p,TOKEN_LBRACE,NULL,"expected '{' after loop");
+        int bcap=8; void **body=malloc(sizeof(void*)*bcap); int bc=0;
+        while(!parser_match(p,TOKEN_RBRACE,NULL)){
+            if(bc>=bcap-1){ bcap*=2; body=realloc(body,sizeof(void*)*bcap); }
+            body[bc++]=parse_stmt(p);
+        }
+        LoopNode *ln=malloc(sizeof(LoopNode));
+        ln->node_type=NODE_LOOP;
+        ln->body=body; ln->body_count=bc;
+        return ln;
+    }
+
     /* return */
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"return")){
         parser_advance(p);
@@ -441,6 +457,21 @@ void* parse_stmt(Parser *p){
         a->has_index = 0;
         strcpy(a->target,target->value);
         return a;
+    }
+
+    /* loop */
+    if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"loop")){
+        parser_advance(p);
+        parser_expect(p,TOKEN_LBRACE,NULL,"expected '{' after loop");
+        int bcap=8; void **body=malloc(sizeof(void*)*bcap); int bc=0;
+        while(!parser_match(p,TOKEN_RBRACE,NULL)){
+            if(bc>=bcap-1){ bcap*=2; body=realloc(body,sizeof(void*)*bcap); }
+            body[bc++]=parse_stmt(p);
+        }
+        LoopNode *ln=malloc(sizeof(LoopNode));
+        ln->node_type=NODE_LOOP;
+        ln->body=body; ln->body_count=bc;
+        return ln;
     }
 
     parser_error(p,"Invalid statement");

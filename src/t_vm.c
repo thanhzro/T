@@ -6,7 +6,7 @@
 
 /* ===== NODE TYPE ===== */
 typedef enum {
-    NODE_ASSIGN, NODE_GATE, NODE_F,
+    NODE_ASSIGN, NODE_GATE, NODE_F, NODE_LOOP,
     NODE_VAR_ASSIGN, NODE_ARRAY_ASSIGN,
     NODE_SHOW, NODE_ASK,
     NODE_FUNC_DEF, NODE_FUNC_CALL, NODE_RETURN,
@@ -86,6 +86,7 @@ typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignN
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
 typedef struct { NodeType node_type; char source[64]; void **body; int body_count; } FNode;
+typedef struct { NodeType node_type; void **body; int body_count; } LoopNode;
 typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
@@ -915,6 +916,21 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_error("!NO_RETURN"));
 
         free(nf);
+    }
+
+    else if(t==NODE_LOOP){
+        LoopNode *ln=node;
+        while(1){
+            Frame *lf=new_frame(f);
+            ExecResult lr=exec_block(lf,ln->body,ln->body_count);
+            /* Copy variables back */
+            for(int k=0;k<lf->count;k++)
+                frame_set(f,lf->keys[k],lf->values[k]);
+            free(lf);
+            if(lr.has_return){ res=lr; break; }
+            TValue done=frame_get(f,"done");
+            if(done.type!=TV_ERROR) break;
+        }
     }
 
     else if(t==NODE_RETURN){
