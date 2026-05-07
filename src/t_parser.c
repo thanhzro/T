@@ -16,6 +16,7 @@ typedef struct {
     TokenType type;
     char value[256];
     int line;
+    int col;
 } Token;
 
 /* ===== NODE TYPE ===== */
@@ -138,8 +139,12 @@ int parser_match(Parser *p, TokenType t, const char *v){
 }
 
 void parser_error(Parser *p, const char *msg){
-    printf("Parse error line %d: %s\n", parser_peek(p)->line, msg);
+    printf("Parse error line %d col %d: %s\n", parser_peek(p)->line, parser_peek(p)->col, msg);
     exit(1);
+}
+
+void parser_expect(Parser *p, TokenType t, const char *v, const char *msg){
+    if(!parser_match(p,t,v)) parser_error(p,msg);
 }
 
 ExprNode* new_expr(int type, const char *value){
@@ -282,7 +287,7 @@ void* parse_stmt(Parser *p){
         parser_advance(p);
         Token *src = parser_advance(p);
 
-        parser_match(p,TOKEN_LPAREN,NULL);
+        parser_expect(p,TOKEN_LPAREN,NULL,"expected '(' after Gate source");
         Token *op = parser_advance(p);
         Token *val = parser_advance(p);
 
@@ -303,8 +308,8 @@ void* parse_stmt(Parser *p){
             strcpy(g->str_val2,val2->value);
         } else g->logic[0]=0;
 
-        parser_match(p,TOKEN_RPAREN,NULL);
-        parser_match(p,TOKEN_OPERATOR,">>");
+        parser_expect(p,TOKEN_RPAREN,NULL,"expected ')' after Gate condition");
+        parser_expect(p,TOKEN_OPERATOR,">>","expected '>>' after Gate condition");
         Token *target = parser_advance(p);
         strcpy(g->target,target->value);
         return g;
@@ -313,10 +318,14 @@ void* parse_stmt(Parser *p){
     /* F */
     if(t->type==TOKEN_KEYWORD && !strcmp(t->value,"F")){
         parser_advance(p);
-        parser_match(p,TOKEN_LPAREN,NULL);
+        parser_expect(p,TOKEN_LPAREN,NULL,"expected '(' after F");
         Token *src = parser_advance(p);
-        parser_match(p,TOKEN_RPAREN,NULL);
-        parser_match(p,TOKEN_LBRACE,NULL);
+        if(src->type==TOKEN_KEYWORD && !strcmp(src->value,"F"))
+            parser_error(p,"F() expects an array name, not another F — nested F() not supported");
+        if(src->type!=TOKEN_IDENT && src->type!=TOKEN_COORD)
+            parser_error(p,"F() expects an array name here");
+        parser_expect(p,TOKEN_RPAREN,NULL,"expected ')' after F( source name");
+        parser_expect(p,TOKEN_LBRACE,NULL,"expected '{' after F(...)");
 
         int bcap=8;
         void **body = malloc(sizeof(void*)*bcap);

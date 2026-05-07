@@ -27,6 +27,7 @@ typedef struct {
     TokenType type;
     char value[256];
     int line;
+    int col;
 } Token;
 
 /* ===== LEXER ===== */
@@ -34,6 +35,7 @@ typedef struct {
     const char *src;
     int pos;
     int line;
+    int col;
 } Lexer;
 
 char peek(Lexer *l){
@@ -41,7 +43,9 @@ char peek(Lexer *l){
 }
 
 char advance(Lexer *l){
-    return l->src[l->pos++];
+    char ch = l->src[l->pos++];
+    if(ch=='\n'){ l->line++; l->col=1; } else l->col++;
+    return ch;
 }
 
 int match(Lexer *l, const char *s){
@@ -54,15 +58,16 @@ int match(Lexer *l, const char *s){
 }
 
 void error(Lexer *l, const char *msg){
-    printf("Lex error line %d: %s\n", l->line, msg);
+    printf("Lex error line %d col %d: %s\n", l->line, l->col, msg);
     exit(1);
 }
 
-Token make(TokenType t, const char *v, int line){
+Token make(TokenType t, const char *v, int line, int col){
     Token tok;
     tok.type = t;
     strcpy(tok.value, v);
     tok.line = line;
+    tok.col = col;
     return tok;
 }
 
@@ -83,11 +88,11 @@ Token lex_ident(Lexer *l){
 
     for(int j=0;j<15;j++){
         if(strcmp(buf,kw[j])==0)
-            return make(TOKEN_KEYWORD,buf,l->line);
+            return make(TOKEN_KEYWORD,buf,l->line,l->col);
     }
 
     if(strcmp(buf,"true")==0 || strcmp(buf,"false")==0)
-        return make(TOKEN_BOOL,buf,l->line);
+        return make(TOKEN_BOOL,buf,l->line,l->col);
 
     /* coord: có chữ + số */
     int hasDigit=0, hasAlpha=0;
@@ -96,9 +101,9 @@ Token lex_ident(Lexer *l){
         if(isalpha(buf[k])) hasAlpha=1;
     }
     if(hasDigit && hasAlpha)
-        return make(TOKEN_COORD,buf,l->line);
+        return make(TOKEN_COORD,buf,l->line,l->col);
 
-    return make(TOKEN_IDENT,buf,l->line);
+    return make(TOKEN_IDENT,buf,l->line,l->col);
 }
 
 /* ===== NUMBER ===== */
@@ -110,7 +115,7 @@ Token lex_number(Lexer *l){
     }
     buf[i]=0;
 
-    return make(TOKEN_NUMBER,buf,l->line);
+    return make(TOKEN_NUMBER,buf,l->line,l->col);
 }
 
 /* ===== STRING ===== */
@@ -126,7 +131,7 @@ Token lex_string(Lexer *l){
     advance(l);
     buf[i]=0;
 
-    return make(TOKEN_STRING,buf,l->line);
+    return make(TOKEN_STRING,buf,l->line,l->col);
 }
 
 /* ===== MAIN LEX ===== */
@@ -160,64 +165,64 @@ Token* lex(const char *src, int *out_count){
         /* SECTION */
         if(match(&l,"[T-]")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_SECTION,"[T-]",l.line);
+        tokens[count++] = make(TOKEN_SECTION,"[T-]",l.line,l.col);
             continue;
         }
         if(match(&l,"[T0]")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_SECTION,"[T0]",l.line);
+        tokens[count++] = make(TOKEN_SECTION,"[T0]",l.line,l.col);
             continue;
         }
         if(match(&l,"[T+]")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_SECTION,"[T+]",l.line);
+        tokens[count++] = make(TOKEN_SECTION,"[T+]",l.line,l.col);
             continue;
         }
 
         /* multi-char operators */
         if(match(&l,">>")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_OPERATOR,">>",l.line);
+        tokens[count++] = make(TOKEN_OPERATOR,">>",l.line,l.col);
             continue;
         }
         if(match(&l,"<<")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_OPERATOR,"<<",l.line);
+        tokens[count++] = make(TOKEN_OPERATOR,"<<",l.line,l.col);
             continue;
         }
         if(match(&l,"~>")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_OPERATOR,"~>",l.line);
+        tokens[count++] = make(TOKEN_OPERATOR,"~>",l.line,l.col);
             continue;
         }
         if(match(&l,">=")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_COMPARE,">=",l.line);
+        tokens[count++] = make(TOKEN_COMPARE,">=",l.line,l.col);
             continue;
         }
         if(match(&l,"<=")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_COMPARE,"<=",l.line);
+        tokens[count++] = make(TOKEN_COMPARE,"<=",l.line,l.col);
             continue;
         }
         if(match(&l,"==")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_COMPARE,"==",l.line);
+        tokens[count++] = make(TOKEN_COMPARE,"==",l.line,l.col);
             continue;
         }
         if(match(&l,"!=")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_COMPARE,"!=",l.line);
+        tokens[count++] = make(TOKEN_COMPARE,"!=",l.line,l.col);
             continue;
         }
         if(match(&l,"&&")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_LOGIC,"&&",l.line);
+        tokens[count++] = make(TOKEN_LOGIC,"&&",l.line,l.col);
             continue;
         }
         if(match(&l,"||")){
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_LOGIC,"||",l.line);
+        tokens[count++] = make(TOKEN_LOGIC,"||",l.line,l.col);
             continue;
         }
 
@@ -225,13 +230,13 @@ Token* lex(const char *src, int *out_count){
         if(c=='>'){
             advance(&l);
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_COMPARE,">",l.line);
+        tokens[count++] = make(TOKEN_COMPARE,">",l.line,l.col);
             continue;
         }
         if(c=='<'){
             advance(&l);
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_COMPARE,"<",l.line);
+        tokens[count++] = make(TOKEN_COMPARE,"<",l.line,l.col);
             continue;
         }
 
@@ -251,26 +256,26 @@ Token* lex(const char *src, int *out_count){
             }
             buf[i]=0;
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++]=make(TOKEN_NUMBER,buf,l.line);
+        tokens[count++]=make(TOKEN_NUMBER,buf,l.line,l.col);
             continue;
         }
         if(c=='+'||c=='-'||c=='*'||c=='/'||c=='%'){
             advance(&l);
             char buf[2]={c,0};
             if(count>=capacity-1){ capacity*=2; tokens=realloc(tokens,sizeof(Token)*capacity); }
-        tokens[count++] = make(TOKEN_OPERATOR,buf,l.line);
+        tokens[count++] = make(TOKEN_OPERATOR,buf,l.line,l.col);
             continue;
         }
 
         /* symbols */
-        if(c=='('){ advance(&l); tokens[count++]=make(TOKEN_LPAREN,"(",l.line); continue;}
-        if(c==')'){ advance(&l); tokens[count++]=make(TOKEN_RPAREN,")",l.line); continue;}
-        if(c=='{'){ advance(&l); tokens[count++]=make(TOKEN_LBRACE,"{",l.line); continue;}
-        if(c=='}'){ advance(&l); tokens[count++]=make(TOKEN_RBRACE,"}",l.line); continue;}
-        if(c=='['){ advance(&l); tokens[count++]=make(TOKEN_LBRACKET,"[",l.line); continue;}
-        if(c==']'){ advance(&l); tokens[count++]=make(TOKEN_RBRACKET,"]",l.line); continue;}
-        if(c==','){ advance(&l); tokens[count++]=make(TOKEN_COMMA,",",l.line); continue;}
-        if(c=='='){ advance(&l); tokens[count++]=make(TOKEN_EQUALS,"=",l.line); continue;}
+        if(c=='('){ advance(&l); tokens[count++]=make(TOKEN_LPAREN,"(",l.line,l.col); continue;}
+        if(c==')'){ advance(&l); tokens[count++]=make(TOKEN_RPAREN,")",l.line,l.col); continue;}
+        if(c=='{'){ advance(&l); tokens[count++]=make(TOKEN_LBRACE,"{",l.line,l.col); continue;}
+        if(c=='}'){ advance(&l); tokens[count++]=make(TOKEN_RBRACE,"}",l.line,l.col); continue;}
+        if(c=='['){ advance(&l); tokens[count++]=make(TOKEN_LBRACKET,"[",l.line,l.col); continue;}
+        if(c==']'){ advance(&l); tokens[count++]=make(TOKEN_RBRACKET,"]",l.line,l.col); continue;}
+        if(c==','){ advance(&l); tokens[count++]=make(TOKEN_COMMA,",",l.line,l.col); continue;}
+        if(c=='='){ advance(&l); tokens[count++]=make(TOKEN_EQUALS,"=",l.line,l.col); continue;}
 
         /* string */
         if(c=='"'){
@@ -299,7 +304,7 @@ Token* lex(const char *src, int *out_count){
         error(&l,msg);
     }
 
-    tokens[count++] = make(TOKEN_EOF,"",l.line);
+    tokens[count++] = make(TOKEN_EOF,"",l.line,l.col);
     *out_count = count;
     return tokens;
 }
