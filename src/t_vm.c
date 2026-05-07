@@ -1027,6 +1027,42 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(hypot(a.num,b.num)));
             return res;
         }
+        if(!strcmp(fc->name,"to_hex")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char buf[512]; buf[0]=0;
+            for(int i=0;v.str[i];i++){
+                char tmp[4]; snprintf(tmp,3,"%02x",(unsigned char)v.str[i]);
+                strcat(buf,tmp);
+            }
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
+        if(!strcmp(fc->name,"from_hex")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char buf[256]; int len=strlen(v.str)/2,i;
+            for(i=0;i<len;i++){
+                char tmp[3]={v.str[i*2],v.str[i*2+1],0};
+                buf[i]=(char)strtol(tmp,NULL,16);
+            }
+            buf[len]=0;
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
+        if(!strcmp(fc->name,"to_base64")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            const char *b64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            unsigned char *in=(unsigned char*)v.str; int len=strlen(v.str);
+            char buf[1024]; int bi=0;
+            for(int i=0;i<len;i+=3){
+                unsigned int b=(in[i]<<16)|((i+1<len?in[i+1]:0)<<8)|(i+2<len?in[i+2]:0);
+                buf[bi++]=b64[(b>>18)&63]; buf[bi++]=b64[(b>>12)&63];
+                buf[bi++]=(i+1<len)?b64[(b>>6)&63]:'=';
+                buf[bi++]=(i+2<len)?b64[b&63]:'=';
+            }
+            buf[bi]=0;
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
