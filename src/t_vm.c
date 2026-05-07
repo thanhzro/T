@@ -1137,6 +1137,35 @@ ExecResult exec_node(Frame *f, void *node){
             else frame_set(f,fc->target,make_error("HTTP_FAIL"));
             return res;
         }
+        if(!strcmp(fc->name,"url_encode")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char buf[1024]; int bi=0;
+            for(int i=0;v.str[i];i++){
+                unsigned char ch=v.str[i];
+                if(isalnum(ch)||ch=='-'||ch=='_'||ch=='.'||ch=='~')
+                    buf[bi++]=ch;
+                else{ sprintf(buf+bi,"%%%02X",ch); bi+=3; }
+            }
+            buf[bi]=0;
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
+        if(!strcmp(fc->name,"http_post")){
+            TValue url=eval_expr(f,fc->arg_values[0]);
+            TValue data=eval_expr(f,fc->arg_values[1]);
+            CURL *curl=curl_easy_init();
+            struct curl_buf buf={t_malloc(1),0};
+            curl_easy_setopt(curl,CURLOPT_URL,url.str);
+            curl_easy_setopt(curl,CURLOPT_POSTFIELDS,data.str);
+            curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,(curl_write_callback)curl_write);
+            curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
+            curl_easy_setopt(curl,CURLOPT_TIMEOUT,10L);
+            CURLcode r=curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+            if(r==CURLE_OK) frame_set(f,fc->target,make_string(buf.data));
+            else frame_set(f,fc->target,make_error("HTTP_FAIL"));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
