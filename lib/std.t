@@ -153,3 +153,14 @@ func reverse(arr) {
     }
     O1 >> out
 }
+
+func pow(base, exp) {
+    past(base) ~> A1
+    past(exp) ~> A2
+    range(n=A2) ~> O1
+    1 >> acc
+    F(O1) {
+        acc * A1 >> acc
+    }
+    acc >> out
+}

@@ -723,13 +723,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number((double)(long long)(v.num+0.5)));
             return res;
         }
-        if(!strcmp(fc->name,"pow")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            double r=1; for(int i=0;i<(int)b.num;i++) r*=a.num;
-            frame_set(f,fc->target,make_number(r));
-            return res;
-        }
+
         if(!strcmp(fc->name,"unique")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
