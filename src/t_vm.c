@@ -783,6 +783,22 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(strstr(str.str,sub.str)!=NULL));
             return res;
         }
+        if(!strcmp(fc->name,"sort")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.count=arr.arr.count;
+            for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
+            for(int i=0;i<out.arr.count-1;i++)
+                for(int j=0;j<out.arr.count-1-i;j++)
+                    if(out.arr.items[j].num>out.arr.items[j+1].num){
+                        TValue tmp=out.arr.items[j];
+                        out.arr.items[j]=out.arr.items[j+1];
+                        out.arr.items[j+1]=tmp;
+                    }
+            frame_set(f,fc->target,out);
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];

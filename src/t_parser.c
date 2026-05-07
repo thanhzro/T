@@ -318,9 +318,7 @@ void* parse_stmt(Parser *p){
         parser_advance(p);
         parser_expect(p,TOKEN_LPAREN,NULL,"expected '(' after F");
         Token *src = parser_advance(p);
-        if(src->type==TOKEN_KEYWORD && !strcmp(src->value,"F"))
-            parser_error(p,"F() expects an array name, not another F — nested F() not supported");
-        if(src->type!=TOKEN_IDENT && src->type!=TOKEN_COORD)
+        if(src->type!=TOKEN_IDENT && src->type!=TOKEN_COORD && src->type!=TOKEN_KEYWORD)
             parser_error(p,"F() expects an array name here");
         parser_expect(p,TOKEN_RPAREN,NULL,"expected ')' after F( source name");
         parser_expect(p,TOKEN_LBRACE,NULL,"expected '{' after F(...)");
