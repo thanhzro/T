@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <regex.h>
 #include <math.h>
 /* ===== ARENA ALLOCATOR (mặt 0) ===== */
 static void *t_arena[65536];
@@ -1082,6 +1083,30 @@ ExecResult exec_node(Frame *f, void *node){
             TValue v=eval_expr(f,fc->arg_values[0]);
             int r=remove(v.str);
             frame_set(f,fc->target,make_number(r==0?1:0));
+            return res;
+        }
+        if(!strcmp(fc->name,"regex_match")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue pat=eval_expr(f,fc->arg_values[1]);
+            regex_t re; int r=regcomp(&re,pat.str,REG_EXTENDED);
+            if(r){ frame_set(f,fc->target,make_number(0)); return res; }
+            r=regexec(&re,str.str,0,NULL,0);
+            regfree(&re);
+            frame_set(f,fc->target,make_number(r==0?1:0));
+            return res;
+        }
+        if(!strcmp(fc->name,"regex_find")){
+            TValue str=eval_expr(f,fc->arg_values[0]);
+            TValue pat=eval_expr(f,fc->arg_values[1]);
+            regex_t re; regmatch_t m;
+            int r=regcomp(&re,pat.str,REG_EXTENDED);
+            if(r){ frame_set(f,fc->target,make_error("BAD_REGEX")); return res; }
+            r=regexec(&re,str.str,1,&m,0);
+            if(r){ regfree(&re); frame_set(f,fc->target,make_error("NO_MATCH")); return res; }
+            char buf[256]; int len=m.rm_eo-m.rm_so;
+            strncpy(buf,str.str+m.rm_so,len); buf[len]=0;
+            regfree(&re);
+            frame_set(f,fc->target,make_string(buf));
             return res;
         }
         FuncDefNode *fn=find_func(fc->name);
