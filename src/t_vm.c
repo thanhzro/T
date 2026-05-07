@@ -4,7 +4,20 @@
 #include <ctype.h>
 #include <time.h>
 #include <regex.h>
+#include <curl/curl.h>
 #include <math.h>
+
+/* ===== CURL HELPER ===== */
+struct curl_buf { char *data; size_t size; };
+static size_t curl_write(char *ptr, size_t size, size_t nmemb, struct curl_buf *buf){
+    size_t total=size*nmemb;
+    buf->data=realloc(buf->data,buf->size+total+1);
+    memcpy(buf->data+buf->size,ptr,total);
+    buf->size+=total;
+    buf->data[buf->size]=0;
+    return total;
+}
+
 /* ===== ARENA ALLOCATOR (mặt 0) ===== */
 static void *t_arena[65536];
 static int t_arena_count = 0;
@@ -1107,6 +1120,21 @@ ExecResult exec_node(Frame *f, void *node){
             strncpy(buf,str.str+m.rm_so,len); buf[len]=0;
             regfree(&re);
             frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
+        if(!strcmp(fc->name,"http_get")){
+            TValue url=eval_expr(f,fc->arg_values[0]);
+            CURL *curl=curl_easy_init();
+            struct curl_buf buf={t_malloc(1),0};
+            curl_easy_setopt(curl,CURLOPT_URL,url.str);
+            curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,(curl_write_callback)curl_write);
+            curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
+            curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1L);
+            curl_easy_setopt(curl,CURLOPT_TIMEOUT,10L);
+            CURLcode r=curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+            if(r==CURLE_OK) frame_set(f,fc->target,make_string(buf.data));
+            else frame_set(f,fc->target,make_error("HTTP_FAIL"));
             return res;
         }
         FuncDefNode *fn=find_func(fc->name);
