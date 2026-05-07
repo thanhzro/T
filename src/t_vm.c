@@ -734,6 +734,67 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
+        if(!strcmp(fc->name,"floor")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number((double)(long long)v.num));
+            return res;
+        }
+        if(!strcmp(fc->name,"ceil")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            double n=v.num;
+            long long t=(long long)n;
+            frame_set(f,fc->target,make_number(n>t?t+1:t));
+            return res;
+        }
+        if(!strcmp(fc->name,"round")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number((double)(long long)(v.num+0.5)));
+            return res;
+        }
+        if(!strcmp(fc->name,"pow")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            double r=1; for(int i=0;i<(int)b.num;i++) r*=a.num;
+            frame_set(f,fc->target,make_number(r));
+            return res;
+        }
+        if(!strcmp(fc->name,"unique")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.count=0;
+            for(int i=0;i<arr.arr.count;i++){
+                int found=0;
+                for(int j=0;j<out.arr.count;j++){
+                    if(arr.arr.items[i].type==TV_NUMBER && out.arr.items[j].type==TV_NUMBER && arr.arr.items[i].num==out.arr.items[j].num){ found=1; break; }
+                    if(arr.arr.items[i].type==TV_STRING && out.arr.items[j].type==TV_STRING && !strcmp(arr.arr.items[i].str,out.arr.items[j].str)){ found=1; break; }
+                }
+                if(!found) out.arr.items[out.arr.count++]=arr.arr.items[i];
+            }
+            frame_set(f,fc->target,out);
+            return res;
+        }
+        if(!strcmp(fc->name,"push")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue val=eval_expr(f,fc->arg_values[1]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*(arr.arr.count+1));
+            out.arr.count=arr.arr.count+1;
+            for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
+            out.arr.items[arr.arr.count]=val;
+            frame_set(f,fc->target,out);
+            return res;
+        }
+        if(!strcmp(fc->name,"pop")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            if(arr.arr.count==0){ frame_set(f,fc->target,make_error("!EMPTY")); return res; }
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*(arr.arr.count-1));
+            out.arr.count=arr.arr.count-1;
+            for(int i=0;i<out.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
+            frame_set(f,fc->target,out);
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
