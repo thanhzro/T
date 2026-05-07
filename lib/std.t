@@ -74,3 +74,12 @@ func last(arr) {
     }
     return O1
 }
+
+func clamp(val, lo, hi) {
+    past(val) ~> P1
+    past(lo) ~> P2
+    past(hi) ~> P3
+    max(a=P1, b=P2) ~> O1
+    min(a=O1, b=P3) ~> O2
+    return O2
+}

@@ -353,7 +353,7 @@ void* parse_stmt(Parser *p){
     }
 
     /* func call */
-    if(t->type==TOKEN_IDENT && p->tokens[p->pos+1].type==TOKEN_LPAREN){
+    if((t->type==TOKEN_IDENT || t->type==TOKEN_COORD) && p->tokens[p->pos+1].type==TOKEN_LPAREN){
         Token *name = parser_advance(p);
         parser_match(p,TOKEN_LPAREN,NULL);
 
