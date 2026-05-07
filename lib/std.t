@@ -83,3 +83,36 @@ func clamp(val, lo, hi) {
     min(a=O1, b=P3) ~> O2
     return O2
 }
+
+func startsWith(str, prefix) {
+    past(str) ~> P1
+    past(prefix) ~> P2
+    len(val=P2) ~> O2
+    chars(str=P1) ~> P3
+    chars(str=P2) ~> P4
+    F(P4) {
+        Gate idx (== idx) >> O1
+    }
+    join(arr=P4, sep="") ~> O3
+    contains(str=P1, sub=O3) ~> O4
+    return O4
+}
+
+func startsWith(str, prefix) {
+    past(str) ~> P1
+    past(prefix) ~> P2
+    indexOf(str=P1, sub=P2) ~> O1
+    Gate O1 (== 0) >> O2
+    return O2
+}
+
+func endsWith(str, suffix) {
+    past(str) ~> P1
+    past(suffix) ~> P2
+    len(val=P1) ~> O1
+    len(val=P2) ~> O2
+    O1 - O2 >> O3
+    indexOf(str=P1, sub=P2) ~> O4
+    Gate O4 (== O3) >> O5
+    return O5
+}
