@@ -116,3 +116,15 @@ func endsWith(str, suffix) {
     Gate O4 (== O3) >> O5
     return O5
 }
+
+
+func reverse(arr) {
+    past(arr) ~> P1
+    len(val=P1) ~> O2
+    range(n=O2) ~> O3
+    F(O3) {
+        O2 - 1 - now >> O4
+        get(arr=P1, idx=O4) ~> now
+    }
+    return O3
+}

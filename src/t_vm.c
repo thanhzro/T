@@ -665,6 +665,37 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(tmp));
             return res;
         }
+
+        if(!strcmp(fc->name,"range")){
+            TValue n=eval_expr(f,fc->arg_values[0]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*(int)n.num);
+            out.arr.count=(int)n.num;
+            for(int i=0;i<(int)n.num;i++)
+                out.arr.items[i]=make_number(i);
+            frame_set(f,fc->target,out);
+            return res;
+        }
+        if(!strcmp(fc->name,"get")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue idx=eval_expr(f,fc->arg_values[1]);
+            int i=(int)idx.num;
+            if(arr.type!=TV_ARRAY||i<0||i>=arr.arr.count)
+                frame_set(f,fc->target,make_error("!OUT_OF_BOUNDS"));
+            else
+                frame_set(f,fc->target,arr.arr.items[i]);
+            return res;
+        }
+        if(!strcmp(fc->name,"reverse")){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.count=arr.arr.count;
+            for(int i=0;i<arr.arr.count;i++)
+                out.arr.items[i]=arr.arr.items[arr.arr.count-1-i];
+            frame_set(f,fc->target,out);
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
@@ -783,6 +814,7 @@ ExecResult exec_node(Frame *f, void *node){
         }
         else if(v.type==TV_NUMBER) printf("%g\n",v.num);
         else if(v.type==TV_STRING) printf("%s\n",v.str);
+        else if(v.type==TV_ERROR) printf("%s\n",v.str);
         else if(v.type==TV_ARRAY){
             printf("[");
             for(int i=0;i<v.arr.count;i++){
