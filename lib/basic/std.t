@@ -274,15 +274,16 @@ func trim(str) {
     0 >> start
     loop {
         slice(str=A1, from=start, to=start+1) ~> ch
-        Gate ch (!= " ") >> done
         start + 1 >> start
+        Gate ch (!= " ") >> done
     }
+    start - 1 >> real_start
     L - 1 >> end
     loop {
         slice(str=A1, from=end, to=end+1) ~> ch2
-        Gate ch2 (!= " ") >> done2
         end - 1 >> end
+        Gate ch2 (!= " ") >> done2
     }
-    end + 1 >> endp
-    slice(str=A1, from=start, to=endp) ~> out
+    end + 2 >> real_end
+    slice(str=A1, from=real_start, to=real_end) ~> out
 }
