@@ -1,7 +1,6 @@
 [T-]
 import "lib/basic/std.t"
 nums = [3, 1, 4, 1, 5, 9, 2, 6]
-words = ["banana", "apple", "cherry"]
 
 [T0]
 sort(arr=nums) ~> O1
@@ -16,13 +15,4 @@ padLeft(str="42", n=5, ch="0") ~> O9
 pow(base=2, exp=8) ~> O10
 
 [T+]
-show shall(O1)
-show shall(O2)
-show shall(O3)
-show shall(O4)
-show shall(O5)
-show shall(O6)
-show shall(O7)
-show shall(O8)
-show shall(O9)
-show shall(O10)
+show shall(O1, O2, O3, O4, O5, O6, O7, O8, O9, O10)
