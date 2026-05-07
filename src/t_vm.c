@@ -744,27 +744,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
-        if(!strcmp(fc->name,"padLeft")){
-            TValue str=eval_expr(f,fc->arg_values[0]);
-            TValue n=eval_expr(f,fc->arg_values[1]);
-            TValue ch=eval_expr(f,fc->arg_values[2]);
-            int total=(int)n.num, slen=strlen(str.str);
-            char buf[512]; buf[0]=0;
-            for(int i=0;i<total-slen;i++) strncat(buf,ch.str,511-strlen(buf));
-            strncat(buf,str.str,511-strlen(buf));
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
-        if(!strcmp(fc->name,"padRight")){
-            TValue str=eval_expr(f,fc->arg_values[0]);
-            TValue n=eval_expr(f,fc->arg_values[1]);
-            TValue ch=eval_expr(f,fc->arg_values[2]);
-            int total=(int)n.num, slen=strlen(str.str);
-            char buf[512]; strncpy(buf,str.str,511); buf[511]=0;
-            for(int i=0;i<total-slen;i++) strncat(buf,ch.str,511-strlen(buf));
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
+
+
         if(!strcmp(fc->name,"floor")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             frame_set(f,fc->target,make_number((double)(long long)v.num));

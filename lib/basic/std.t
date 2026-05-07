@@ -225,3 +225,23 @@ func contains(str, sub) {
     O1 + 1 >> O2
     clamp(val=O2, lo=0, hi=1) ~> out
 }
+
+func padLeft(str, n, ch) {
+    past(str) ~> A1
+    past(n) ~> A2
+    past(ch) ~> A3
+    len(val=A1) ~> B1
+    A2 - B1 >> B2
+    repeat(str=A3, n=B2) ~> B3
+    B3 + A1 >> out
+}
+
+func padRight(str, n, ch) {
+    past(str) ~> A1
+    past(n) ~> A2
+    past(ch) ~> A3
+    len(val=A1) ~> B1
+    A2 - B1 >> B2
+    repeat(str=A3, n=B2) ~> B3
+    A1 + B3 >> out
+}
