@@ -1005,6 +1005,28 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
+        if(!strcmp(fc->name,"exp")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(exp(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"atan")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(atan(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"atan2")){
+            TValue y=eval_expr(f,fc->arg_values[0]);
+            TValue x=eval_expr(f,fc->arg_values[1]);
+            frame_set(f,fc->target,make_number(atan2(y.num,x.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"hypot")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            frame_set(f,fc->target,make_number(hypot(a.num,b.num)));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
