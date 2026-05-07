@@ -170,3 +170,18 @@ func abs(val) {
     0 - A1 >> B1
     max(a=A1, b=B1) ~> out
 }
+
+
+func join(arr, sep) {
+    past(arr) ~> A1
+    past(sep) ~> A2
+    len(val=A1) ~> L1
+    L1 - 1 >> L2
+    "" >> result
+    F(A1) {
+        result + now >> result
+        Gate idx (< L2) >> O1
+        result + A2 >> result
+    }
+    result >> out
+}
