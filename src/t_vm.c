@@ -4,6 +4,22 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+/* ===== ARENA ALLOCATOR (mặt 0) ===== */
+static void *t_arena[65536];
+static int t_arena_count = 0;
+
+void *t_malloc(size_t size){
+    void *p = malloc(size);
+    if(p) t_arena[t_arena_count++] = p;
+    return p;
+}
+
+void arena_free_all(){
+    for(int i=0;i<t_arena_count;i++) free(t_arena[i]);
+    t_arena_count = 0;
+}
+
+
 
 /* ===== NODE TYPE ===== */
 typedef enum {
@@ -157,11 +173,11 @@ TValue make_error(const char *s){
 
 /* ===== FRAME ===== */
 Frame* new_frame(Frame *parent){
-    Frame *f=malloc(sizeof(Frame));
+    Frame *f=t_malloc(sizeof(Frame));
     f->capacity=16;
-    f->keys=malloc(sizeof(char*)*f->capacity);
-    for(int i=0;i<f->capacity;i++) f->keys[i]=malloc(64);
-    f->values=malloc(sizeof(TValue)*f->capacity);
+    f->keys=t_malloc(sizeof(char*)*f->capacity);
+    for(int i=0;i<f->capacity;i++) f->keys[i]=t_malloc(64);
+    f->values=t_malloc(sizeof(TValue)*f->capacity);
     f->count=0;
     f->parent=parent;
     return f;
@@ -184,7 +200,7 @@ void frame_set(Frame *f, const char *key, TValue v){
     if(f->count>=f->capacity-1){
         f->capacity*=2;
         f->keys=realloc(f->keys,sizeof(char*)*f->capacity);
-        for(int i=f->count;i<f->capacity;i++) f->keys[i]=malloc(64);
+        for(int i=f->count;i<f->capacity;i++) f->keys[i]=t_malloc(64);
         f->values=realloc(f->values,sizeof(TValue)*f->capacity);
     }
     strncpy(f->keys[f->count],key,63);
@@ -270,7 +286,7 @@ TValue eval_expr(Frame *f, ExprNode *e){
     if(e->type==3){
         TValue arr;
         arr.type=TV_ARRAY;
-        arr.arr.items=malloc(sizeof(TValue)*e->arr_node->count);
+        arr.arr.items=t_malloc(sizeof(TValue)*e->arr_node->count);
         arr.arr.count=e->arr_node->count;
         for(int i=0;i<e->arr_node->count;i++)
             arr.arr.items[i]=eval_expr(f,e->arr_node->values[i]);
@@ -377,7 +393,7 @@ ExecResult exec_node(Frame *f, void *node){
     else if(t==NODE_ARRAY_ASSIGN){
         ArrayAssignNode *a=node;
         TValue arr; arr.type=TV_ARRAY;
-        arr.arr.items=malloc(sizeof(TValue)*a->count);
+        arr.arr.items=t_malloc(sizeof(TValue)*a->count);
         arr.arr.count=a->count;
         for(int i=0;i<a->count;i++)
             arr.arr.items[i]=eval_expr(f,a->values[i]);
@@ -491,7 +507,7 @@ ExecResult exec_node(Frame *f, void *node){
                     gn=(GateNode*)fn->body[i];
 
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
@@ -534,7 +550,7 @@ ExecResult exec_node(Frame *f, void *node){
                 }
 
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
@@ -561,7 +577,7 @@ ExecResult exec_node(Frame *f, void *node){
         }
         else if(has_now_assign){
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
 
             for(int i=0;i<arr.arr.count;i++){
@@ -618,7 +634,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sep=eval_expr(f,fc->arg_values[1]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*(strlen(str.str)+1));
+            out.arr.items=t_malloc(sizeof(TValue)*(strlen(str.str)+1));
             out.arr.count=0;
             char buf[256]; strncpy(buf,str.str,255); buf[255]=0;
             char *token=strtok(buf,sep.str);
@@ -657,7 +673,7 @@ ExecResult exec_node(Frame *f, void *node){
         if(!strcmp(fc->name,"chars")){
             TValue val=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*strlen(val.str)+1);
+            out.arr.items=t_malloc(sizeof(TValue)*strlen(val.str)+1);
             out.arr.count=0;
             for(int i=0;val.str[i];i++){
                 char tmp[2]={val.str[i],0};
@@ -681,7 +697,7 @@ ExecResult exec_node(Frame *f, void *node){
         if(!strcmp(fc->name,"range")){
             TValue n=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*(int)n.num);
+            out.arr.items=t_malloc(sizeof(TValue)*(int)n.num);
             out.arr.count=(int)n.num;
             for(int i=0;i<(int)n.num;i++)
                 out.arr.items[i]=make_number(i);
@@ -730,7 +746,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue val=eval_expr(f,fc->arg_values[1]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*(arr.arr.count+1));
+            out.arr.items=t_malloc(sizeof(TValue)*(arr.arr.count+1));
             out.arr.count=arr.arr.count+1;
             for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
             out.arr.items[arr.arr.count]=val;
@@ -741,7 +757,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             if(arr.arr.count==0){ frame_set(f,fc->target,make_error("!EMPTY")); return res; }
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*(arr.arr.count-1));
+            out.arr.items=t_malloc(sizeof(TValue)*(arr.arr.count-1));
             out.arr.count=arr.arr.count-1;
             for(int i=0;i<out.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
             frame_set(f,fc->target,out);
@@ -750,7 +766,7 @@ ExecResult exec_node(Frame *f, void *node){
         if(!strcmp(fc->name,"flatten")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count*8);
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count*8);
             out.arr.count=0;
             for(int i=0;i<arr.arr.count;i++){
                 if(arr.arr.items[i].type==TV_ARRAY){
@@ -768,7 +784,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue b=eval_expr(f,fc->arg_values[1]);
             int n=a.arr.count<b.arr.count?a.arr.count:b.arr.count;
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*n*2);
+            out.arr.items=t_malloc(sizeof(TValue)*n*2);
             out.arr.count=n*2;
             for(int i=0;i<n;i++){
                 out.arr.items[i*2]=a.arr.items[i];
@@ -788,7 +804,7 @@ ExecResult exec_node(Frame *f, void *node){
         if(!strcmp(fc->name,"sort")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=arr.arr.count;
             for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
             int is_str=out.arr.count>0 && out.arr.items[0].type==TV_STRING;
@@ -892,7 +908,7 @@ ExecResult exec_node(Frame *f, void *node){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue sub=eval_expr(f,fc->arg_values[1]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*(arr.arr.count+1));
+            out.arr.items=t_malloc(sizeof(TValue)*(arr.arr.count+1));
             out.arr.count=arr.arr.count+1;
             for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
             out.arr.items[arr.arr.count]=sub;
@@ -907,7 +923,7 @@ ExecResult exec_node(Frame *f, void *node){
             if(a<0) a=0;
             if(b>arr.arr.count) b=arr.arr.count;
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*(b-a+1));
+            out.arr.items=t_malloc(sizeof(TValue)*(b-a+1));
             out.arr.count=0;
             for(int i=a;i<b;i++) out.arr.items[out.arr.count++]=arr.arr.items[i];
             frame_set(f,fc->target,out);
@@ -920,7 +936,7 @@ ExecResult exec_node(Frame *f, void *node){
             int count=0;
             for(double v=from.num;v<to.num;v+=step.num) count++;
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*count);
+            out.arr.items=t_malloc(sizeof(TValue)*count);
             out.arr.count=0;
             for(double v=from.num;v<to.num;v+=step.num)
                 out.arr.items[out.arr.count++]=make_number(v);
@@ -968,12 +984,12 @@ ExecResult exec_node(Frame *f, void *node){
                 }
             /* Group by same value */
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=0;
             int i=0;
             while(i<arr.arr.count){
                 TValue group; group.type=TV_ARRAY;
-                group.arr.items=malloc(sizeof(TValue)*arr.arr.count);
+                group.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
                 group.arr.count=0;
                 TValue key=arr.arr.items[i];
                 while(i<arr.arr.count){
@@ -1061,7 +1077,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,n->target,make_error(eb));
         } else {
             TValue arr; arr.type=TV_ARRAY;
-            arr.arr.items=malloc(sizeof(TValue)*256);
+            arr.arr.items=t_malloc(sizeof(TValue)*256);
             arr.arr.count=0;
 
             char line[256];
