@@ -284,6 +284,9 @@ ExecResult exec_block(Frame *f, void **body, int count){
     for(int i=0;i<count;i++){
         res = exec_node(f, body[i]);
         if(res.has_return) return res;
+        /* >> out auto-return */
+        TValue outval=frame_get(f,"out");
+        if(outval.type!=TV_ERROR){ res.has_return=1; res.value=outval; return res; }
     }
     return res;
 }
