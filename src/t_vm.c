@@ -770,18 +770,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number((double)(long long)v.num));
             return res;
         }
-        if(!strcmp(fc->name,"ceil")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            double n=v.num;
-            long long t=(long long)n;
-            frame_set(f,fc->target,make_number(n>t?t+1:t));
-            return res;
-        }
-        if(!strcmp(fc->name,"round")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number((double)(long long)(v.num+0.5)));
-            return res;
-        }
+
+
 
         if(!strcmp(fc->name,"unique")){
             TValue arr=eval_expr(f,fc->arg_values[0]);

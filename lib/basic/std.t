@@ -206,3 +206,16 @@ func cos(val) {
     r2 - t3 >> out
 }
 
+
+func round(val) {
+    past(val) ~> A1
+    A1 + 0.5 >> tmp
+    floor(val=tmp) ~> out
+}
+
+func ceil(val) {
+    past(val) ~> A1
+    0 - A1 >> neg
+    floor(val=neg) ~> f
+    0 - f >> out
+}
