@@ -74,8 +74,9 @@ typedef struct {
     NodeType node_type;
     char source[64];
     char op[4]; double value; char str_val[256];
-    char op2[4]; double value2; char str_val2[256];
     char logic[4];
+    char source2[64];
+    char op2[4]; double value2; char str_val2[256];
     char target[64];
 } GateNode;
 
@@ -356,16 +357,18 @@ ExecResult exec_node(Frame *f, void *node){
         int pass=pass1;
 
         if(g->logic[0]){
+            /* source2 khác source1 hay cùng source */
+            TValue v2 = g->source2[0] ? frame_get(f,g->source2) : v;
             double cmp2=g->value2; const char *cstr2=g->str_val2;
             TValue cv2=frame_get(f,g->str_val2);
             if(cv2.type==TV_NUMBER) cmp2=cv2.num;
             else if(cv2.type==TV_STRING) cstr2=cv2.str;
 
             int pass2;
-            if(v.type==TV_STRING)
-                pass2=gate_check_str(v.str,g->op2,cstr2);
+            if(v2.type==TV_STRING)
+                pass2=gate_check_str(v2.str,g->op2,cstr2);
             else
-                pass2=gate_check(v.num,g->op2,cmp2);
+                pass2=gate_check(v2.num,g->op2,cmp2);
             if(!strcmp(g->logic,"&&")) pass=pass1 && pass2;
             else pass=pass1 || pass2;
         }

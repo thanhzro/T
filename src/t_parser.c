@@ -57,8 +57,9 @@ typedef struct {
     NodeType node_type;
     char source[64];
     char op[4];   double value;   char str_val[256];
-    char op2[4];  double value2;  char str_val2[256];
     char logic[4];
+    char source2[64];
+    char op2[4];  double value2;  char str_val2[256];
     char target[64];
 } GateNode;
 
@@ -296,17 +297,38 @@ void* parse_stmt(Parser *p){
         g->value = atof(val->value);
         strcpy(g->str_val,val->value);
 
+        g->source2[0]=0;
+        /* Same-source logic: Gate src (op1 val1 && op2 val2) */
         if(parser_peek(p)->type==TOKEN_LOGIC){
-            Token *lg = parser_advance(p);
+            Token *lg=parser_advance(p);
             strcpy(g->logic,lg->value);
-            Token *op2 = parser_advance(p);
-            Token *val2 = parser_advance(p);
+            Token *op2=parser_advance(p);
+            Token *val2=parser_advance(p);
             strcpy(g->op2,op2->value);
-            g->value2 = atof(val2->value);
+            g->value2=atof(val2->value);
             strcpy(g->str_val2,val2->value);
         } else g->logic[0]=0;
 
         parser_expect(p,TOKEN_RPAREN,NULL,"expected ')' after Gate condition");
+
+        /* Multi-source logic: Gate src1 (op1 val1) || src2 (op2 val2) */
+        if(g->logic[0]==0 && parser_peek(p)->type==TOKEN_LOGIC){
+            Token *lg=parser_advance(p);
+            strcpy(g->logic,lg->value);
+            Token *next=parser_peek(p);
+            if(next->type==TOKEN_IDENT || next->type==TOKEN_COORD){
+                Token *src2=parser_advance(p);
+                strcpy(g->source2,src2->value);
+                parser_match(p,TOKEN_LPAREN,NULL);
+                Token *op2=parser_advance(p);
+                Token *val2=parser_advance(p);
+                strcpy(g->op2,op2->value);
+                g->value2=atof(val2->value);
+                strcpy(g->str_val2,val2->value);
+                parser_match(p,TOKEN_RPAREN,NULL);
+            }
+        }
+
         parser_expect(p,TOKEN_OPERATOR,">>","expected '>>' after Gate condition");
         Token *target = parser_advance(p);
         strcpy(g->target,target->value);
