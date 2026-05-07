@@ -1,5 +1,5 @@
 [T-]
-arr matrix = [[1, 2], [3, 4]]
+matrix = [[1, 2], [3, 4]]
 
 [T0]
 past(matrix) ~> P1

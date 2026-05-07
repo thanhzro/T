@@ -1,5 +1,5 @@
 [T-]
-arr scores = [65, 80, 45, 90, 70]
+scores = [65, 80, 45, 90, 70]
 
 [T0]
 past(scores) ~> P1

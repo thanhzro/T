@@ -467,34 +467,7 @@ ProgramNode* parse(Token *tokens, int count){
 
                     prog->tminus[prog->tminus_count++] = parse_func(&p);
                 }
-                else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"arr")){
-                    parser_advance(&p);
-                    Token *name=parser_advance(&p);
-                    parser_match(&p,TOKEN_EQUALS,NULL);
 
-                    int c;
-                    ExprNode **vals = parse_array(&p,&c);
-
-                    ArrayAssignNode *a=malloc(sizeof(ArrayAssignNode));
-                    a->node_type=NODE_ARRAY_ASSIGN;
-                    strcpy(a->name,name->value);
-                    a->values=vals;
-                    a->count=c;
-
-                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
-
-
-                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
-
-
-
-                    if(prog->tminus_count>=prog->tminus_cap-1){ prog->tminus_cap*=2; prog->tminus=realloc(prog->tminus,sizeof(void*)*prog->tminus_cap); }
-
-
-
-
-                    prog->tminus[prog->tminus_count++]=a;
-                }
                 else if(cur->type==TOKEN_KEYWORD && !strcmp(cur->value,"ask")){
                     parser_advance(&p);
                     Token *name=parser_advance(&p);

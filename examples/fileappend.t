@@ -1,5 +1,5 @@
 [T-]
-arr bonus = [100, 95]
+bonus = [100, 95]
 
 [T0]
 past(bonus) ~> P1

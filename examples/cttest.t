@@ -1,5 +1,5 @@
 [T-]
-arr chars = ["a", "B", "c"]
+chars = ["a", "B", "c"]
 
 [T0]
 past(chars) ~> P1

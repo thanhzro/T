@@ -1,6 +1,6 @@
 [T-]
 # Chuỗi đầu vào: "show 10" (mã ASCII: 115, 104, 111, 119)
-arr input = [115, 104, 111, 119]
+input = [115, 104, 111, 119]
 
 [T0]
 past(input) ~> P1

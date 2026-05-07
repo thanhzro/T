@@ -1,6 +1,6 @@
 [T-]
 ten = "xin chao"
-arr words = ["viet", "nam", "dep", "lam"]
+words = ["viet", "nam", "dep", "lam"]
 dong = "80,90,70"
 
 [T0]

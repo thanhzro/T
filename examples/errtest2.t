@@ -1,5 +1,5 @@
 [T-]
-arr x = [1, 2, 3]
+x = [1, 2, 3]
 read("tidontexist.txt") ~> O2
 
 [T0]

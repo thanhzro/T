@@ -1,5 +1,5 @@
 [T-]
-arr scores = [80, 90, 70]
+scores = [80, 90, 70]
 
 [T0]
 sum(arr=scores) ~> O1

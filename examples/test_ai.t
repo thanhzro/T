@@ -1,5 +1,5 @@
 [T-]
-arr input_data=[10,20,30]
+input_data=[10,20,30]
 [T0]
 past(input_data)~>P1
 F(P1){
