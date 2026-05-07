@@ -531,28 +531,6 @@ ExecResult exec_node(Frame *f, void *node){
             return res;
         }
 
-        if(!strcmp(fc->name,"sum")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            double total=0;
-            for(int i=0;i<arr.arr.count;i++)
-                total+=arr.arr.items[i].num;
-            frame_set(f,fc->target,make_number(total));
-            return res;
-        }
-
-        if(!strcmp(fc->name,"avg")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            if(arr.arr.count==0){
-                frame_set(f,fc->target,make_error("!DIV0"));
-                return res;
-            }
-            double total=0;
-            for(int i=0;i<arr.arr.count;i++)
-                total+=arr.arr.items[i].num;
-            frame_set(f,fc->target,make_number(total/arr.arr.count));
-            return res;
-        }
-
         if(!strcmp(fc->name,"split")){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sep=eval_expr(f,fc->arg_values[1]);
