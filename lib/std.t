@@ -161,3 +161,17 @@ func min_arr(arr) {
     }
     O1 >> out
 }
+
+func toString(val) {
+    past(val) ~> A1
+    "{A1}" >> out
+}
+
+func count(arr, val) {
+    past(arr) ~> A1
+    past(val) ~> A2
+    F(A1) {
+        Gate now (== A2) >> O1
+    }
+    len(val=O1) ~> out
+}
