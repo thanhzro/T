@@ -483,8 +483,10 @@ ExecResult exec_node(Frame *f, void *node){
                         exec_node(cf,fn->body[k]);
                     else break;
                 }
+                TValue saved_now=frame_get(cf,"now");
                 exec_node(cf,gn);
                 TValue resv=frame_get(cf,gn->target);
+                frame_set(cf,"now",saved_now); /* restore now after Gate */
                 if(resv.type!=TV_ERROR){
                     /* Chay cac node sau Gate */
                     int after_gate=0;
