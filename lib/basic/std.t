@@ -267,3 +267,22 @@ func replace(str, old, new) {
     split(str=A1, sep=A2) ~> parts
     join(arr=parts, sep=A3) ~> out
 }
+
+func trim(str) {
+    past(str) ~> A1
+    len(val=A1) ~> L
+    0 >> start
+    loop {
+        slice(str=A1, from=start, to=start+1) ~> ch
+        Gate ch (!= " ") >> done
+        start + 1 >> start
+    }
+    L - 1 >> end
+    loop {
+        slice(str=A1, from=end, to=end+1) ~> ch2
+        Gate ch2 (!= " ") >> done2
+        end - 1 >> end
+    }
+    end + 1 >> endp
+    slice(str=A1, from=start, to=endp) ~> out
+}

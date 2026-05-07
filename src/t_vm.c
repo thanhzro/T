@@ -927,17 +927,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
-        if(!strcmp(fc->name,"trim")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            char *s=val.str;
-            while(*s==' '||*s=='\t') s++;
-            char tmp[256]; strncpy(tmp,s,255); tmp[255]=0;
-            int len=strlen(tmp);
-            while(len>0&&(tmp[len-1]==' '||tmp[len-1]=='\t')) len--;
-            tmp[len]=0;
-            frame_set(f,fc->target,make_string(tmp));
-            return res;
-        }
+
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
