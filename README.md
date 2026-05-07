@@ -6,54 +6,59 @@ Every program flows in one direction — past → present → future. No excepti
 
 ## Why T?
 
-- **No semicolons. No braces hell. No noise.** T syntax is clean enough for humans and AI to read equally well.
-- **Deterministic memory** — no garbage collector needed, no manual `free()` required. Memory is released automatically at the right moment by design.
+- **4 syntax elements only** — `>>`, `~>`, `F()`, `Gate`. That's it.
+- **Deterministic memory** — no GC, no manual `free()`. Memory released by design.
 - **Easier than Python to read. Safer than Rust to write.**
+- **Built for AI** — clean coordinate system, no ambiguity, no noise.
 
 ## Structure
 
-Every T program has exactly three sections:
-
 ```
-[T-]   — The past. Static data. Immutable.
+[T-]   — The past. Static data, imports, function definitions.
 [T0]   — The present. Logic, processing, pipelines.
 [T+]   — The future. Output only. No logic allowed.
-
 ```
 
-## F() — The Core Construct
+## Core Syntax
 
-`F()` is T's most powerful feature. One syntax, four behaviors detected automatically:
+| Syntax | Meaning |
+|---|---|
+| `x = 10` | Declare in T- |
+| `expr >> target` | Flow data |
+| `func_call(...) ~> target` | Call and store |
+| `Gate src (op val) >> target` | Conditional filter |
+| `F(arr) { body }` | Fractal loop (4 modes) |
+| `loop { body }` | Loop until `done` is set |
+| `show shall(O1)` | Output |
+
+## F() — 4 Modes
 
 | Pattern | Mode |
 |---|---|
 | `F(arr) { O1 + now >> O1 }` | Accumulate |
 | `F(arr) { Gate now (> 0) >> O1 }` | Filter |
-| `F(arr) { Gate now (>= 97 && <= 122) >> now ... ~> now }` | Conditional Transform |
+| `F(arr) { Gate now (> 0) >> now ... ~> now }` | Conditional Transform |
 | `F(arr) { ... ~> now }` | Transform |
 
 ## Example
 
 ```t
 [T-]
-scores = [80, 90, 70]
+import "lib/basic/std.t"
+scores = [85, 92, 78, 95, 60]
 
 [T0]
-sum(arr=scores) ~> O1
-avg(arr=scores) ~> O2
-upper(str="hello world") ~> O3
+sort(arr=scores) ~> O1
+max_arr(arr=scores) ~> O2
+avg(arr=scores) ~> O3
+F(scores) {
+    Gate now (>= 80) >> O4
+}
 
 [T+]
 show shall(O1)
-show shall(O2)
-show shall(O3)
-```
-
-Output:
-```
-240
-80
-HELLO WORLD
+show shall(O2, O3)
+show shall(O4)
 ```
 
 ## Build
@@ -74,9 +79,13 @@ make
 
 ## Standard Library
 
-`lib/std.t` is written in T itself — no C required.
+```
+lib/basic/     — Core stdlib written in T
+lib/intermediate/  — Coming soon
+lib/advanced/      — Coming soon
+```
 
-Includes: `sum`, `avg`, `max2`, `min2`, `upper`, `lower`
+`lib/basic/std.t` includes: math, string, array, type utilities — all written in T, no C required.
 
 ## License
 
