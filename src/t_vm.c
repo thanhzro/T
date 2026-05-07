@@ -338,19 +338,30 @@ ExecResult exec_node(Frame *f, void *node){
         GateNode *g=node;
         TValue v=frame_get(f,g->source);
 
+        /* Resolve comparison value — variable or literal */
+        double cmp1=g->value; const char *cstr1=g->str_val;
+        TValue cv1=frame_get(f,g->str_val);
+        if(cv1.type==TV_NUMBER) cmp1=cv1.num;
+        else if(cv1.type==TV_STRING) cstr1=cv1.str;
+
         int pass1;
         if(v.type==TV_STRING)
-            pass1=gate_check_str(v.str,g->op,g->str_val);
+            pass1=gate_check_str(v.str,g->op,cstr1);
         else
-            pass1=gate_check(v.num,g->op,g->value);
+            pass1=gate_check(v.num,g->op,cmp1);
         int pass=pass1;
 
         if(g->logic[0]){
+            double cmp2=g->value2; const char *cstr2=g->str_val2;
+            TValue cv2=frame_get(f,g->str_val2);
+            if(cv2.type==TV_NUMBER) cmp2=cv2.num;
+            else if(cv2.type==TV_STRING) cstr2=cv2.str;
+
             int pass2;
             if(v.type==TV_STRING)
-                pass2=gate_check_str(v.str,g->op2,g->str_val2);
+                pass2=gate_check_str(v.str,g->op2,cstr2);
             else
-                pass2=gate_check(v.num,g->op2,g->value2);
+                pass2=gate_check(v.num,g->op2,cmp2);
             if(!strcmp(g->logic,"&&")) pass=pass1 && pass2;
             else pass=pass1 || pass2;
         }

@@ -54,3 +54,23 @@ func lower(str) {
     join(arr=P2, sep="") ~> O5
     return O5
 }
+
+
+
+func first(arr) {
+    past(arr) ~> P1
+    F(P1) {
+        Gate idx (== 0) >> O1
+    }
+    return O1
+}
+
+func last(arr) {
+    past(arr) ~> P1
+    len(val=P1) ~> O2
+    O2 - 1 >> O3
+    F(P1) {
+        Gate idx (== O3) >> O1
+    }
+    return O1
+}

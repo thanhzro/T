@@ -152,7 +152,7 @@ Token* lex(const char *src, int *out_count){
             advance(&l); continue;
         }
         if(c=='\n'){
-            l.line++; advance(&l); continue;
+            advance(&l); continue;
         }
 
         /* comment */
