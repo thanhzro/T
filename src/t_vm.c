@@ -281,6 +281,10 @@ int gate_check(double v, const char *op, double val){
 int gate_check_str(const char *v, const char *op, const char *val){
     if(!strcmp(op,"==")) return !strcmp(v,val);
     if(!strcmp(op,"!=")) return strcmp(v,val)!=0;
+    if(!strcmp(op,">")) return strcmp(v,val)>0;
+    if(!strcmp(op,"<")) return strcmp(v,val)<0;
+    if(!strcmp(op,">=")) return strcmp(v,val)>=0;
+    if(!strcmp(op,"<=")) return strcmp(v,val)<=0;
     return 0;
 }
 
@@ -800,13 +804,17 @@ ExecResult exec_node(Frame *f, void *node){
             out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
             out.arr.count=arr.arr.count;
             for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
+            int is_str=out.arr.count>0 && out.arr.items[0].type==TV_STRING;
             for(int i=0;i<out.arr.count-1;i++)
-                for(int j=0;j<out.arr.count-1-i;j++)
-                    if(out.arr.items[j].num>out.arr.items[j+1].num){
+                for(int j=0;j<out.arr.count-1-i;j++){
+                    int swap=is_str ? strcmp(out.arr.items[j].str,out.arr.items[j+1].str)>0
+                                    : out.arr.items[j].num>out.arr.items[j+1].num;
+                    if(swap){
                         TValue tmp=out.arr.items[j];
                         out.arr.items[j]=out.arr.items[j+1];
                         out.arr.items[j+1]=tmp;
                     }
+                }
             frame_set(f,fc->target,out);
             return res;
         }
