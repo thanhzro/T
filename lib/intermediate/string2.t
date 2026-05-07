@@ -45,3 +45,44 @@ func title(str) {
     }
     join(arr=words, sep=" ") ~> out
 }
+
+func snake_case(str) {
+    past(str) ~> A1
+    lower(str=A1) ~> lo
+    replace(str=lo, old=" ", new="_") ~> out
+}
+
+func camel_case(str) {
+    past(str) ~> A1
+    split(str=A1, sep=" ") ~> words
+    first(arr=words) ~> head
+    lower(str=head) ~> head_lo
+    drop(arr=words, n=1) ~> tail
+    F(tail) {
+        capitalize(str=now) ~> now
+    }
+    join(arr=tail, sep="") ~> tail_str
+    head_lo + tail_str >> out
+}
+
+func word_wrap(str, n) {
+    past(str) ~> A1
+    past(n) ~> N
+    split(str=A1, sep=" ") ~> words
+    [] >> lines
+    "" >> cur
+    F(words) {
+        cur + " " + now >> test
+        trim(str=test) ~> test
+        len(val=test) ~> tlen
+        len(val=cur) ~> clen
+        tlen - N >> diff
+        clamp(val=diff, lo=0, hi=1) ~> over
+        [] >> opts
+        push(arr=opts, val=test) ~> opts
+        push(arr=opts, val=now) ~> opts
+        get(arr=opts, idx=over) ~> cur
+    }
+    push(arr=lines, val=cur) ~> lines
+    lines >> out
+}
