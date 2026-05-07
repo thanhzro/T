@@ -2,9 +2,9 @@ CC = gcc
 SRC = src/t_lexer.c src/t_parser.c src/t_vm.c src/main.c
 BIN = t
 
-all: $(BIN) test
+all: $(BIN)
 
-$(BIN):
+$(BIN): $(SRC)
 	$(CC) $(SRC) -o $(BIN)
 
 test: $(BIN)

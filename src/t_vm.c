@@ -404,6 +404,7 @@ ExecResult exec_node(Frame *f, void *node){
             for(int j=0;j<arr.arr.count;j++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
+                frame_set(cf,"idx",make_number(j));
                 /* Chay cac node truoc Gate truoc */
                 for(int k=0;k<fn->body_count;k++){
                     if(*(NodeType*)fn->body[k]!=NODE_GATE)
@@ -444,6 +445,7 @@ ExecResult exec_node(Frame *f, void *node){
             for(int j=0;j<arr.arr.count;j++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
+                frame_set(cf,"idx",make_number(j));
                 for(int k=0;k<gate_idx;k++)
                     exec_node(cf,fn->body[k]);
                 exec_node(cf,gn);
@@ -470,6 +472,7 @@ ExecResult exec_node(Frame *f, void *node){
             for(int i=0;i<arr.arr.count;i++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[i]);
+                frame_set(cf,"idx",make_number(i));
                 exec_block(cf,fn->body,fn->body_count);
                 out.arr.items[out.arr.count++]=frame_get(cf,"now");
                 free(cf);
@@ -488,6 +491,7 @@ ExecResult exec_node(Frame *f, void *node){
             for(int i=0;i<arr.arr.count;i++){
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[i]);
+                frame_set(cf,"idx",make_number(i));
                 exec_block(cf,fn->body,fn->body_count);
                 for(int k=0;k<cf->count;k++)
                     if(strcmp(cf->keys[k],"now")!=0)
