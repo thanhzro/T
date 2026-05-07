@@ -267,3 +267,11 @@ func trim(str) {
     }
     join(arr=O1, sep="") ~> out
 }
+
+func replace(str, old, new) {
+    past(str) ~> A1
+    past(old) ~> A2
+    past(new) ~> A3
+    split(str=A1, sep=A2) ~> parts
+    join(arr=parts, sep=A3) ~> out
+}

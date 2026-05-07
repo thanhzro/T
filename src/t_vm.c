@@ -632,26 +632,7 @@ ExecResult exec_node(Frame *f, void *node){
         }
 
 
-        if(!strcmp(fc->name,"replace")){
-            TValue str=eval_expr(f,fc->arg_values[0]);
-            TValue old_s=eval_expr(f,fc->arg_values[1]);
-            TValue new_s=eval_expr(f,fc->arg_values[2]);
-            char result[1024]; result[0]=0;
-            char *src=str.str;
-            int olen=strlen(old_s.str);
-            while(*src){
-                if(strncmp(src,old_s.str,olen)==0){
-                    strncat(result,new_s.str,1023-strlen(result));
-                    src+=olen;
-                } else {
-                    char tmp[2]={*src,0};
-                    strncat(result,tmp,1023-strlen(result));
-                    src++;
-                }
-            }
-            frame_set(f,fc->target,make_string(result));
-            return res;
-        }
+
 
         if(!strcmp(fc->name,"indexOf")){
             TValue str=eval_expr(f,fc->arg_values[0]);
