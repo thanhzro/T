@@ -607,11 +607,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(found ? (int)(found-str.str) : -1));
             return res;
         }
-        if(!strcmp(fc->name,"abs")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(val.num<0?-val.num:val.num));
-            return res;
-        }
+
         if(!strcmp(fc->name,"max")){
             TValue a=eval_expr(f,fc->arg_values[0]);
             TValue b=eval_expr(f,fc->arg_values[1]);

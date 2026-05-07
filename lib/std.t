@@ -164,3 +164,9 @@ func pow(base, exp) {
     }
     acc >> out
 }
+
+func abs(val) {
+    past(val) ~> A1
+    0 - A1 >> B1
+    max(a=A1, b=B1) ~> out
+}
