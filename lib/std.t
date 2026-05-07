@@ -175,3 +175,33 @@ func count(arr, val) {
     }
     len(val=O1) ~> out
 }
+
+func pi() {
+    3.14159265358979 >> out
+}
+
+func sin(val) {
+    past(val) ~> x
+    pow(base=x, exp=3) ~> x3
+    pow(base=x, exp=5) ~> x5
+    pow(base=x, exp=7) ~> x7
+    x3 / 6 >> t1
+    x5 / 120 >> t2
+    x7 / 5040 >> t3
+    x - t1 >> r1
+    r1 + t2 >> r2
+    r2 - t3 >> out
+}
+
+func cos(val) {
+    past(val) ~> x
+    pow(base=x, exp=2) ~> x2
+    pow(base=x, exp=4) ~> x4
+    pow(base=x, exp=6) ~> x6
+    x2 / 2 >> t1
+    x4 / 24 >> t2
+    x6 / 720 >> t3
+    1 - t1 >> r1
+    r1 + t2 >> r2
+    r2 - t3 >> out
+}
