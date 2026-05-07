@@ -167,6 +167,13 @@ Frame* new_frame(Frame *parent){
     return f;
 }
 
+void frame_free(Frame *f){
+    for(int i=0;i<f->capacity;i++) free(f->keys[i]);
+    free(f->keys);
+    free(f->values);
+    free(f);
+}
+
 void frame_set(Frame *f, const char *key, TValue v){
     for(int i=0;i<f->count;i++){
         if(!strcmp(f->keys[i],key)){
@@ -512,7 +519,7 @@ ExecResult exec_node(Frame *f, void *node){
                 } else {
                     out.arr.items[out.arr.count++]=arr.arr.items[j];
                 }
-                free(cf);
+                frame_free(cf);
             }
             frame_set(f,fn->source,out);
         }
@@ -548,7 +555,7 @@ ExecResult exec_node(Frame *f, void *node){
                     else
                         out.arr.items[out.arr.count++]=arr.arr.items[j];
                 }
-                free(cf);
+                frame_free(cf);
             }
             frame_set(f,gn->target,out);
         }
@@ -563,7 +570,7 @@ ExecResult exec_node(Frame *f, void *node){
                 frame_set(cf,"idx",make_number(i));
                 exec_block(cf,fn->body,fn->body_count);
                 out.arr.items[out.arr.count++]=frame_get(cf,"now");
-                free(cf);
+                frame_free(cf);
             }
             frame_set(f,fn->source,out);
         }
@@ -584,7 +591,7 @@ ExecResult exec_node(Frame *f, void *node){
                 for(int k=0;k<cf->count;k++)
                     if(strcmp(cf->keys[k],"now")!=0)
                         frame_set(f,cf->keys[k],cf->values[k]);
-                free(cf);
+                frame_free(cf);
             }
         }
     }
@@ -1022,7 +1029,7 @@ ExecResult exec_node(Frame *f, void *node){
         else
             frame_set(f,fc->target,make_error("!NO_RETURN"));
 
-        free(nf);
+        frame_free(nf);
     }
 
     else if(t==NODE_LOOP){
@@ -1033,7 +1040,7 @@ ExecResult exec_node(Frame *f, void *node){
             /* Copy variables back */
             for(int k=0;k<lf->count;k++)
                 frame_set(f,lf->keys[k],lf->values[k]);
-            free(lf);
+            frame_free(lf);
             if(lr.has_return){ res=lr; break; }
             TValue done=frame_get(f,"done");
             if(done.type!=TV_ERROR) break;

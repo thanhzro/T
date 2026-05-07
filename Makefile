@@ -5,7 +5,7 @@ BIN = t
 all: $(BIN)
 
 $(BIN): $(SRC)
-	$(CC) $(SRC) -o $(BIN)
+	$(CC) $(SRC) -lm -o $(BIN)
 
 test: $(BIN)
 	./$(BIN) tests/accumulator.t
