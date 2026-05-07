@@ -259,14 +259,6 @@ func unique(arr) {
     O1 >> out
 }
 
-func trim(str) {
-    past(str) ~> A1
-    chars(str=A1) ~> A2
-    F(A2) {
-        Gate now (!= " ") >> O1
-    }
-    join(arr=O1, sep="") ~> out
-}
 
 func replace(str, old, new) {
     past(str) ~> A1
