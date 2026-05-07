@@ -246,8 +246,14 @@ TValue eval_expr(Frame *f, ExprNode *e){
             }
             return make_number(a.num+b.num);
         }
-        if(!strcmp(e->op,"-")) return make_number(a.num-b.num);
-        if(!strcmp(e->op,"*")) return make_number(a.num*b.num);
+        if(!strcmp(e->op,"-")){
+            if(a.type!=TV_NUMBER||b.type!=TV_NUMBER) fprintf(stderr,"Warning: '-' expects numbers\n");
+            return make_number(a.num-b.num);
+        }
+        if(!strcmp(e->op,"*")){
+            if(a.type!=TV_NUMBER||b.type!=TV_NUMBER) fprintf(stderr,"Warning: '*' expects numbers\n");
+            return make_number(a.num*b.num);
+        }
         if(!strcmp(e->op,"/")){
             if(b.num==0) return make_error("!DIV0");
             return make_number(a.num/b.num);
