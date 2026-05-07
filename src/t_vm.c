@@ -847,12 +847,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(x));
             return res;
         }
-        if(!strcmp(fc->name,"contains")){
-            TValue str=eval_expr(f,fc->arg_values[0]);
-            TValue sub=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(strstr(str.str,sub.str)!=NULL));
-            return res;
-        }
+
         if(!strcmp(fc->name,"sort")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;

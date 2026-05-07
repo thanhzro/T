@@ -219,3 +219,9 @@ func ceil(val) {
     floor(val=neg) ~> f
     0 - f >> out
 }
+
+func contains(str, sub) {
+    indexOf(str=str, sub=sub) ~> O1
+    O1 + 1 >> O2
+    clamp(val=O2, lo=0, hi=1) ~> out
+}
