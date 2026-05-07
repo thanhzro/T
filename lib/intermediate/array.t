@@ -115,3 +115,11 @@ func zip_with(a, b) {
     }
     IDX >> out
 }
+
+func flatten_deep(arr) {
+    past(arr) ~> A1
+    flatten(arr=A1) ~> O1
+    flatten(arr=O1) ~> O2
+    flatten(arr=O2) ~> O3
+    flatten(arr=O3) ~> out
+}
