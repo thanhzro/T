@@ -245,3 +245,16 @@ func padRight(str, n, ch) {
     repeat(str=A3, n=B2) ~> B3
     A1 + B3 >> out
 }
+
+
+
+func unique(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> A2
+    F(A2) {
+        idx - 1 >> prev_idx
+        get(arr=A2, idx=prev_idx) ~> prev
+        Gate idx (== 0) || now (!= prev) >> O1
+    }
+    O1 >> out
+}

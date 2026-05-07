@@ -319,7 +319,7 @@ void* parse_stmt(Parser *p){
             Token *lg=parser_advance(p);
             strcpy(g->logic,lg->value);
             Token *next=parser_peek(p);
-            if(next->type==TOKEN_IDENT || next->type==TOKEN_COORD){
+            if(next->type==TOKEN_IDENT || next->type==TOKEN_COORD || next->type==TOKEN_KEYWORD){
                 Token *src2=parser_advance(p);
                 strcpy(g->source2,src2->value);
                 parser_match(p,TOKEN_LPAREN,NULL);

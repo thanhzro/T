@@ -754,22 +754,7 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"unique")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=malloc(sizeof(TValue)*arr.arr.count);
-            out.arr.count=0;
-            for(int i=0;i<arr.arr.count;i++){
-                int found=0;
-                for(int j=0;j<out.arr.count;j++){
-                    if(arr.arr.items[i].type==TV_NUMBER && out.arr.items[j].type==TV_NUMBER && arr.arr.items[i].num==out.arr.items[j].num){ found=1; break; }
-                    if(arr.arr.items[i].type==TV_STRING && out.arr.items[j].type==TV_STRING && !strcmp(arr.arr.items[i].str,out.arr.items[j].str)){ found=1; break; }
-                }
-                if(!found) out.arr.items[out.arr.count++]=arr.arr.items[i];
-            }
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
         if(!strcmp(fc->name,"push")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue val=eval_expr(f,fc->arg_values[1]);
