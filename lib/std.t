@@ -205,3 +205,4 @@ func cos(val) {
     r1 + t2 >> r2
     r2 - t3 >> out
 }
+

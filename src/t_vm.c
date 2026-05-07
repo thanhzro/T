@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <math.h>
 
 /* ===== NODE TYPE ===== */
 typedef enum {
@@ -910,6 +911,36 @@ ExecResult exec_node(Frame *f, void *node){
             TValue val=eval_expr(f,fc->arg_values[0]);
             if(val.type==TV_NUMBER){ frame_set(f,fc->target,val); return res; }
             frame_set(f,fc->target,make_number(atof(val.str)));
+            return res;
+        }
+        if(!strcmp(fc->name,"log")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(log(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"log2")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(log2(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"log10")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(log10(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"sin")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(sin(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"cos")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(cos(v.num)));
+            return res;
+        }
+        if(!strcmp(fc->name,"tan")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            frame_set(f,fc->target,make_number(tan(v.num)));
             return res;
         }
         FuncDefNode *fn=find_func(fc->name);
