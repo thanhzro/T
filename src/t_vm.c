@@ -912,6 +912,7 @@ ExecResult exec_node(Frame *f, void *node){
     else if(t==NODE_SHOW){
         ShowNode *s=node;
         TValue v=frame_get(f,s->coord);
+        if(v.type==TV_ERROR) fprintf(stderr,"Warning: %s is error — %s\n",s->coord,v.str);
 
         if(s->format[0]){
             char out[512]; char tmp[256];
