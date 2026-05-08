@@ -16,7 +16,10 @@ test: $(BIN)
 test-intermediate: $(BIN)
 	./$(BIN) tests/intermediate.t
 
-test-all: test test-intermediate
+test-advanced: $(BIN)
+	./$(BIN) tests/advanced.t
+
+test-all: test test-intermediate test-advanced
 
 clean:
 	rm -f $(BIN)
