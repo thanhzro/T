@@ -9,7 +9,8 @@ func ls(path) {
     past(path) ~> P
     "ls " + P >> cmd
     exec(cmd=cmd) ~> raw
-    split(str=raw, sep="\n") ~> out
+    split(str=raw, sep="\n") ~> parts
+    pop(arr=parts) ~> out
 }
 
 func cat(path) {
