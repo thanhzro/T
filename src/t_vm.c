@@ -761,7 +761,7 @@ ExecResult exec_node(Frame *f, void *node){
 
         if(!strcmp(fc->name,"floor")){
             TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number((double)(long long)v.num));
+            frame_set(f,fc->target,make_number(floor(v.num)));
             return res;
         }
 
