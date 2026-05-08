@@ -1,2 +1,1 @@
-*.t linguist-vendored
-src/*.c linguist-language=C
+*.t linguist-detectable=false
