@@ -79,7 +79,7 @@ show shall(O2)
 
 ## Build
 
-Requires GCC, libcurl, openssl.
+Requires GCC, libcurl.
 
 ```bash
 git clone https://github.com/thanhzro/T.git
