@@ -25,3 +25,13 @@ func is_arr(val) {
     past(val) ~> V
     isArray(val=V) ~> out
 }
+
+func to_num(val) {
+    past(val) ~> V
+    toNumber(val=V) ~> out
+}
+
+func is_arr(val) {
+    past(val) ~> V
+    isArray(val=V) ~> out
+}
