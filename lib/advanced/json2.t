@@ -45,3 +45,13 @@ func jq_pretty(json) {
     "echo " + esc + " | jq '.'" >> cmd
     exec(cmd=cmd) ~> out
 }
+
+func jq_set(json, key, val) {
+    past(json) ~> J
+    past(key) ~> K
+    past(val) ~> V
+    shell_escape(str=J) ~> esc
+    write_file(path="tjq_val.txt", content=V) ~> tmp
+    "echo " + esc + " | jq '." + K + " = ' + \"$(cat tjq_val.txt)\"" >> cmd
+    exec(cmd=cmd) ~> out
+}
