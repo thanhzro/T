@@ -998,18 +998,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
-        if(!strcmp(fc->name,"md5")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            unsigned char hash[16]; MD5((unsigned char*)v.str,strlen(v.str),hash);
-            char buf[33]; for(int i=0;i<16;i++) snprintf(buf+i*2,3,"%02x",hash[i]);
-            buf[32]=0; frame_set(f,fc->target,make_string(buf)); return res;
-        }
-        if(!strcmp(fc->name,"sha256")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            unsigned char hash[32]; SHA256((unsigned char*)v.str,strlen(v.str),hash);
-            char buf[65]; for(int i=0;i<32;i++) snprintf(buf+i*2,3,"%02x",hash[i]);
-            buf[64]=0; frame_set(f,fc->target,make_string(buf)); return res;
-        }
+
+
 
 
 

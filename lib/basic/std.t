@@ -664,3 +664,19 @@ func http_post(url, body) {
     "curl -s -X POST -d " + esc + " " + U >> cmd
     exec(cmd=cmd) ~> out
 }
+
+func md5(str) {
+    past(str) ~> S
+    shell_escape(str=S) ~> esc
+    "printf %s " + esc + " | md5sum | cut -d' ' -f1" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> out
+}
+
+func sha256(str) {
+    past(str) ~> S
+    shell_escape(str=S) ~> esc
+    "printf %s " + esc + " | sha256sum | cut -d' ' -f1" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> out
+}
