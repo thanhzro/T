@@ -15,19 +15,7 @@ func avg(arr) {
     return O3
 }
 
-func max2(a, b) {
-    past(a) ~> P1
-    past(b) ~> P2
-    Gate P1 (>= P2) >> O1
-    return O1
-}
 
-func min2(a, b) {
-    past(a) ~> P1
-    past(b) ~> P2
-    Gate P1 (<= P2) >> O1
-    return O1
-}
 
 func upper(str) {
     past(str) ~> P1
@@ -146,20 +134,14 @@ func abs(val) {
 
 func max_arr(arr) {
     past(arr) ~> A1
-    first(arr=A1) ~> O1
-    F(A1) {
-        max(a=O1, b=now) ~> O1
-    }
-    O1 >> out
+    sort(arr=A1) ~> sorted
+    last(arr=sorted) ~> out
 }
 
 func min_arr(arr) {
     past(arr) ~> A1
-    first(arr=A1) ~> O1
-    F(A1) {
-        min(a=O1, b=now) ~> O1
-    }
-    O1 >> out
+    sort(arr=A1) ~> sorted
+    first(arr=sorted) ~> out
 }
 
 func toString(val) {
@@ -319,4 +301,12 @@ func flatten(arr) {
         }
     }
     result >> out
+}
+
+func max(a, b) {
+    max2(a=a, b=b) ~> out
+}
+
+func min(a, b) {
+    min2(a=a, b=b) ~> out
 }

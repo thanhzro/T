@@ -677,18 +677,8 @@ ExecResult exec_node(Frame *f, void *node){
             return res;
         }
 
-        if(!strcmp(fc->name,"max")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(a.num>b.num?a.num:b.num));
-            return res;
-        }
-        if(!strcmp(fc->name,"min")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(a.num<b.num?a.num:b.num));
-            return res;
-        }
+
+
         if(!strcmp(fc->name,"chars")){
             TValue val=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
@@ -1181,6 +1171,18 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
+        if(!strcmp(fc->name,"max2")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            frame_set(f,fc->target,make_number(a.num>=b.num?a.num:b.num));
+            return res;
+        }
+        if(!strcmp(fc->name,"min2")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            frame_set(f,fc->target,make_number(a.num<=b.num?a.num:b.num));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
