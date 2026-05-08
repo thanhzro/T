@@ -782,22 +782,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
-        if(!strcmp(fc->name,"flatten")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count*8);
-            out.arr.count=0;
-            for(int i=0;i<arr.arr.count;i++){
-                if(arr.arr.items[i].type==TV_ARRAY){
-                    for(int j=0;j<arr.arr.items[i].arr.count;j++)
-                        out.arr.items[out.arr.count++]=arr.arr.items[i].arr.items[j];
-                } else {
-                    out.arr.items[out.arr.count++]=arr.arr.items[i];
-                }
-            }
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
 
         if(!strcmp(fc->name,"sqrt")){
             TValue v=eval_expr(f,fc->arg_values[0]);

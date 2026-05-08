@@ -305,3 +305,18 @@ func zip(a, b) {
     }
     IDX >> out
 }
+
+func flatten(arr) {
+    past(arr) ~> A1
+    [] >> result
+    F(A1) {
+        isArray(val=now) ~> is_arr
+        Gate is_arr (== 1) >> O1
+    }
+    F(O1) {
+        F(now) {
+            push(arr=result, val=now) ~> result
+        }
+    }
+    result >> out
+}
