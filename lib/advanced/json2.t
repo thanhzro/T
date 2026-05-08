@@ -45,7 +45,7 @@ func jq_pretty(json) {
     exec(cmd=cmd) ~> out
 }
 
-func jq_set(json, key, val) {
+func jq_update(json, key, val) {
     past(json) ~> J
     past(key) ~> K
     past(val) ~> V
@@ -55,7 +55,7 @@ func jq_set(json, key, val) {
     exec(cmd="sh jq_cmd.sh") ~> out
 }
 
-func json_set(json, key, val) {
+func jq_update(json, key, val) {
     past(json) ~> J
     past(key) ~> K
     past(val) ~> V
