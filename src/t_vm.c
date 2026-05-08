@@ -1105,6 +1105,30 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
+        if(!strcmp(fc->name,"mat_mul")){
+            TValue A=eval_expr(f,fc->arg_values[0]);
+            TValue B=eval_expr(f,fc->arg_values[1]);
+            int rows=A.arr.count;
+            int cols=B.arr.items[0].arr.count;
+            int k_max=A.arr.items[0].arr.count;
+            TValue out; out.type=TV_ARRAY;
+            out.arr.items=t_malloc(sizeof(TValue)*rows);
+            out.arr.count=rows;
+            for(int i=0;i<rows;i++){
+                TValue row; row.type=TV_ARRAY;
+                row.arr.items=t_malloc(sizeof(TValue)*cols);
+                row.arr.count=cols;
+                for(int j=0;j<cols;j++){
+                    double s=0;
+                    for(int k=0;k<k_max;k++)
+                        s+=A.arr.items[i].arr.items[k].num * B.arr.items[k].arr.items[j].num;
+                    row.arr.items[j]=make_number(s);
+                }
+                out.arr.items[i]=row;
+            }
+            frame_set(f,fc->target,out);
+            return res;
+        }
         exec_t_func:;
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
