@@ -772,16 +772,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
-        if(!strcmp(fc->name,"pop")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            if(arr.arr.count==0){ frame_set(f,fc->target,make_error("!EMPTY")); return res; }
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=t_malloc(sizeof(TValue)*(arr.arr.count-1));
-            out.arr.count=arr.arr.count-1;
-            for(int i=0;i<out.arr.count;i++) out.arr.items[i]=arr.arr.items[i];
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
 
 
         if(!strcmp(fc->name,"sqrt")){
@@ -837,13 +828,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number((double)time(NULL)));
             return res;
         }
-        if(!strcmp(fc->name,"rand_int")){
-            TValue mn=eval_expr(f,fc->arg_values[0]);
-            TValue mx=eval_expr(f,fc->arg_values[1]);
-            int val=(int)mn.num+(rand()%((int)mx.num-(int)mn.num+1));
-            frame_set(f,fc->target,make_number(val));
-            return res;
-        }
+
 
 
         if(!strcmp(fc->name,"isArray")){

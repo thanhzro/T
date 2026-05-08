@@ -479,3 +479,17 @@ func isString(val) {
     clamp(val=na, lo=0, hi=1) ~> na1
     1 - na1 >> out
 }
+
+func pop(arr) {
+    past(arr) ~> A1
+    len(val=A1) ~> L
+    L - 1 >> n
+    slice_arr(arr=A1, from=0, to=n) ~> out
+}
+
+func rand_int(min, max) {
+    past(min) ~> A
+    past(max) ~> B
+    random(min=A, max=B) ~> r
+    floor(val=r) ~> out
+}
