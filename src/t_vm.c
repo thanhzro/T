@@ -697,15 +697,22 @@ ExecResult exec_node(Frame *f, void *node){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue sep=eval_expr(f,fc->arg_values[1]);
             TValue out; out.type=TV_ARRAY;
-            out.arr.items=t_malloc(sizeof(TValue)*(strlen(str.str)+1));
+            out.arr.items=t_malloc(sizeof(TValue)*(strlen(str.str)+2));
             out.arr.count=0;
-            char buf[256]; strncpy(buf,str.str,255); buf[255]=0;
-            char *token=strtok(buf,sep.str);
-            while(token){
-                if(is_number(token)) out.arr.items[out.arr.count++]=make_number(atof(token));
-                else out.arr.items[out.arr.count++]=make_string(token);
-                token=strtok(NULL,sep.str);
+            int seplen=strlen(sep.str);
+            if(seplen==0){ out.arr.items[out.arr.count++]=make_string(str.str); frame_set(f,fc->target,out); return res; }
+            char *start=str.str;
+            char *found;
+            while((found=strstr(start,sep.str))!=NULL){
+                int partlen=found-start;
+                char part[256]; if(partlen>255)partlen=255;
+                strncpy(part,start,partlen); part[partlen]=0;
+                if(is_number(part)) out.arr.items[out.arr.count++]=make_number(atof(part));
+                else out.arr.items[out.arr.count++]=make_string(part);
+                start=found+seplen;
             }
+            if(is_number(start)) out.arr.items[out.arr.count++]=make_number(atof(start));
+            else out.arr.items[out.arr.count++]=make_string(start);
             frame_set(f,fc->target,out);
             return res;
         }
