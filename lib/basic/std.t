@@ -287,3 +287,21 @@ func trim(str) {
     end + 2 >> real_end
     slice(str=A1, from=real_start, to=real_end) ~> out
 }
+
+func zip(a, b) {
+    past(a) ~> A1
+    past(b) ~> A2
+    len(val=A1) ~> L1
+    len(val=A2) ~> L2
+    min(a=L1, b=L2) ~> L
+    range(n=L) ~> IDX
+    F(IDX) {
+        get(arr=A1, idx=now) ~> v1
+        get(arr=A2, idx=now) ~> v2
+        [] >> pair
+        push(arr=pair, val=v1) ~> pair
+        push(arr=pair, val=v2) ~> pair
+        pair >> now
+    }
+    IDX >> out
+}

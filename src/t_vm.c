@@ -798,20 +798,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
-        if(!strcmp(fc->name,"zip")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            int n=a.arr.count<b.arr.count?a.arr.count:b.arr.count;
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=t_malloc(sizeof(TValue)*n*2);
-            out.arr.count=n*2;
-            for(int i=0;i<n;i++){
-                out.arr.items[i*2]=a.arr.items[i];
-                out.arr.items[i*2+1]=b.arr.items[i];
-            }
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
         if(!strcmp(fc->name,"sqrt")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             double r=v.num, x=r;
