@@ -1002,17 +1002,7 @@ ExecResult exec_node(Frame *f, void *node){
         }
 
 
-        if(!strcmp(fc->name,"from_hex")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char buf[256]; int len=strlen(v.str)/2,i;
-            for(i=0;i<len;i++){
-                char tmp[3]={v.str[i*2],v.str[i*2+1],0};
-                buf[i]=(char)strtol(tmp,NULL,16);
-            }
-            buf[len]=0;
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
+
         if(!strcmp(fc->name,"to_base64")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             const char *b64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

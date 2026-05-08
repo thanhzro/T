@@ -371,3 +371,38 @@ func url_encode(str) {
     }
     join(arr=ch, sep="") ~> out
 }
+
+func hex_char_to_num(ch) {
+    past(ch) ~> A1
+    charCode(str=A1) ~> code
+    48 >> zero
+    55 >> A_off
+    57 >> nine
+    code - zero >> digit
+    code - A_off >> alpha
+    Gate code (> nine) >> is_alpha
+    isNumber(val=is_alpha) ~> ia
+    [] >> opts
+    push(arr=opts, val=digit) ~> opts
+    push(arr=opts, val=alpha) ~> opts
+    get(arr=opts, idx=ia) ~> out
+}
+
+func from_hex(str) {
+    past(str) ~> A1
+    upper(str=A1) ~> A1
+    len(val=A1) ~> L
+    L / 2 >> pairs
+    range(n=pairs) ~> IDX
+    F(IDX) {
+        now * 2 >> pos
+        slice(str=A1, from=pos, to=pos+1) ~> hi_ch
+        slice(str=A1, from=pos+1, to=pos+2) ~> lo_ch
+        hex_char_to_num(ch=hi_ch) ~> hi
+        hex_char_to_num(ch=lo_ch) ~> lo
+        hi * 16 >> hi16
+        hi16 + lo >> code
+        fromChar(val=code) ~> now
+    }
+    join(arr=IDX, sep="") ~> out
+}
