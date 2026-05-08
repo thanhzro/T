@@ -26,7 +26,7 @@ func format_percent(val) {
 
 func format_bytes(bytes) {
     past(bytes) ~> B
-    toString(val=B) ~> bs
+    format_number(val=B, decimals=0) ~> bs
     1024 >> kb
     1048576 >> mb
     B / kb >> kv
