@@ -406,6 +406,20 @@ ExecResult exec_block(Frame *f, void **body, int count){
     return res;
 }
 
+ExecResult exec_loop_block(Frame *f, void **body, int count){
+    ExecResult res={0};
+    for(int i=0;i<count;i++){
+        res = exec_node(f, body[i]);
+        if(res.has_return) return res;
+        TValue outval=frame_get(f,"out");
+        if(outval.type!=TV_ERROR){ res.has_return=1; res.value=outval; return res; }
+        /* early exit if done is set inside loop */
+        TValue doneval=frame_get(f,"done");
+        if(doneval.type!=TV_ERROR) return res;
+    }
+    return res;
+}
+
 ExecResult exec_node(Frame *f, void *node){
     ExecResult res={0};
     NodeType t=*(NodeType*)node;
@@ -918,40 +932,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
-        if(!strcmp(fc->name,"groupBy")){
-            TValue arr=eval_expr(f,fc->arg_values[0]);
-            /* Sort first */
-            for(int i=0;i<arr.arr.count-1;i++)
-                for(int j=i+1;j<arr.arr.count;j++){
-                    int cmp=0;
-                    if(arr.arr.items[i].type==TV_NUMBER&&arr.arr.items[j].type==TV_NUMBER)
-                        cmp=arr.arr.items[i].num>arr.arr.items[j].num;
-                    else cmp=strcmp(arr.arr.items[i].str,arr.arr.items[j].str)>0;
-                    if(cmp){ TValue tmp=arr.arr.items[i]; arr.arr.items[i]=arr.arr.items[j]; arr.arr.items[j]=tmp; }
-                }
-            /* Group by same value */
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
-            out.arr.count=0;
-            int i=0;
-            while(i<arr.arr.count){
-                TValue group; group.type=TV_ARRAY;
-                group.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
-                group.arr.count=0;
-                TValue key=arr.arr.items[i];
-                while(i<arr.arr.count){
-                    TValue cur=arr.arr.items[i];
-                    int eq=(key.type==TV_NUMBER&&cur.type==TV_NUMBER&&key.num==cur.num)||
-                           (key.type==TV_STRING&&cur.type==TV_STRING&&!strcmp(key.str,cur.str));
-                    if(!eq) break;
-                    group.arr.items[group.arr.count++]=cur;
-                    i++;
-                }
-                out.arr.items[out.arr.count++]=group;
-            }
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
         if(!strcmp(fc->name,"exp")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             frame_set(f,fc->target,make_number(exp(v.num)));
@@ -1181,7 +1162,7 @@ ExecResult exec_node(Frame *f, void *node){
         if(!has_gate) fprintf(stderr,"Warning: loop has no Gate — may run forever\n");
         while(1){
             Frame *lf=new_frame(f);
-            ExecResult lr=exec_block(lf,ln->body,ln->body_count);
+            ExecResult lr=exec_loop_block(lf,ln->body,ln->body_count);
             /* Copy variables back */
             for(int k=0;k<lf->count;k++)
                 frame_set(f,lf->keys[k],lf->values[k]);

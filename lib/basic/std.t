@@ -519,3 +519,96 @@ func max2(a, b) {
     sort(arr=arr) ~> s
     last(arr=s) ~> out
 }
+
+
+func groupBy(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> sorted
+    len(val=sorted) ~> L
+    [] >> result
+    [] >> cur_group
+    "__NONE__" >> prev_str
+    0 >> i
+    loop {
+        Gate i (>= L) >> done
+        get(arr=sorted, idx=i) ~> cur
+        toString(val=cur) ~> cur_str
+        indexOf(str=cur_str, sub=prev_str) ~> si1
+        indexOf(str=prev_str, sub=cur_str) ~> si2
+        si1 + si2 >> samesum
+        Gate samesum (== 0) >> is_same
+        isNumber(val=is_same) ~> is_s
+        Gate is_s (== 0) >> should_flush
+        isNumber(val=should_flush) ~> sf
+        len(val=cur_group) ~> glen
+        Gate glen (== 0) >> is_empty
+        isNumber(val=is_empty) ~> ie
+        1 - ie >> not_empty
+        sf * not_empty >> do_flush
+        push_arr(arr=result, sub=cur_group) ~> result2
+        [] >> empty
+        [] >> r_opts
+        push(arr=r_opts, val=result) ~> r_opts
+        push(arr=r_opts, val=result2) ~> r_opts
+        get(arr=r_opts, idx=do_flush) ~> result
+        [] >> cg_opts
+        push(arr=cg_opts, val=cur_group) ~> cg_opts
+        push(arr=cg_opts, val=empty) ~> cg_opts
+        get(arr=cg_opts, idx=do_flush) ~> cur_group
+        push(arr=cur_group, val=cur) ~> cur_group
+        cur_str >> prev_str
+        i + 1 >> i
+    }
+    push_arr(arr=result, sub=cur_group) ~> result
+    result >> out
+}
+
+func groupBy(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> sorted
+    len(val=sorted) ~> L
+    L - 1 >> Lm1
+    [] >> result
+    [] >> cur_group
+    "__NONE__" >> prev_str
+    0 >> i
+    loop {
+        Gate i (>= L) >> done
+        isNumber(val=done) ~> is_done
+        1 - is_done >> sp
+        min2(a=i, b=Lm1) ~> safe_i
+        get(arr=sorted, idx=safe_i) ~> cur
+        toString(val=cur) ~> cur_str
+        indexOf(str=cur_str, sub=prev_str) ~> si1
+        indexOf(str=prev_str, sub=cur_str) ~> si2
+        si1 + si2 >> samesum
+        Gate samesum (== 0) >> is_same
+        isNumber(val=is_same) ~> is_s
+        Gate is_s (== 0) >> should_flush
+        isNumber(val=should_flush) ~> sf
+        len(val=cur_group) ~> glen
+        Gate glen (== 0) >> is_empty
+        isNumber(val=is_empty) ~> ie
+        1 - ie >> not_empty
+        sf * not_empty * sp >> do_flush
+        push_arr(arr=result, sub=cur_group) ~> result2
+        [] >> empty
+        [] >> r_opts
+        push(arr=r_opts, val=result) ~> r_opts
+        push(arr=r_opts, val=result2) ~> r_opts
+        get(arr=r_opts, idx=do_flush) ~> result
+        [] >> cg_opts
+        push(arr=cg_opts, val=cur_group) ~> cg_opts
+        push(arr=cg_opts, val=empty) ~> cg_opts
+        get(arr=cg_opts, idx=do_flush) ~> cur_group
+        push(arr=cur_group, val=cur) ~> cg_new
+        [] >> cg_sel
+        push(arr=cg_sel, val=cur_group) ~> cg_sel
+        push(arr=cg_sel, val=cg_new) ~> cg_sel
+        get(arr=cg_sel, idx=sp) ~> cur_group
+        cur_str >> prev_str
+        i + 1 >> i
+    }
+    push_arr(arr=result, sub=cur_group) ~> result
+    result >> out
+}
