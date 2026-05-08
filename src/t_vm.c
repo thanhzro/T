@@ -102,6 +102,7 @@ typedef struct ArrayLiteralNode {
 
 typedef struct {
     NodeType node_type;
+    int line;
     ExprNode *expr;
     char target[64];
     int has_index;
@@ -119,12 +120,12 @@ typedef struct {
     char target[64];
 } GateNode;
 
-typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignNode;
+typedef struct { NodeType node_type; int line; char name[64]; ExprNode *expr; } VarAssignNode;
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
 typedef struct { NodeType node_type; int line; char source[64]; void **body; int body_count; } FNode;
 typedef struct { NodeType node_type; int line; void **body; int body_count; } LoopNode;
-typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
+typedef struct { NodeType node_type; int line; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
     NodeType node_type;
