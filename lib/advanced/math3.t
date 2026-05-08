@@ -1,6 +1,4 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/intermediate/math2.t"
 
 func clamp(val, lo, hi) {
     past(val) ~> V

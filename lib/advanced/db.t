@@ -1,6 +1,4 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/advanced/process.t"
 
 func db_query(db, sql) {
     past(db) ~> D

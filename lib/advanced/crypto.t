@@ -1,5 +1,4 @@
 [T-]
-import "lib/basic/std.t"
 
 func hash_md5(str) {
     past(str) ~> S

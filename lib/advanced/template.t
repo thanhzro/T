@@ -1,5 +1,4 @@
 [T-]
-import "lib/basic/std.t"
 
 func render(template, key, value) {
     past(template) ~> T

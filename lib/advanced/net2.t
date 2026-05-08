@@ -1,5 +1,4 @@
 [T-]
-import "lib/basic/std.t"
 
 func get_json(url) {
     past(url) ~> U

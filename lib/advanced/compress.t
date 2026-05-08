@@ -1,6 +1,4 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/advanced/process.t"
 
 func gzip(path) {
     past(path) ~> P

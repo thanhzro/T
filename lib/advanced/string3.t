@@ -1,6 +1,4 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/intermediate/string2.t"
 
 func repeat(str, n) {
     past(str) ~> S

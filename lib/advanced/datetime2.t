@@ -1,6 +1,4 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/advanced/process.t"
 
 func format_date(ts) {
     past(ts) ~> TS

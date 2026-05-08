@@ -1,5 +1,4 @@
 [T-]
-import "lib/basic/std.t"
 
 func is_email(str) {
     past(str) ~> S

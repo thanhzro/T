@@ -1,5 +1,4 @@
 [T-]
-import "lib/basic/std.t"
 
 func file_read(path) {
     past(path) ~> P
