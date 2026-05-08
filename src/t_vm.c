@@ -641,6 +641,8 @@ ExecResult exec_node(Frame *f, void *node){
     else if(t==NODE_FUNC_CALL){
         FuncCallNode *fc=node;
         t_stmt_count++; t_runtime_line=fc->line; snprintf(t_last_op,63,"func:%s (line %d)",fc->name,fc->line);
+        /* T functions first */
+        { FuncDefNode *fn_early=find_func(fc->name); if(fn_early) goto exec_t_func; }
 
         if(!strcmp(fc->name,"len")){
             TValue val=eval_expr(f,fc->arg_values[0]);
@@ -1174,6 +1176,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(a.num<=b.num?a.num:b.num));
             return res;
         }
+        exec_t_func:;
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
