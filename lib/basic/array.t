@@ -166,3 +166,22 @@ func arr_is_empty(arr) {
     Gate n (== 0) >> O1
     isNumber(val=O1) ~> out
 }
+
+func arr_push(arr, val) {
+    past(arr) ~> A
+    past(val) ~> V
+    push(arr=A, val=V) ~> out
+}
+
+func arr_slice(arr, lo, hi) {
+    past(arr) ~> A
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    slice_arr(arr=A, from=Lo, to=Hi) ~> out
+}
+
+func arr_join(arr, sep) {
+    past(arr) ~> A
+    past(sep) ~> S
+    join(arr=A, sep=S) ~> out
+}

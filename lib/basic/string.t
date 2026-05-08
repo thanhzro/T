@@ -231,3 +231,31 @@ func repeat(str, n) {
     }
     return result
 }
+
+func str_chars(str) {
+    past(str) ~> S
+    chars(str=S) ~> out
+}
+
+func char_code(str) {
+    past(str) ~> S
+    charCode(str=S) ~> out
+}
+
+func from_char(n) {
+    past(n) ~> N
+    fromChar(val=N) ~> out
+}
+
+func str_index(str, sub) {
+    past(str) ~> S
+    past(sub) ~> SUB
+    indexOf(str=S, sub=SUB) ~> out
+}
+
+func str_slice(str, lo, hi) {
+    past(str) ~> S
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    slice(str=S, from=Lo, to=Hi) ~> out
+}
