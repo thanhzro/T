@@ -1104,9 +1104,9 @@ ExecResult exec_node(Frame *f, void *node){
             TValue cmd=eval_expr(f,fc->arg_values[0]);
             FILE *fp=popen(cmd.str,"r");
             if(!fp){ frame_set(f,fc->target,make_error("EXEC_FAIL")); return res; }
-            char buf[4096]; buf[0]=0;
-            char line[256];
-            while(fgets(line,255,fp)) strncat(buf,line,4095-strlen(buf));
+            char buf[65536]; buf[0]=0;
+            char line[1024];
+            while(fgets(line,1023,fp)) strncat(buf,line,65535-strlen(buf));
             pclose(fp);
             frame_set(f,fc->target,make_string(buf));
             return res;
