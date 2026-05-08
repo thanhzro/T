@@ -1,19 +1,7 @@
 #!/bin/bash
+python3 check_conflicts.py
 make test-all 2>&1 | tee ~/t_out.txt
 cat ~/t_out.txt | termux-clipboard-set
 
-# Check T function vs C builtin conflicts
-python3 -c "
-import re
-builtins = set(re.findall(r\'strcmp\\(fc->name,\\\"(\\w+)\\\"\\)', open(\'src/t_vm.c\').read()))
-import os, glob
-all_t = \'\'
-for f in glob.glob(\'lib/**/*.t\', recursive=True):
-    all_t += open(f).read()
-tfuncs = re.findall(r\'\^func (\\w+)\', all_t, re.M)
-conflicts = [f for f in tfuncs if f in builtins]
-if conflicts: print(\'CONFLICT WARNING:\', conflicts)
-else: print(\'OK: No name conflicts\')
-"
 
 echo "Copied!"
