@@ -184,6 +184,15 @@ FuncDefNode* find_func(const char *name){
 }
 
 /* ===== VALUE ===== */
+TValue deep_copy_tvalue(TValue v){
+    if(v.type!=TV_ARRAY) return v;
+    TValue out; out.type=TV_ARRAY;
+    out.arr.count=v.arr.count;
+    out.arr.items=t_malloc(sizeof(TValue)*v.arr.count);
+    for(int i=0;i<v.arr.count;i++)
+        out.arr.items[i]=deep_copy_tvalue(v.arr.items[i]);
+    return out;
+}
 TValue make_number(double x){ TValue v={TV_NUMBER}; v.num=x; return v; }
 
 TValue make_string(const char *s){
