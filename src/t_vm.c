@@ -133,6 +133,7 @@ typedef struct {
 
 typedef struct {
     NodeType node_type;
+    int line;
     char name[64];
     char arg_names[16][64];
     ExprNode *arg_values[16];
@@ -162,6 +163,7 @@ typedef struct {
 FuncDefNode *funcs[64];
 int func_count=0;
 int t_stmt_count=0;
+int t_runtime_line=0;
 char t_last_op[64]="";
 
 void register_func(FuncDefNode *fn){ funcs[func_count++]=fn; }
@@ -632,7 +634,7 @@ ExecResult exec_node(Frame *f, void *node){
 
     else if(t==NODE_FUNC_CALL){
         FuncCallNode *fc=node;
-        t_stmt_count++; snprintf(t_last_op,63,"func:%s",fc->name);
+        t_stmt_count++; t_runtime_line=fc->line; snprintf(t_last_op,63,"func:%s (line %d)",fc->name,fc->line);
 
         if(!strcmp(fc->name,"len")){
             TValue val=eval_expr(f,fc->arg_values[0]);

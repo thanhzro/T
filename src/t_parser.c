@@ -83,6 +83,7 @@ typedef struct {
 
 typedef struct {
     NodeType node_type;
+    int line;
     char name[64];
     char arg_names[16][64];
     ExprNode *arg_values[16];
