@@ -259,3 +259,26 @@ func str_slice(str, lo, hi) {
     past(hi) ~> Hi
     slice(str=S, from=Lo, to=Hi) ~> out
 }
+
+func str_reverse(str) {
+    past(str) ~> S
+    str_chars(str=S) ~> chars
+    reverse(arr=chars) ~> rev
+    join(arr=rev, sep="") ~> out
+}
+
+func str_count(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    split(str=S, sep=P) ~> parts
+    len(val=parts) ~> n
+    n - 1 >> out
+}
+
+func is_blank(str) {
+    past(str) ~> S
+    trim(str=S) ~> t
+    len(val=t) ~> n
+    Gate n (== 0) >> O1
+    isNumber(val=O1) ~> out
+}

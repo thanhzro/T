@@ -210,3 +210,14 @@ func floor_n(val) {
     past(val) ~> V
     floor(val=V) ~> out
 }
+
+func product(arr) {
+    past(arr) ~> A
+    1 >> result
+    F(A) {
+        result * now >> result
+        result >> now
+    }
+    last(arr=A) ~> out
+}
+
