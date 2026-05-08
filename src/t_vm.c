@@ -110,6 +110,7 @@ typedef struct {
 
 typedef struct {
     NodeType node_type;
+    int line;
     char source[64];
     char op[4]; double value; char str_val[256];
     char logic[4];
@@ -121,8 +122,8 @@ typedef struct {
 typedef struct { NodeType node_type; char name[64]; ExprNode *expr; } VarAssignNode;
 typedef struct { NodeType node_type; char name[64]; ExprNode **values; int count; } ArrayAssignNode;
 typedef struct { NodeType node_type; char name[64]; char prompt[256]; } AskNode;
-typedef struct { NodeType node_type; char source[64]; void **body; int body_count; } FNode;
-typedef struct { NodeType node_type; void **body; int body_count; } LoopNode;
+typedef struct { NodeType node_type; int line; char source[64]; void **body; int body_count; } FNode;
+typedef struct { NodeType node_type; int line; void **body; int body_count; } LoopNode;
 typedef struct { NodeType node_type; char coord[64]; char format[256]; } ShowNode;
 
 typedef struct {
@@ -453,6 +454,7 @@ ExecResult exec_node(Frame *f, void *node){
 
     else if(t==NODE_GATE){
         GateNode *g=node;
+        t_runtime_line=g->line; snprintf(t_last_op,63,"Gate:%s (line %d)",g->source,g->line);
         TValue v=frame_get(f,g->source);
 
         /* Resolve comparison value — variable or literal */
