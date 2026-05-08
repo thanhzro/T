@@ -1128,6 +1128,16 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(1));
             return res;
         }
+        if(!strcmp(fc->name,"write_file")){
+            TValue path=eval_expr(f,fc->arg_values[0]);
+            TValue content=eval_expr(f,fc->arg_values[1]);
+            FILE *fp=fopen(path.str,"w");
+            if(!fp){ frame_set(f,fc->target,make_error("FILE_OPEN_FAIL")); return res; }
+            fwrite(content.str,1,strlen(content.str),fp);
+            fclose(fp);
+            frame_set(f,fc->target,make_number(1));
+            return res;
+        }
         exec_t_func:;
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
