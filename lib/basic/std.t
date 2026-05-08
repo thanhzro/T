@@ -406,3 +406,59 @@ func from_hex(str) {
     }
     join(arr=IDX, sep="") ~> out
 }
+
+
+func to_base64(str) {
+    past(str) ~> A1
+    chars(str=A1) ~> ch
+    len(val=ch) ~> L
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" >> alpha
+    chars(str=alpha) ~> alpha_arr
+    range_step(from=0, to=L, step=3) ~> starts
+    F(starts) {
+        get(arr=ch, idx=now) ~> c1
+        charCode(str=c1) ~> b1
+        now + 1 >> i2
+        now + 2 >> i3
+        L - i2 >> d2
+        clamp(val=d2, lo=0, hi=1) ~> has2
+        L - i3 >> d3
+        clamp(val=d3, lo=0, hi=1) ~> has3
+        get(arr=ch, idx=i2) ~> c2r
+        charCode(str=c2r) ~> b2r
+        [] >> b2o
+        push(arr=b2o, val=0) ~> b2o
+        push(arr=b2o, val=b2r) ~> b2o
+        get(arr=b2o, idx=has2) ~> b2
+        get(arr=ch, idx=i3) ~> c3r
+        charCode(str=c3r) ~> b3r
+        [] >> b3o
+        push(arr=b3o, val=0) ~> b3o
+        push(arr=b3o, val=b3r) ~> b3o
+        get(arr=b3o, idx=has3) ~> b3
+        b1 / 4 >> ix1
+        b1 % 4 >> r1
+        r1 * 16 >> r1s
+        b2 / 16 >> b2h
+        r1s + b2h >> ix2
+        b2 % 16 >> r2
+        r2 * 4 >> r2s
+        b3 / 64 >> b3h
+        r2s + b3h >> ix3
+        b3 % 64 >> ix4
+        get(arr=alpha_arr, idx=ix1) ~> e1
+        get(arr=alpha_arr, idx=ix2) ~> e2
+        get(arr=alpha_arr, idx=ix3) ~> e3r
+        get(arr=alpha_arr, idx=ix4) ~> e4r
+        [] >> e3o
+        push(arr=e3o, val="=") ~> e3o
+        push(arr=e3o, val=e3r) ~> e3o
+        get(arr=e3o, idx=has2) ~> e3
+        [] >> e4o
+        push(arr=e4o, val="=") ~> e4o
+        push(arr=e4o, val=e4r) ~> e4o
+        get(arr=e4o, idx=has3) ~> e4
+        e1 + e2 + e3 + e4 >> now
+    }
+    join(arr=starts, sep="") ~> out
+}
