@@ -925,33 +925,9 @@ ExecResult exec_node(Frame *f, void *node){
             return res;
         }
 
-        if(!strcmp(fc->name,"format_date")){
-            TValue ts=eval_expr(f,fc->arg_values[0]);
-            time_t t=(time_t)ts.num;
-            struct tm *tm=localtime(&t);
-            char buf[32];
-            snprintf(buf,31,"%04d-%02d-%02d",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday);
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
-        if(!strcmp(fc->name,"format_time")){
-            TValue ts=eval_expr(f,fc->arg_values[0]);
-            time_t t=(time_t)ts.num;
-            struct tm *tm=localtime(&t);
-            char buf[32];
-            snprintf(buf,31,"%02d:%02d:%02d",tm->tm_hour,tm->tm_min,tm->tm_sec);
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
-        if(!strcmp(fc->name,"format_datetime")){
-            TValue ts=eval_expr(f,fc->arg_values[0]);
-            time_t t=(time_t)ts.num;
-            struct tm *tm=localtime(&t);
-            char buf[64];
-            snprintf(buf,63,"%04d-%02d-%02d %02d:%02d:%02d",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec);
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
+
+
+
 
         if(!strcmp(fc->name,"exp")){
             TValue v=eval_expr(f,fc->arg_values[0]);
