@@ -35,11 +35,6 @@ func dir_exists(path) {
     toNumber(val=t) ~> out
 }
 
-func file_lines(path) {
-    past(path) ~> P
-    file_read(path=P) ~> raw
-    split(str=raw, sep="\n") ~> out
-}
 
 func file_count_lines(path) {
     past(path) ~> P
@@ -61,7 +56,8 @@ func file_append(path, content) {
 func file_lines(path) {
     past(path) ~> P
     exec(cmd="cat " + P) ~> raw
-    split(str=raw, sep="\n") ~> parts
+    exec(cmd="grep . " + P + " | tr -s \"\n\"") ~> raw2
+    split(str=raw2, sep="\n") ~> parts
     pop(arr=parts) ~> out
 }
 
