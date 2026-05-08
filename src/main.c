@@ -54,6 +54,8 @@ void crash_handler(int sig){
     fprintf(stderr, "  - Infinite loop (loop without Gate termination)\n");
     fprintf(stderr, "  - Array index out of bounds\n");
     fprintf(stderr, "  - Arena overflow (too many allocations)\n");
+    extern char t_last_op[]; extern int t_stmt_count;
+    fprintf(stderr, "Last operation: %s (stmt #%d)\n", t_last_op, t_stmt_count);
     exit(1);
 }
 
