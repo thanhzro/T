@@ -21,9 +21,8 @@ func aes_decrypt(data, key) {
 func base64_encode(str) {
     past(str) ~> S
     shell_escape(str=S) ~> esc
-    "echo " + esc + " | base64" >> cmd
-    exec(cmd=cmd) ~> raw
-    trim(str=raw) ~> out
+    "printf %s " + esc + " | base64 | tr -d '\n'" >> cmd
+    exec(cmd=cmd) ~> out
 }
 
 func base64_decode(str) {
