@@ -946,27 +946,9 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"file_exists")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            FILE *fp=fopen(v.str,"r");
-            if(fp){ fclose(fp); frame_set(f,fc->target,make_number(1)); }
-            else frame_set(f,fc->target,make_number(0));
-            return res;
-        }
-        if(!strcmp(fc->name,"file_size")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            FILE *fp=fopen(v.str,"rb");
-            if(!fp){ frame_set(f,fc->target,make_number(-1)); return res; }
-            fseek(fp,0,SEEK_END); long sz=ftell(fp); fclose(fp);
-            frame_set(f,fc->target,make_number((double)sz));
-            return res;
-        }
-        if(!strcmp(fc->name,"file_delete")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            int r=remove(v.str);
-            frame_set(f,fc->target,make_number(r==0?1:0));
-            return res;
-        }
+
+
+
         if(!strcmp(fc->name,"regex_match")){
             TValue str=eval_expr(f,fc->arg_values[0]);
             TValue pat=eval_expr(f,fc->arg_values[1]);

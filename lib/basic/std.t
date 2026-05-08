@@ -629,3 +629,24 @@ func random(min, max) {
     trim(str=raw) ~> n
     toNumber(val=n) ~> out
 }
+
+func file_exists(path) {
+    past(path) ~> P
+    "test -f " + P + " && echo 1 || echo 0" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func file_size(path) {
+    past(path) ~> P
+    "wc -c < " + P >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func file_delete(path) {
+    past(path) ~> P
+    exec(cmd="rm -f " + P) ~> out
+}
