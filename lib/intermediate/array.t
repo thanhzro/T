@@ -77,3 +77,17 @@ func flatten_deep(arr) {
     flatten(arr=O2) ~> O3
     flatten(arr=O3) ~> out
 }
+
+func sliding_window(arr, n) {
+    past(arr) ~> A1
+    past(n) ~> N
+    len(val=A1) ~> L
+    L - N >> count
+    count + 1 >> total
+    range(n=total) ~> IDX
+    F(IDX) {
+        now + N >> end
+        slice_arr(arr=A1, from=now, to=end) ~> now
+    }
+    IDX >> out
+}
