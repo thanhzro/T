@@ -713,16 +713,7 @@ ExecResult exec_node(Frame *f, void *node){
             return res;
         }
 
-        if(!strcmp(fc->name,"range")){
-            TValue n=eval_expr(f,fc->arg_values[0]);
-            TValue out; out.type=TV_ARRAY;
-            out.arr.items=t_malloc(sizeof(TValue)*(int)n.num);
-            out.arr.count=(int)n.num;
-            for(int i=0;i<(int)n.num;i++)
-                out.arr.items[i]=make_number(i);
-            frame_set(f,fc->target,out);
-            return res;
-        }
+
         if(!strcmp(fc->name,"get")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue idx=eval_expr(f,fc->arg_values[1]);

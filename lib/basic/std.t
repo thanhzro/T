@@ -493,3 +493,8 @@ func rand_int(min, max) {
     random(min=A, max=B) ~> r
     floor(val=r) ~> out
 }
+
+func range(n) {
+    past(n) ~> N
+    range_step(from=0, to=N, step=1) ~> out
+}
