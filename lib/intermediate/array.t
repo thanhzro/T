@@ -158,3 +158,50 @@ func path_ext(path) {
     last(arr=parts) ~> ext
     "." + ext >> out
 }
+
+func arr_sum_col(arr, idx) {
+    past(arr) ~> A
+    past(idx) ~> I
+    F(A) {
+        get(arr=now, idx=I) ~> val
+        val >> now
+    }
+    sum(arr=A) ~> out
+}
+
+func arr_max_col(arr, idx) {
+    past(arr) ~> A
+    past(idx) ~> I
+    F(A) {
+        get(arr=now, idx=I) ~> val
+        val >> now
+    }
+    max_arr(arr=A) ~> out
+}
+
+func arr_count_if(arr, val) {
+    past(arr) ~> A
+    past(val) ~> V
+    join(arr=A, sep=",") ~> joined
+    toString(val=V) ~> vs
+    split(str=joined, sep=vs) ~> parts
+    len(val=parts) ~> n
+    n - 1 >> out
+}
+
+func arr_index_of(arr, val) {
+    past(arr) ~> A
+    past(val) ~> V
+    0 >> result
+    0 >> found
+    loop {
+        len(val=A) ~> n
+        Gate result (>= n) >> done
+        get(arr=A, idx=result) ~> cur
+        Gate cur (== V) >> matched
+        isNumber(val=matched) ~> is_match
+        Gate is_match (== 1) >> done
+        result + 1 >> result
+    }
+    result >> out
+}
