@@ -51,3 +51,26 @@ func factorial(n) {
     }
     result >> out
 }
+
+func fibonacci(n) {
+    past(n) ~> N
+    0 >> a
+    1 >> b
+    1 >> i
+    loop {
+        Gate i (> N) >> done
+        a + b >> tmp
+        b >> a
+        tmp >> b
+        i + 1 >> i
+    }
+    a >> out
+}
+
+func median(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> A2
+    len(val=A2) ~> L
+    L / 2 >> mid
+    get(arr=A2, idx=mid) ~> out
+}

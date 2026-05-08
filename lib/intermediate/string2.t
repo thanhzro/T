@@ -122,3 +122,14 @@ func center(str, n) {
     padLeft(str=A1, n=L+half, ch=" ") ~> tmp
     padRight(str=tmp, n=N, ch=" ") ~> out
 }
+
+func slugify(str) {
+    past(str) ~> A1
+    lower(str=A1) ~> lo
+    replace(str=lo, old=" ", new="-") ~> out
+}
+
+func is_numeric(str) {
+    past(str) ~> A1
+    regex_match(str=A1, pat="^[0-9.]+$") ~> out
+}
