@@ -179,3 +179,34 @@ func timestamp() {
     trim(str=raw) ~> n
     toNumber(val=n) ~> out
 }
+
+func arctan(val) {
+    past(val) ~> V
+    atan(val=V) ~> out
+}
+
+func arctan2(y, x) {
+    past(y) ~> Y
+    past(x) ~> X
+    atan2(y=Y, x=X) ~> out
+}
+
+func exp_e(val) {
+    past(val) ~> V
+    exp(val=V) ~> out
+}
+
+func ln(val) {
+    past(val) ~> V
+    log(val=V) ~> out
+}
+
+func sqrt_n(val) {
+    past(val) ~> V
+    sqrt(val=V) ~> out
+}
+
+func floor_n(val) {
+    past(val) ~> V
+    floor(val=V) ~> out
+}
