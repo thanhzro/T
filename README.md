@@ -10,6 +10,7 @@ Every program flows in one direction — past → present → future. No excepti
 - **Deterministic memory** — arena allocator, no GC, no manual `free()`.
 - **Easier than Python to read. Safer than Rust to write.**
 - **Built for AI** — clean coordinate system, no ambiguity, no noise.
+- **2500 lines of C** — smaller than Lua, faster than Python.
 
 ## Structure
 
@@ -46,16 +47,34 @@ Every program flows in one direction — past → present → future. No excepti
 
 lib/
 ├── basic/
-│   └── std.t          — 30+ core functions (math, string, array, type)
+│   └── std.t              — 40+ core functions (math, string, array, crypto, type)
 ├── intermediate/
-│   ├── array.t        — chunk, groupBy, take, drop, sliding_window, rotate...
-│   ├── csv.t          — CSV parsing
-│   ├── datetime.t     — date/time formatting
-│   ├── json.t         — JSON get/set/array
-│   ├── math2.t        — gcd, lcm, is_prime, factorial, fibonacci, stats
-│   ├── network.t      — HTTP get/post
-│   └── string2.t      — capitalize, title, snake_case, truncate, slugify...
-└── advanced/          — Coming soon
+│   ├── array.t            — chunk, groupBy, take, drop, sliding_window, rotate
+│   ├── csv.t              — CSV parsing
+│   ├── datetime.t         — date/time formatting
+│   ├── json.t             — JSON get/set/array/keys
+│   ├── math2.t            — gcd, lcm, is_prime, factorial, fibonacci, stats
+│   ├── network.t          — HTTP get/post
+│   └── string2.t          — capitalize, title, snake_case, truncate, slugify
+└── advanced/
+    ├── compress.t         — gzip, zip operations
+    ├── crypto.t           — hash_md5, hash_sha256, checksum
+    ├── datetime2.t        — format_date, format_time, format_datetime
+    ├── db.t               — SQLite wrapper
+    ├── file2.t            — file read/write, dir listing
+    ├── json2.t            — JSON parse/query via jq
+    ├── math3.t            — round, ceil, pow, pi, lerp, sign
+    ├── ml.t               — mat_mul, mat_rows, mat_cols
+    ├── ml2.t              — dot_product, sigmoid, relu, normalize
+    ├── net2.t             — REST API wrapper, ping
+    ├── process.t          — shell, ls, cat, pwd, which
+    ├── queue.t            — queue, stack data structures
+    ├── stats.t            — mean, correlation, percentile, zscore
+    ├── string3.t          — repeat, starts_with, ends_with, char_at
+    ├── system.t           — os_name, os_arch, cpu_count, hostname
+    ├── template.t         — render, html_escape
+    └── validate.t         — is_email, is_url, is_ip, is_phone, is_date
+
 ```
 
 ## Example
