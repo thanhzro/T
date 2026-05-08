@@ -1138,6 +1138,21 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(1));
             return res;
         }
+        if(!strcmp(fc->name,"shell_escape")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char buf[512]; int bi=0;
+            buf[bi++]=(char)39;
+            for(int j=0;v.str[j];j++){
+                if((unsigned char)v.str[j]==39){
+                    buf[bi++]=(char)39; buf[bi++]=(char)34;
+                    buf[bi++]=(char)39; buf[bi++]=(char)34;
+                    buf[bi++]=(char)39;
+                } else { buf[bi++]=v.str[j]; }
+            }
+            buf[bi++]=(char)39; buf[bi]=0;
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
         exec_t_func:;
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
