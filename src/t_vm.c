@@ -21,12 +21,15 @@ static size_t curl_write(char *ptr, size_t size, size_t nmemb, struct curl_buf *
 }
 
 /* ===== ARENA ALLOCATOR (mặt 0) ===== */
-static void *t_arena[65536];
+static void *t_arena[131072];
 static int t_arena_count = 0;
 
 void *t_malloc(size_t size){
     void *p = malloc(size);
-    if(p) t_arena[t_arena_count++] = p;
+    if(p){
+    if(t_arena_count>=131000) fprintf(stderr,"Warning: arena nearly full (%d/131072)\n",t_arena_count);
+    t_arena[t_arena_count++] = p;
+}
     return p;
 }
 

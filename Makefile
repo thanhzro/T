@@ -13,8 +13,8 @@ test: $(BIN)
 	./$(BIN) tests/sumavg.t
 	./$(BIN) tests/basic.t
 
-test-intermediate:
-	@echo "No intermediate tests yet"
+test-intermediate: $(BIN)
+	./$(BIN) tests/intermediate.t
 
 test-all: test test-intermediate
 
