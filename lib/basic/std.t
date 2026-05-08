@@ -340,3 +340,5 @@ func hypot(a, b) {
     a2 + b2 >> sum
     sqrt(val=sum) ~> out
 }
+
+
