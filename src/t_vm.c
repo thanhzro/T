@@ -1140,6 +1140,20 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
+        if(!strcmp(fc->name,"env")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char *val=getenv(v.str);
+            if(val) frame_set(f,fc->target,make_string(val));
+            else frame_set(f,fc->target,make_error("ENV_NOT_FOUND"));
+            return res;
+        }
+        if(!strcmp(fc->name,"env_set")){
+            TValue k=eval_expr(f,fc->arg_values[0]);
+            TValue v=eval_expr(f,fc->arg_values[1]);
+            setenv(k.str,v.str,1);
+            frame_set(f,fc->target,make_number(1));
+            return res;
+        }
         exec_t_func:;
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
