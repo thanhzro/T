@@ -551,6 +551,7 @@ ExecResult exec_node(Frame *f, void *node){
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
+                int fmark=t_arena_count;
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
                 frame_set(cf,"idx",make_number(j));
@@ -594,6 +595,7 @@ ExecResult exec_node(Frame *f, void *node){
             out.arr.count=0;
 
             for(int j=0;j<arr.arr.count;j++){
+                int fmark=t_arena_count;
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[j]);
                 frame_set(cf,"idx",make_number(j));
