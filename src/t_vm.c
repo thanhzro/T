@@ -1226,6 +1226,11 @@ ExecResult exec_node(Frame *f, void *node){
 
     else if(t==NODE_LOOP){
         LoopNode *ln=node;
+        /* Check if loop has Gate */
+        int has_gate=0;
+        for(int i=0;i<ln->body_count;i++)
+            if(*(NodeType*)ln->body[i]==NODE_GATE) has_gate=1;
+        if(!has_gate) fprintf(stderr,"Warning: loop has no Gate — may run forever\n");
         while(1){
             Frame *lf=new_frame(f);
             ExecResult lr=exec_block(lf,ln->body,ln->body_count);
