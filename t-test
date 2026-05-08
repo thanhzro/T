@@ -1,0 +1,4 @@
+#!/bin/bash
+make test-all 2>&1 | tee ~/t_out.txt
+cat ~/t_out.txt | termux-clipboard-set
+echo "Copied!"
