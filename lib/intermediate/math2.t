@@ -100,3 +100,19 @@ func mode(arr) {
     }
     mode_val >> out
 }
+
+func variance(arr) {
+    past(arr) ~> A1
+    avg(arr=A1) ~> mu
+    F(A1) {
+        now - mu >> diff
+        diff * diff >> now
+    }
+    avg(arr=A1) ~> out
+}
+
+func std_dev(arr) {
+    past(arr) ~> A1
+    variance(arr=A1) ~> v
+    sqrt(val=v) ~> out
+}

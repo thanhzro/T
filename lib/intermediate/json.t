@@ -42,3 +42,10 @@ func json_keys(json) {
     }
     pairs >> out
 }
+
+func json_set_key(json, key, val) {
+    past(json) ~> J
+    past(key) ~> K
+    past(val) ~> V
+    json_set(json=J, key=K, val=V) ~> out
+}

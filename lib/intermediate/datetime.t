@@ -15,3 +15,17 @@ func now_datetime() {
     timestamp() ~> ts
     format_datetime(ts=ts) ~> out
 }
+
+func date_add(ts, days) {
+    past(ts) ~> T
+    past(days) ~> D
+    D * 86400 >> secs
+    T + secs >> out
+}
+
+func day_of_week(ts) {
+    past(ts) ~> T
+    T / 86400 >> days
+    days % 7 >> dow
+    dow + 4 >> out
+}
