@@ -185,3 +185,16 @@ func arr_join(arr, sep) {
     past(sep) ~> S
     join(arr=A, sep=S) ~> out
 }
+
+func arr_concat(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    push_arr(arr=A, sub=B) ~> out
+}
+
+func arr_range(from, to, step) {
+    past(from) ~> FR
+    past(to) ~> TO
+    past(step) ~> ST
+    range_step(from=FR, to=TO, step=ST) ~> out
+}
