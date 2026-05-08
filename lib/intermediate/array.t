@@ -151,3 +151,31 @@ func zip_longest(a, b, fill) {
     }
     IDX >> out
 }
+
+func path_join(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    A + "/" + B >> out
+}
+
+func path_basename(path) {
+    past(path) ~> A
+    split(str=A, sep="/") ~> parts
+    last(arr=parts) ~> out
+}
+
+func path_dirname(path) {
+    past(path) ~> A
+    split(str=A, sep="/") ~> parts
+    len(val=parts) ~> L
+    L - 1 >> n
+    take(arr=parts, n=n) ~> head
+    join(arr=head, sep="/") ~> out
+}
+
+func path_ext(path) {
+    past(path) ~> A
+    split(str=A, sep=".") ~> parts
+    last(arr=parts) ~> ext
+    "." + ext >> out
+}

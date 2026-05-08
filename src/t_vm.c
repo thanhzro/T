@@ -1173,13 +1173,7 @@ ExecResult exec_node(Frame *f, void *node){
             else frame_set(f,fc->target,make_error("HTTP_FAIL"));
             return res;
         }
-        if(!strcmp(fc->name,"date_diff")){
-            TValue t1=eval_expr(f,fc->arg_values[0]);
-            TValue t2=eval_expr(f,fc->arg_values[1]);
-            double diff=t2.num-t1.num;
-            frame_set(f,fc->target,make_number(diff/86400.0));
-            return res;
-        }
+
         if(!strcmp(fc->name,"json_set")){
             TValue json=eval_expr(f,fc->arg_values[0]);
             TValue key=eval_expr(f,fc->arg_values[1]);
@@ -1211,29 +1205,10 @@ ExecResult exec_node(Frame *f, void *node){
             char buf[65]; for(int i=0;i<32;i++) snprintf(buf+i*2,3,"%02x",hash[i]);
             buf[64]=0; frame_set(f,fc->target,make_string(buf)); return res;
         }
-        if(!strcmp(fc->name,"path_join")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            char buf[512]; snprintf(buf,511,"%s/%s",a.str,b.str);
-            frame_set(f,fc->target,make_string(buf)); return res;
-        }
-        if(!strcmp(fc->name,"path_basename")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char *p=strrchr(v.str,'/');
-            frame_set(f,fc->target,make_string(p?p+1:v.str)); return res;
-        }
-        if(!strcmp(fc->name,"path_dirname")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char buf[512]; strncpy(buf,v.str,511);
-            char *p=strrchr(buf,'/');
-            if(p) *p=0; else strcpy(buf,".");
-            frame_set(f,fc->target,make_string(buf)); return res;
-        }
-        if(!strcmp(fc->name,"path_ext")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char *p=strrchr(v.str,'.');
-            frame_set(f,fc->target,make_string(p?p:"")); return res;
-        }
+
+
+
+
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];

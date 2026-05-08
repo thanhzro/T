@@ -29,3 +29,10 @@ func day_of_week(ts) {
     days % 7 >> dow
     dow + 4 >> out
 }
+
+func date_diff(t1, t2) {
+    past(t1) ~> A
+    past(t2) ~> B
+    B - A >> diff
+    diff / 86400 >> out
+}
