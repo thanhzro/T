@@ -868,16 +868,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(log(v.num)));
             return res;
         }
-        if(!strcmp(fc->name,"log2")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(log2(v.num)));
-            return res;
-        }
-        if(!strcmp(fc->name,"log10")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(log10(v.num)));
-            return res;
-        }
+
+
         if(!strcmp(fc->name,"sin")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             frame_set(f,fc->target,make_number(sin(v.num)));
@@ -888,11 +880,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(cos(v.num)));
             return res;
         }
-        if(!strcmp(fc->name,"tan")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(tan(v.num)));
-            return res;
-        }
+
         if(!strcmp(fc->name,"push_arr")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue sub=eval_expr(f,fc->arg_values[1]);
@@ -1010,12 +998,7 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(atan2(y.num,x.num)));
             return res;
         }
-        if(!strcmp(fc->name,"hypot")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(hypot(a.num,b.num)));
-            return res;
-        }
+
         if(!strcmp(fc->name,"to_hex")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             char buf[512]; buf[0]=0;

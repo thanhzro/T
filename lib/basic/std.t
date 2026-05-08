@@ -310,3 +310,33 @@ func max(a, b) {
 func min(a, b) {
     min2(a=a, b=b) ~> out
 }
+
+func log2(val) {
+    past(val) ~> A1
+    log(val=A1) ~> L
+    log(val=2) ~> L2
+    L / L2 >> out
+}
+
+func log10(val) {
+    past(val) ~> A1
+    log(val=A1) ~> L
+    log(val=10) ~> L10
+    L / L10 >> out
+}
+
+func tan(val) {
+    past(val) ~> A1
+    sin(val=A1) ~> S
+    cos(val=A1) ~> C
+    S / C >> out
+}
+
+func hypot(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    A * A >> a2
+    B * B >> b2
+    a2 + b2 >> sum
+    sqrt(val=sum) ~> out
+}
