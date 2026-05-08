@@ -7,7 +7,7 @@ Every program flows in one direction — past → present → future. No excepti
 ## Why T?
 
 - **4 syntax elements only** — `>>`, `~>`, `F()`, `Gate`. That's it.
-- **Deterministic memory** — no GC, no manual `free()`. Memory released by design.
+- **Deterministic memory** — arena allocator, no GC, no manual `free()`.
 - **Easier than Python to read. Safer than Rust to write.**
 - **Built for AI** — clean coordinate system, no ambiguity, no noise.
 
@@ -40,30 +40,46 @@ Every program flows in one direction — past → present → future. No excepti
 | `F(arr) { Gate now (> 0) >> now ... ~> now }` | Conditional Transform |
 | `F(arr) { ... ~> now }` | Transform |
 
+## Standard Library
+
+```
+
+lib/
+├── basic/
+│   └── std.t          — 30+ core functions (math, string, array, type)
+├── intermediate/
+│   ├── array.t        — chunk, groupBy, take, drop, sliding_window, rotate...
+│   ├── csv.t          — CSV parsing
+│   ├── datetime.t     — date/time formatting
+│   ├── json.t         — JSON get/set/array
+│   ├── math2.t        — gcd, lcm, is_prime, factorial, fibonacci, stats
+│   ├── network.t      — HTTP get/post
+│   └── string2.t      — capitalize, title, snake_case, truncate, slugify...
+└── advanced/          — Coming soon
+```
+
 ## Example
 
 ```t
 [T-]
 import "lib/basic/std.t"
-scores = [85, 92, 78, 95, 60]
+import "lib/intermediate/csv.t"
+read("data.csv") ~> P1
 
 [T0]
-sort(arr=scores) ~> O1
-max_arr(arr=scores) ~> O2
-avg(arr=scores) ~> O3
-F(scores) {
-    Gate now (>= 80) >> O4
+parse_csv_rows(rows=P1) ~> O1
+F(O1) {
+    get(arr=now, idx=1) ~> score
+    Gate score (>= 80) >> O2
 }
 
 [T+]
-show shall(O1)
-show shall(O2, O3)
-show shall(O4)
+show shall(O2)
 ```
 
 ## Build
 
-Requires GCC.
+Requires GCC, libcurl, openssl.
 
 ```bash
 git clone https://github.com/thanhzro/T.git
@@ -76,16 +92,6 @@ make
 ```bash
 ./t yourfile.t
 ```
-
-## Standard Library
-
-```
-lib/basic/     — Core stdlib written in T
-lib/intermediate/  — Coming soon
-lib/advanced/      — Coming soon
-```
-
-`lib/basic/std.t` includes: math, string, array, type utilities — all written in T, no C required.
 
 ## License
 
