@@ -1,17 +1,17 @@
 [T-]
 
-func get(url) {
+func http_fetch(url) {
     past(url) ~> U
     http_get(url=U) ~> out
 }
 
-func post(url, data) {
+func http_send(url, data) {
     past(url) ~> U
     past(data) ~> D
-    http_post(url=U, data=D) ~> out
+    http_post(url=U, body=D) ~> out
 }
 
-func get_json(url, key) {
+func fetch_json(url, key) {
     past(url) ~> U
     past(key) ~> K
     http_get(url=U) ~> resp

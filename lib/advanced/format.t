@@ -5,8 +5,8 @@ func format_number(val, decimals) {
     past(decimals) ~> D
     toString(val=D) ~> ds
     toString(val=V) ~> vs
-    "printf '%." + ds + "f' " + vs >> cmd
-    exec(cmd=cmd) ~> raw
+    "printf '%." + ds + "f' " + vs >> fmt_cmd
+    exec(cmd=fmt_cmd) ~> raw
     trim(str=raw) ~> out
 }
 

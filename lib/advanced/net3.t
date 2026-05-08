@@ -22,8 +22,8 @@ func wget(url, path) {
 
 func http_status(url) {
     past(url) ~> U
-    write_file(path="status_cmd.sh", content="curl -sI " + U + " | head -1 | cut -d' ' -f2") ~> tmp
-    exec(cmd="sh status_cmd.sh") ~> raw
+    write_file(path="t_http_status.sh", content="curl -sI " + U + " | head -1 | cut -d' ' -f2") ~> tmp
+    exec(cmd="sh t_http_status.sh") ~> raw
     trim(str=raw) ~> n
     toNumber(val=n) ~> out
 }

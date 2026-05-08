@@ -1,1 +1,0 @@
-curl -sI https://github.com | head -1 | cut -d' ' -f2
