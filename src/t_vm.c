@@ -37,6 +37,10 @@ void arena_free_all(){
     for(int i=0;i<t_arena_count;i++) free(t_arena[i]);
     t_arena_count = 0;
 }
+void arena_free_since(int mark){
+    for(int i=mark;i<t_arena_count;i++){ if(t_arena[i]){ free(t_arena[i]); t_arena[i]=NULL; } }
+    t_arena_count=mark;
+}
 
 
 
@@ -623,12 +627,15 @@ ExecResult exec_node(Frame *f, void *node){
             out.arr.count=0;
 
             for(int i=0;i<arr.arr.count;i++){
+                int fmark=t_arena_count;
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[i]);
                 frame_set(cf,"idx",make_number(i));
                 exec_block(cf,fn->body,fn->body_count);
-                out.arr.items[out.arr.count++]=frame_get(cf,"now");
+                TValue fres=frame_get(cf,"now");
                 frame_free(cf);
+                t_arena_count=fmark;
+                out.arr.items[out.arr.count++]=fres;
             }
             frame_set(f,fn->source,out);
         }
@@ -642,6 +649,7 @@ ExecResult exec_node(Frame *f, void *node){
                 }
             }
             for(int i=0;i<arr.arr.count;i++){
+                int fmark=t_arena_count;
                 Frame *cf=new_frame(f);
                 frame_set(cf,"now",arr.arr.items[i]);
                 frame_set(cf,"idx",make_number(i));
@@ -649,6 +657,7 @@ ExecResult exec_node(Frame *f, void *node){
                 for(int k=0;k<cf->count;k++)
                     if(strcmp(cf->keys[k],"now")!=0)
                         frame_set(f,cf->keys[k],cf->values[k]);
+                t_arena_count=fmark;
                 frame_free(cf);
             }
         }
