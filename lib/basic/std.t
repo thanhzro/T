@@ -342,3 +342,32 @@ func hypot(a, b) {
 }
 
 
+
+
+
+
+func to_hex(str) {
+    past(str) ~> A1
+    chars(str=A1) ~> ch
+    F(ch) {
+        charCode(str=now) ~> code
+        num_to_hex(val=code) ~> now
+    }
+    join(arr=ch, sep="") ~> out
+}
+
+func url_encode(str) {
+    past(str) ~> A1
+    chars(str=A1) ~> ch
+    F(ch) {
+        regex_match(str=now, pat="^[a-zA-Z0-9._~-]$") ~> ok
+        charCode(str=now) ~> code
+        num_to_hex(val=code) ~> hex
+        "%" + hex >> encoded
+        [] >> opts
+        push(arr=opts, val=encoded) ~> opts
+        push(arr=opts, val=now) ~> opts
+        get(arr=opts, idx=ok) ~> now
+    }
+    join(arr=ch, sep="") ~> out
+}

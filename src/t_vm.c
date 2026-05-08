@@ -1001,16 +1001,7 @@ ExecResult exec_node(Frame *f, void *node){
             return res;
         }
 
-        if(!strcmp(fc->name,"to_hex")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char buf[512]; buf[0]=0;
-            for(int i=0;v.str[i];i++){
-                char tmp[4]; snprintf(tmp,3,"%02x",(unsigned char)v.str[i]);
-                strcat(buf,tmp);
-            }
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
+
         if(!strcmp(fc->name,"from_hex")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             char buf[256]; int len=strlen(v.str)/2,i;
@@ -1099,19 +1090,7 @@ ExecResult exec_node(Frame *f, void *node){
             else frame_set(f,fc->target,make_error("HTTP_FAIL"));
             return res;
         }
-        if(!strcmp(fc->name,"url_encode")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char buf[1024]; int bi=0;
-            for(int i=0;v.str[i];i++){
-                unsigned char ch=v.str[i];
-                if(isalnum(ch)||ch=='-'||ch=='_'||ch=='.'||ch=='~')
-                    buf[bi++]=ch;
-                else{ sprintf(buf+bi,"%%%02X",ch); bi+=3; }
-            }
-            buf[bi]=0;
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
+
         if(!strcmp(fc->name,"http_post")){
             TValue url=eval_expr(f,fc->arg_values[0]);
             TValue data=eval_expr(f,fc->arg_values[1]);
@@ -1174,6 +1153,12 @@ ExecResult exec_node(Frame *f, void *node){
             TValue a=eval_expr(f,fc->arg_values[0]);
             TValue b=eval_expr(f,fc->arg_values[1]);
             frame_set(f,fc->target,make_number(a.num<=b.num?a.num:b.num));
+            return res;
+        }
+        if(!strcmp(fc->name,"num_to_hex")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char buf[3]; snprintf(buf,3,"%02x",(unsigned char)(int)v.num);
+            frame_set(f,fc->target,make_string(buf));
             return res;
         }
         exec_t_func:;
