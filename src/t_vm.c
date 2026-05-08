@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <time.h>
 #include <regex.h>
+#include <openssl/md5.h>
+#include <openssl/sha.h>
 #include <curl/curl.h>
 #include <math.h>
 
@@ -1196,6 +1198,41 @@ ExecResult exec_node(Frame *f, void *node){
             regfree(&re);
             frame_set(f,fc->target,make_string(buf));
             return res;
+        }
+        if(!strcmp(fc->name,"md5")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            unsigned char hash[16]; MD5((unsigned char*)v.str,strlen(v.str),hash);
+            char buf[33]; for(int i=0;i<16;i++) snprintf(buf+i*2,3,"%02x",hash[i]);
+            buf[32]=0; frame_set(f,fc->target,make_string(buf)); return res;
+        }
+        if(!strcmp(fc->name,"sha256")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            unsigned char hash[32]; SHA256((unsigned char*)v.str,strlen(v.str),hash);
+            char buf[65]; for(int i=0;i<32;i++) snprintf(buf+i*2,3,"%02x",hash[i]);
+            buf[64]=0; frame_set(f,fc->target,make_string(buf)); return res;
+        }
+        if(!strcmp(fc->name,"path_join")){
+            TValue a=eval_expr(f,fc->arg_values[0]);
+            TValue b=eval_expr(f,fc->arg_values[1]);
+            char buf[512]; snprintf(buf,511,"%s/%s",a.str,b.str);
+            frame_set(f,fc->target,make_string(buf)); return res;
+        }
+        if(!strcmp(fc->name,"path_basename")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char *p=strrchr(v.str,'/');
+            frame_set(f,fc->target,make_string(p?p+1:v.str)); return res;
+        }
+        if(!strcmp(fc->name,"path_dirname")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char buf[512]; strncpy(buf,v.str,511);
+            char *p=strrchr(buf,'/');
+            if(p) *p=0; else strcpy(buf,".");
+            frame_set(f,fc->target,make_string(buf)); return res;
+        }
+        if(!strcmp(fc->name,"path_ext")){
+            TValue v=eval_expr(f,fc->arg_values[0]);
+            char *p=strrchr(v.str,'.');
+            frame_set(f,fc->target,make_string(p?p:"")); return res;
         }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
