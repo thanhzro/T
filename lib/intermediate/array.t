@@ -91,3 +91,13 @@ func sliding_window(arr, n) {
     }
     IDX >> out
 }
+
+func rotate(arr, n) {
+    past(arr) ~> A1
+    past(n) ~> N
+    len(val=A1) ~> L
+    N % L >> r
+    drop(arr=A1, n=r) ~> tail
+    take(arr=A1, n=r) ~> head
+    flatten(arr=[tail, head]) ~> out
+}

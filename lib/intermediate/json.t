@@ -29,3 +29,16 @@ func json_array(json, key) {
     replace(str=clean, old=" ", new="") ~> clean2
     split(str=clean2, sep=",") ~> out
 }
+
+func json_keys(json) {
+    past(json) ~> J
+    regex_find(str=J, pat="\{(.*)\}") ~> inner
+    split(str=inner, sep=",") ~> pairs
+    F(pairs) {
+        split(str=now, sep=":") ~> parts
+        get(arr=parts, idx=0) ~> key
+        trim(str=key) ~> key
+        replace(str=key, old="\"", new="") ~> now
+    }
+    pairs >> out
+}

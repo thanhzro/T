@@ -86,3 +86,39 @@ func word_wrap(str, n) {
     push(arr=lines, val=cur) ~> lines
     lines >> out
 }
+
+func lstrip(str) {
+    past(str) ~> A1
+    len(val=A1) ~> L
+    0 >> start
+    loop {
+        slice(str=A1, from=start, to=start+1) ~> ch
+        start + 1 >> start
+        Gate ch (!= " ") >> done
+    }
+    start - 1 >> real_start
+    slice(str=A1, from=real_start, to=L) ~> out
+}
+
+func rstrip(str) {
+    past(str) ~> A1
+    len(val=A1) ~> L
+    L - 1 >> rend
+    loop {
+        slice(str=A1, from=rend, to=rend+1) ~> ch2
+        rend - 1 >> rend
+        Gate ch2 (!= " ") >> done
+    }
+    rend + 2 >> real_end
+    slice(str=A1, from=0, to=real_end) ~> out
+}
+
+func center(str, n) {
+    past(str) ~> A1
+    past(n) ~> N
+    len(val=A1) ~> L
+    N - L >> diff
+    diff / 2 >> half
+    padLeft(str=A1, n=L+half, ch=" ") ~> tmp
+    padRight(str=tmp, n=N, ch=" ") ~> out
+}
