@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <signal.h>
+
 #include <stdlib.h>
 
 /* ===== Forward declarations ===== */
@@ -46,7 +48,18 @@ char* read_file(const char *path){
 
 
 /* ===== MAIN ===== */
+void crash_handler(int sig){
+    fprintf(stderr, "\nT Runtime Error: Segmentation fault (signal %d)\n", sig);
+    fprintf(stderr, "Likely causes:\n");
+    fprintf(stderr, "  - Infinite loop (loop without Gate termination)\n");
+    fprintf(stderr, "  - Array index out of bounds\n");
+    fprintf(stderr, "  - Arena overflow (too many allocations)\n");
+    exit(1);
+}
+
 int main(int argc, char **argv){
+    signal(SIGSEGV, crash_handler);
+    signal(SIGABRT, crash_handler);
 
     if(argc < 2){
         printf("Usage: t <file.t>\n");
