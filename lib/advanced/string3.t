@@ -1,14 +1,5 @@
 [T-]
 
-func repeat(str, n) {
-    past(str) ~> S
-    past(n) ~> N
-    range(n=N) ~> idx
-    F(idx) {
-        S >> now
-    }
-    join(arr=idx, sep="") ~> out
-}
 
 func starts_with(str, sub) {
     past(str) ~> S

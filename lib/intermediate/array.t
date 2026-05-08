@@ -14,28 +14,7 @@ func chunk(arr, n) {
 }
 [T-]
 
-func groupBy(arr) {
-    past(arr) ~> A1
-    sort(arr=A1) ~> A2
-    len(val=A2) ~> L
-    [] >> result
-    0 >> i
-    loop {
-        get(arr=A2, idx=i) ~> cur_key
-        i >> group_start
-        loop {
-            get(arr=A2, idx=i) ~> cur
-            i + 1 >> i
-            Gate cur (!= cur_key) >> done2
-            Gate i (>= L) >> done2
-        }
-        i - 1 >> group_end
-        slice_arr(arr=A2, from=group_start, to=group_end) ~> group
-        push_arr(arr=result, sub=group) ~> result
-        Gate i (>= L) >> done
-    }
-    result >> out
-}
+
 [T-]
 
 

@@ -55,12 +55,4 @@ func jq_update(json, key, val) {
     exec(cmd="sh jq_cmd.sh") ~> out
 }
 
-func jq_update(json, key, val) {
-    past(json) ~> J
-    past(key) ~> K
-    past(val) ~> V
-    write_file(path="tjq.json", content=J) ~> tmp
-    shell_escape(str=V) ~> ev
-    write_file(path="jq_cmd.sh", content="jq ." + K + "=" + ev + " tjq.json") ~> tmp2
-    exec(cmd="sh jq_cmd.sh") ~> out
-}
+

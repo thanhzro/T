@@ -1,19 +1,12 @@
 [T-]
 
-func clamp(val, lo, hi) {
-    past(val) ~> V
-    past(lo) ~> L
-    past(hi) ~> H
-    max2(a=V, b=L) ~> v1
-    min2(a=v1, b=H) ~> out
-}
 
 func lerp(a, b, t) {
     past(a) ~> A
     past(b) ~> B
-    past(t) ~> T
+    past(t) ~> Tv
     B - A >> diff
-    diff * T >> scaled
+    diff * Tv >> scaled
     A + scaled >> out
 }
 
@@ -26,26 +19,8 @@ func sign(val) {
     is_pos - is_neg >> out
 }
 
-func round(val) {
-    past(val) ~> V
-    V + 0.5 >> shifted
-    floor(val=shifted) ~> out
-}
 
-func ceil(val) {
-    past(val) ~> V
-    0 - V >> neg
-    floor(val=neg) ~> f
-    0 - f >> out
-}
 
-func pow(base, exp) {
-    past(base) ~> B
-    past(exp) ~> E
-    log(val=B) ~> lb
-    lb * E >> le
-    exp(val=le) ~> out
-}
 
 func sum_range(lo, hi) {
     past(lo) ~> Lo
@@ -57,10 +32,6 @@ func sum_range(lo, hi) {
     prod / 2 >> out
 }
 
-func pi() {
-    atan(val=1) ~> a
-    a * 4 >> out
-}
 
 func e() {
     exp(val=1) ~> out

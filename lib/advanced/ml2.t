@@ -42,20 +42,6 @@ func normalize(arr) {
     A >> out
 }
 
-func mat_add(a, b) {
-    past(a) ~> A
-    past(b) ~> B
-    mat_rows(m=A) ~> rows
-    range(n=rows) ~> ri
-    F(ri) {
-        get(arr=A, idx=now) ~> ra
-        get(arr=B, idx=now) ~> rb
-        zip_with(a=ra, b=rb) ~> pairs
-        F(pairs) {
-            get(arr=now, idx=0) ~> x
-            get(arr=now, idx=1) ~> y
-            x + y >> now
-        }
         pairs >> now
     }
     ri >> out
