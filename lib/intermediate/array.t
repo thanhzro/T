@@ -101,3 +101,53 @@ func rotate(arr, n) {
     take(arr=A1, n=r) ~> head
     flatten(arr=[tail, head]) ~> out
 }
+
+func partition(arr, val) {
+    past(arr) ~> A1
+    past(val) ~> V
+    F(A1) {
+        Gate now (<= V) >> O1
+    }
+    F(A1) {
+        Gate now (> V) >> O2
+    }
+    [] >> result
+    push_arr(arr=result, sub=O1) ~> result
+    push_arr(arr=result, sub=O2) ~> result
+    result >> out
+}
+
+
+func zip_longest(a, b, fill) {
+    past(a) ~> A1
+    past(b) ~> A2
+    past(fill) ~> F1
+    len(val=A1) ~> L1
+    len(val=A2) ~> L2
+    max(a=L1, b=L2) ~> L
+    range(n=L) ~> IDX
+    F(IDX) {
+        now + 1 >> nxt
+        nxt - L1 >> d1
+        clamp(val=d1, lo=0, hi=1) ~> ob1
+        1 - ob1 >> ib1
+        nxt - L2 >> d2
+        clamp(val=d2, lo=0, hi=1) ~> ob2
+        1 - ob2 >> ib2
+        get(arr=A1, idx=now) ~> v1
+        get(arr=A2, idx=now) ~> v2
+        [] >> p1
+        push(arr=p1, val=F1) ~> p1
+        push(arr=p1, val=v1) ~> p1
+        get(arr=p1, idx=ib1) ~> rv1
+        [] >> p2
+        push(arr=p2, val=F1) ~> p2
+        push(arr=p2, val=v2) ~> p2
+        get(arr=p2, idx=ib2) ~> rv2
+        [] >> pair
+        push(arr=pair, val=rv1) ~> pair
+        push(arr=pair, val=rv2) ~> pair
+        pair >> now
+    }
+    IDX >> out
+}

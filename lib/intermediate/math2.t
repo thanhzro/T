@@ -74,3 +74,29 @@ func median(arr) {
     L / 2 >> mid
     get(arr=A2, idx=mid) ~> out
 }
+
+func mode(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> A2
+    len(val=A2) ~> L
+    0 >> max_count
+    0 >> mode_val
+    0 >> i
+    loop {
+        Gate i (>= L) >> done
+        get(arr=A2, idx=i) ~> cur
+        count(arr=A2, val=cur) ~> cnt
+        cnt - max_count >> diff
+        clamp(val=diff, lo=0, hi=1) ~> is_more
+        [] >> opts_val
+        push(arr=opts_val, val=mode_val) ~> opts_val
+        push(arr=opts_val, val=cur) ~> opts_val
+        get(arr=opts_val, idx=is_more) ~> mode_val
+        [] >> opts_cnt
+        push(arr=opts_cnt, val=max_count) ~> opts_cnt
+        push(arr=opts_cnt, val=cnt) ~> opts_cnt
+        get(arr=opts_cnt, idx=is_more) ~> max_count
+        i + 1 >> i
+    }
+    mode_val >> out
+}
