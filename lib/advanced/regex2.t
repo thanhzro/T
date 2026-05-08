@@ -31,3 +31,15 @@ func regex_extract_all(str, pat) {
     trim(str=raw) ~> flat
     split(str=flat, sep="\n") ~> out
 }
+
+func regex_test(str, pat) {
+    past(str) ~> S
+    past(pat) ~> P
+    regex_match(str=S, pat=P) ~> out
+}
+
+func regex_first(str, pat) {
+    past(str) ~> S
+    past(pat) ~> P
+    regex_find(str=S, pat=P) ~> out
+}

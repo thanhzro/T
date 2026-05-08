@@ -40,3 +40,25 @@ func uptime_sec() {
     trim(str=raw) ~> n
     toNumber(val=n) ~> out
 }
+
+func get_env(key) {
+    past(key) ~> K
+    env(key=K) ~> out
+}
+
+func set_env(key, val) {
+    past(key) ~> K
+    past(val) ~> V
+    env_set(key=K, val=V) ~> out
+}
+
+func env_or_default(key, default) {
+    past(key) ~> K
+    past(default) ~> D
+    env(key=K) ~> val
+    isString(val=val) ~> ok
+    [] >> opts
+    push(arr=opts, val=D) ~> opts
+    push(arr=opts, val=val) ~> opts
+    get(arr=opts, idx=ok) ~> out
+}
