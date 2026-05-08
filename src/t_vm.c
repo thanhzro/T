@@ -294,7 +294,7 @@ TValue eval_expr(Frame *f, ExprNode *e){
                 if(s[j]=='}'){
                     TValue val=frame_get(f,vname);
                     char tmp[256];
-                    if(val.type==TV_NUMBER) snprintf(tmp,255,"%g",val.num);
+                    if(val.type==TV_NUMBER) snprintf(tmp,255,"%.15g",val.num);
                     else { strncpy(tmp,val.str,255); tmp[255]=0; }
                     strncat(out,tmp,511-strlen(out));
                     si=j+1;
@@ -341,8 +341,8 @@ TValue eval_expr(Frame *f, ExprNode *e){
             if(a.type==TV_STRING || b.type==TV_STRING){
                 char buf[512];
                 char sa[256], sb[256];
-                if(a.type==TV_NUMBER) snprintf(sa,255,"%g",a.num); else { strncpy(sa,a.str,255); sa[255]=0; }
-                if(b.type==TV_NUMBER) snprintf(sb,255,"%g",b.num); else { strncpy(sb,b.str,255); sb[255]=0; }
+                if(a.type==TV_NUMBER) snprintf(sa,255,"%.15g",a.num); else { strncpy(sa,a.str,255); sa[255]=0; }
+                if(b.type==TV_NUMBER) snprintf(sb,255,"%.15g",b.num); else { strncpy(sb,b.str,255); sb[255]=0; }
                 strncpy(buf,sa,511); buf[511]=0;
                 strncat(buf,sb,511-strlen(buf));
                 return make_string(buf);
@@ -842,7 +842,7 @@ ExecResult exec_node(Frame *f, void *node){
             for(int i=0;i<arr.arr.count;i++){
                 if(i) strncat(buf,sep.str,1023-strlen(buf));
                 TValue it=arr.arr.items[i];
-                if(it.type==TV_NUMBER){ char tmp[64]; snprintf(tmp,63,"%g",it.num); strncat(buf,tmp,1023-strlen(buf)); }
+                if(it.type==TV_NUMBER){ char tmp[64]; snprintf(tmp,63,"%.15g",it.num); strncat(buf,tmp,1023-strlen(buf)); }
                 else strncat(buf,it.str,1023-strlen(buf));
             }
             frame_set(f,fc->target,make_string(buf));

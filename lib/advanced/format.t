@@ -26,7 +26,9 @@ func format_percent(val) {
 
 func format_bytes(bytes) {
     past(bytes) ~> B
-    format_number(val=B, decimals=0) ~> bs
+    toString(val=B) ~> braw
+    exec(cmd="printf '%.0f' " + braw) ~> bs
+    trim(str=bs) ~> bs
     1024 >> kb
     1048576 >> mb
     B / kb >> kv
