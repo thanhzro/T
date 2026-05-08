@@ -975,38 +975,9 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
-        if(!strcmp(fc->name,"http_get")){
-            TValue url=eval_expr(f,fc->arg_values[0]);
-            CURL *curl=curl_easy_init();
-            struct curl_buf buf={t_malloc(1),0};
-            curl_easy_setopt(curl,CURLOPT_URL,url.str);
-            curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,(curl_write_callback)curl_write);
-            curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
-            curl_easy_setopt(curl,CURLOPT_FOLLOWLOCATION,1L);
-            curl_easy_setopt(curl,CURLOPT_TIMEOUT,10L);
-            CURLcode r=curl_easy_perform(curl);
-            curl_easy_cleanup(curl);
-            if(r==CURLE_OK) frame_set(f,fc->target,make_string(buf.data));
-            else frame_set(f,fc->target,make_error("HTTP_FAIL"));
-            return res;
-        }
 
-        if(!strcmp(fc->name,"http_post")){
-            TValue url=eval_expr(f,fc->arg_values[0]);
-            TValue data=eval_expr(f,fc->arg_values[1]);
-            CURL *curl=curl_easy_init();
-            struct curl_buf buf={t_malloc(1),0};
-            curl_easy_setopt(curl,CURLOPT_URL,url.str);
-            curl_easy_setopt(curl,CURLOPT_POSTFIELDS,data.str);
-            curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,(curl_write_callback)curl_write);
-            curl_easy_setopt(curl,CURLOPT_WRITEDATA,&buf);
-            curl_easy_setopt(curl,CURLOPT_TIMEOUT,10L);
-            CURLcode r=curl_easy_perform(curl);
-            curl_easy_cleanup(curl);
-            if(r==CURLE_OK) frame_set(f,fc->target,make_string(buf.data));
-            else frame_set(f,fc->target,make_error("HTTP_FAIL"));
-            return res;
-        }
+
+
 
         if(!strcmp(fc->name,"json_set")){
             TValue json=eval_expr(f,fc->arg_values[0]);

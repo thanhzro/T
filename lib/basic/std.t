@@ -650,3 +650,17 @@ func file_delete(path) {
     past(path) ~> P
     exec(cmd="rm -f " + P) ~> out
 }
+
+func http_get(url) {
+    past(url) ~> U
+    "curl -s " + U >> cmd
+    exec(cmd=cmd) ~> out
+}
+
+func http_post(url, body) {
+    past(url) ~> U
+    past(body) ~> B
+    shell_escape(str=B) ~> esc
+    "curl -s -X POST -d " + esc + " " + U >> cmd
+    exec(cmd=cmd) ~> out
+}
