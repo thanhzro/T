@@ -844,16 +844,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(val));
             return res;
         }
-        if(!strcmp(fc->name,"isNumber")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(val.type==TV_NUMBER?1:0));
-            return res;
-        }
-        if(!strcmp(fc->name,"isString")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(val.type==TV_STRING?1:0));
-            return res;
-        }
+
+
         if(!strcmp(fc->name,"isArray")){
             TValue val=eval_expr(f,fc->arg_values[0]);
             frame_set(f,fc->target,make_number(val.type==TV_ARRAY?1:0));
