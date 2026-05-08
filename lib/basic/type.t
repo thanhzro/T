@@ -15,3 +15,13 @@ func isString(val) {
     clamp(val=na, lo=0, hi=1) ~> na1
     1 - na1 >> out
 }
+
+func to_num(val) {
+    past(val) ~> V
+    toNumber(val=V) ~> out
+}
+
+func is_arr(val) {
+    past(val) ~> V
+    isArray(val=V) ~> out
+}

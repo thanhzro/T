@@ -130,3 +130,21 @@ func groupBy(arr) {
     push_arr(arr=result, sub=cur_group) ~> result
     result >> out
 }
+
+func sort_asc(arr) {
+    past(arr) ~> A
+    sort(arr=A) ~> out
+}
+
+func sort_desc(arr) {
+    past(arr) ~> A
+    sort(arr=A) ~> s
+    reverse(arr=s) ~> out
+}
+
+func arr_is_empty(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    Gate n (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
