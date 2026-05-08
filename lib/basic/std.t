@@ -612,3 +612,20 @@ func groupBy(arr) {
     push_arr(arr=result, sub=cur_group) ~> result
     result >> out
 }
+
+func timestamp() {
+    exec(cmd="date +%s") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func random(min, max) {
+    past(min) ~> A
+    past(max) ~> B
+    toString(val=A) ~> sa
+    toString(val=B) ~> sb
+    "shuf -i " + sa + "-" + sb + " -n 1" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}

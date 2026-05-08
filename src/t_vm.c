@@ -848,18 +848,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
-        if(!strcmp(fc->name,"random")){
-            TValue mn=eval_expr(f,fc->arg_values[0]);
-            TValue mx=eval_expr(f,fc->arg_values[1]);
-            double r=(double)rand()/RAND_MAX;
-            double val=mn.num+r*(mx.num-mn.num);
-            frame_set(f,fc->target,make_number(val));
-            return res;
-        }
-        if(!strcmp(fc->name,"timestamp")){
-            frame_set(f,fc->target,make_number((double)time(NULL)));
-            return res;
-        }
+
+
 
 
 
