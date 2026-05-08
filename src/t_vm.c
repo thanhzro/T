@@ -9,6 +9,15 @@
 #include <curl/curl.h>
 #include <math.h>
 
+/* Helper macros to reduce builtin boilerplate */
+#define ARG0(name) TValue name=eval_expr(f,fc->arg_values[0])
+#define ARG1(name) TValue name=eval_expr(f,fc->arg_values[1])
+#define ARG2(name) TValue name=eval_expr(f,fc->arg_values[2])
+#define ARG3(name) TValue name=eval_expr(f,fc->arg_values[3])
+#define RETVAL(v) do{frame_set(f,fc->target,(v));return res;}while(0)
+#define BUILTIN(fname) if(!strcmp(fc->name,(fname)))
+
+
 /* ===== CURL HELPER ===== */
 struct curl_buf { char *data; size_t size; };
 static size_t curl_write(char *ptr, size_t size, size_t nmemb, struct curl_buf *buf){
@@ -784,11 +793,7 @@ ExecResult exec_node(Frame *f, void *node){
         }
 
 
-        if(!strcmp(fc->name,"floor")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(floor(v.num)));
-            return res;
-        }
+        BUILTIN("floor"){ARG0(v);RETVAL(make_number(floor(v.num)));}
 
 
 
@@ -807,13 +812,7 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"sqrt")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            double r=v.num, x=r;
-            for(int i=0;i<20;i++) x=0.5*(x+r/x);
-            frame_set(f,fc->target,make_number(x));
-            return res;
-        }
+        BUILTIN("sqrt"){ARG0(v);RETVAL(make_number(sqrt(v.num)));}
 
         if(!strcmp(fc->name,"sort")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
@@ -858,29 +857,12 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_number(val.type==TV_ARRAY?1:0));
             return res;
         }
-        if(!strcmp(fc->name,"toNumber")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            if(val.type==TV_NUMBER){ frame_set(f,fc->target,val); return res; }
-            frame_set(f,fc->target,make_number(atof(val.str)));
-            return res;
-        }
-        if(!strcmp(fc->name,"log")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(log(v.num)));
-            return res;
-        }
+        BUILTIN("toNumber"){ARG0(val);RETVAL(val.type==TV_NUMBER?val:make_number(atof(val.str)));}
+        BUILTIN("log"){ARG0(v);RETVAL(make_number(log(v.num)));}
 
 
-        if(!strcmp(fc->name,"sin")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(sin(v.num)));
-            return res;
-        }
-        if(!strcmp(fc->name,"cos")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(cos(v.num)));
-            return res;
-        }
+        BUILTIN("sin"){ARG0(v);RETVAL(make_number(sin(v.num)));}
+        BUILTIN("cos"){ARG0(v);RETVAL(make_number(cos(v.num)));}
 
         if(!strcmp(fc->name,"push_arr")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
@@ -926,22 +908,9 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"exp")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(exp(v.num)));
-            return res;
-        }
-        if(!strcmp(fc->name,"atan")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(atan(v.num)));
-            return res;
-        }
-        if(!strcmp(fc->name,"atan2")){
-            TValue y=eval_expr(f,fc->arg_values[0]);
-            TValue x=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(atan2(y.num,x.num)));
-            return res;
-        }
+        BUILTIN("exp"){ARG0(v);RETVAL(make_number(exp(v.num)));}
+        BUILTIN("atan"){ARG0(v);RETVAL(make_number(atan(v.num)));}
+        BUILTIN("atan2"){ARG0(y);ARG1(x);RETVAL(make_number(atan2(y.num,x.num)));}
 
 
 
