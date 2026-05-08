@@ -499,3 +499,23 @@ func range(n) {
     range_step(from=0, to=N, step=1) ~> out
 }
 
+
+func min2(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    [] >> arr
+    push(arr=arr, val=A) ~> arr
+    push(arr=arr, val=B) ~> arr
+    sort(arr=arr) ~> s
+    first(arr=s) ~> out
+}
+
+func max2(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    [] >> arr
+    push(arr=arr, val=A) ~> arr
+    push(arr=arr, val=B) ~> arr
+    sort(arr=arr) ~> s
+    last(arr=s) ~> out
+}

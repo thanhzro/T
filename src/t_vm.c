@@ -1087,18 +1087,8 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"max2")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(a.num>=b.num?a.num:b.num));
-            return res;
-        }
-        if(!strcmp(fc->name,"min2")){
-            TValue a=eval_expr(f,fc->arg_values[0]);
-            TValue b=eval_expr(f,fc->arg_values[1]);
-            frame_set(f,fc->target,make_number(a.num<=b.num?a.num:b.num));
-            return res;
-        }
+
+
         if(!strcmp(fc->name,"num_to_hex")){
             TValue v=eval_expr(f,fc->arg_values[0]);
             char buf[3]; snprintf(buf,3,"%02x",(unsigned char)(int)v.num);
