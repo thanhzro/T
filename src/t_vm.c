@@ -1168,6 +1168,32 @@ ExecResult exec_node(Frame *f, void *node){
             else frame_set(f,fc->target,make_error("HTTP_FAIL"));
             return res;
         }
+        if(!strcmp(fc->name,"date_diff")){
+            TValue t1=eval_expr(f,fc->arg_values[0]);
+            TValue t2=eval_expr(f,fc->arg_values[1]);
+            double diff=t2.num-t1.num;
+            frame_set(f,fc->target,make_number(diff/86400.0));
+            return res;
+        }
+        if(!strcmp(fc->name,"json_set")){
+            TValue json=eval_expr(f,fc->arg_values[0]);
+            TValue key=eval_expr(f,fc->arg_values[1]);
+            TValue val=eval_expr(f,fc->arg_values[2]);
+            char pat[256]; snprintf(pat,255,"\"%s\":[^,}]*",key.str);
+            char rep[256];
+            if(val.type==TV_NUMBER) snprintf(rep,255,"\"%s\":%g",key.str,val.num);
+            else snprintf(rep,255,"\"%s\":\"%s\"",key.str,val.str);
+            regex_t re; regmatch_t m;
+            if(regcomp(&re,pat,REG_EXTENDED)){ frame_set(f,fc->target,json); return res; }
+            if(regexec(&re,json.str,1,&m,0)){ regfree(&re); frame_set(f,fc->target,json); return res; }
+            char buf[1024];
+            strncpy(buf,json.str,m.rm_so); buf[m.rm_so]=0;
+            strcat(buf,rep);
+            strcat(buf,json.str+m.rm_eo);
+            regfree(&re);
+            frame_set(f,fc->target,make_string(buf));
+            return res;
+        }
         FuncDefNode *fn=find_func(fc->name);
         if(!fn){
             char errbuf[128];
