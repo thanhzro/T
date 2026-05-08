@@ -1161,12 +1161,14 @@ ExecResult exec_node(Frame *f, void *node){
             if(*(NodeType*)ln->body[i]==NODE_GATE) has_gate=1;
         if(!has_gate) fprintf(stderr,"Warning: loop has no Gate — may run forever\n");
         while(1){
+            int mark=t_arena_count;
             Frame *lf=new_frame(f);
             ExecResult lr=exec_loop_block(lf,ln->body,ln->body_count);
             /* Copy variables back */
             for(int k=0;k<lf->count;k++)
                 frame_set(f,lf->keys[k],lf->values[k]);
             frame_free(lf);
+            t_arena_count=mark;
             if(lr.has_return){ res=lr; break; }
             TValue done=frame_get(f,"done");
             if(done.type!=TV_ERROR) break;
