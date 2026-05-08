@@ -50,3 +50,29 @@ func file_count_lines(path) {
     first(arr=parts) ~> n_str
     toNumber(val=n_str) ~> out
 }
+
+func file_append(path, content) {
+    past(path) ~> P
+    past(content) ~> C
+    shell_escape(str=C) ~> esc
+    exec(cmd="echo " + esc + " >> " + P) ~> out
+}
+
+func file_lines(path) {
+    past(path) ~> P
+    exec(cmd="cat " + P) ~> raw
+    split(str=raw, sep="\n") ~> parts
+    pop(arr=parts) ~> out
+}
+
+func file_copy(src, dst) {
+    past(src) ~> S
+    past(dst) ~> D
+    exec(cmd="cp " + S + " " + D) ~> out
+}
+
+func file_move(src, dst) {
+    past(src) ~> S
+    past(dst) ~> D
+    exec(cmd="mv " + S + " " + D) ~> out
+}
