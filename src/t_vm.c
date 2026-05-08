@@ -729,13 +729,7 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"indexOf")){
-            TValue str=eval_expr(f,fc->arg_values[0]);
-            TValue sub=eval_expr(f,fc->arg_values[1]);
-            char *found=strstr(str.str,sub.str);
-            frame_set(f,fc->target,make_number(found ? (int)(found-str.str) : -1));
-            return res;
-        }
+        BUILTIN("indexOf"){ARG0(str);ARG1(sub);char*p=strstr(str.str,sub.str);RETVAL(make_number(p?p-str.str:-1));}
 
 
 
@@ -751,17 +745,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,out);
             return res;
         }
-        if(!strcmp(fc->name,"charCode")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number((double)val.str[0]));
-            return res;
-        }
-        if(!strcmp(fc->name,"fromChar")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            char tmp[2]={(char)(int)val.num,0};
-            frame_set(f,fc->target,make_string(tmp));
-            return res;
-        }
+        BUILTIN("charCode"){ARG0(v);RETVAL(make_number((unsigned char)v.str[0]));}
+        BUILTIN("fromChar"){ARG0(v);char s[2];s[0]=(char)(int)v.num;s[1]=0;RETVAL(make_string(s));}
 
 
         if(!strcmp(fc->name,"get")){
@@ -852,11 +837,7 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"isArray")){
-            TValue val=eval_expr(f,fc->arg_values[0]);
-            frame_set(f,fc->target,make_number(val.type==TV_ARRAY?1:0));
-            return res;
-        }
+        BUILTIN("isArray"){ARG0(v);RETVAL(make_number(v.type==TV_ARRAY?1:0));}
         BUILTIN("toNumber"){ARG0(val);RETVAL(val.type==TV_NUMBER?val:make_number(atof(val.str)));}
         BUILTIN("log"){ARG0(v);RETVAL(make_number(log(v.num)));}
 
@@ -975,12 +956,7 @@ ExecResult exec_node(Frame *f, void *node){
 
 
 
-        if(!strcmp(fc->name,"num_to_hex")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char buf[3]; snprintf(buf,3,"%02x",(unsigned char)(int)v.num);
-            frame_set(f,fc->target,make_string(buf));
-            return res;
-        }
+        BUILTIN("num_to_hex"){ARG0(v);char b[32];snprintf(b,31,"%x",(int)v.num);RETVAL(make_string(b));}
         if(!strcmp(fc->name,"mat_mul")){
             TValue A=eval_expr(f,fc->arg_values[0]);
             TValue B=eval_expr(f,fc->arg_values[1]);
@@ -1016,20 +992,8 @@ ExecResult exec_node(Frame *f, void *node){
             frame_set(f,fc->target,make_string(buf));
             return res;
         }
-        if(!strcmp(fc->name,"env")){
-            TValue v=eval_expr(f,fc->arg_values[0]);
-            char *val=getenv(v.str);
-            if(val) frame_set(f,fc->target,make_string(val));
-            else frame_set(f,fc->target,make_error("ENV_NOT_FOUND"));
-            return res;
-        }
-        if(!strcmp(fc->name,"env_set")){
-            TValue k=eval_expr(f,fc->arg_values[0]);
-            TValue v=eval_expr(f,fc->arg_values[1]);
-            setenv(k.str,v.str,1);
-            frame_set(f,fc->target,make_number(1));
-            return res;
-        }
+        BUILTIN("env"){ARG0(k);char*v=getenv(k.str);RETVAL(v?make_string(v):make_string(""));}
+        BUILTIN("env_set"){ARG0(k);ARG1(v);setenv(k.str,v.str,1);RETVAL(make_number(1));}
         if(!strcmp(fc->name,"write_file")){
             TValue path=eval_expr(f,fc->arg_values[0]);
             TValue content=eval_expr(f,fc->arg_values[1]);
