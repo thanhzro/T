@@ -28,8 +28,8 @@ func base64_encode(str) {
 
 func base64_decode(str) {
     past(str) ~> S
-    shell_escape(str=S) ~> esc
+    trim(str=S) ~> ts
+    shell_escape(str=ts) ~> esc
     "echo " + esc + " | base64 -d" >> cmd
-    exec(cmd=cmd) ~> raw
-    trim(str=raw) ~> out
+    exec(cmd=cmd) ~> out
 }
