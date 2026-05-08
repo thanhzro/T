@@ -1,7 +1,5 @@
 [T-]
-/* lib/intermediate/datetime.t
-   Requires: format_date, format_time, format_datetime builtins
-*/
+
 
 func now_date() {
     timestamp() ~> ts
