@@ -282,3 +282,48 @@ func is_blank(str) {
     Gate n (== 0) >> O1
     isNumber(val=O1) ~> out
 }
+
+func str_starts(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    indexOf(str=S, sub=P) ~> idx
+    Gate idx (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func str_ends(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    len(val=S) ~> slen
+    len(val=P) ~> plen
+    slen - plen >> expected_idx
+    indexOf(str=S, sub=P) ~> idx
+    idx - expected_idx >> diff
+    Gate diff (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func str_first(str) {
+    past(str) ~> S
+    slice(str=S, from=0, to=1) ~> out
+}
+
+func str_last(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    n - 1 >> last
+    slice(str=S, from=last, to=n) ~> out
+}
+
+func str_drop_first(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    slice(str=S, from=1, to=n) ~> out
+}
+
+func str_drop_last(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    n - 1 >> last
+    slice(str=S, from=0, to=last) ~> out
+}
