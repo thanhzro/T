@@ -51,3 +51,28 @@ func zscore(arr) {
     }
     A >> out
 }
+
+func z_score(arr) {
+    past(arr) ~> A
+    avg(arr=A) ~> mn
+    std_dev(arr=A) ~> sd
+    F(A) {
+        now - mn >> diff
+        safe_div(a=diff, b=sd) ~> now
+    }
+    A >> out
+}
+
+
+func range_of(arr) {
+    past(arr) ~> A
+    max_arr(arr=A) ~> mx
+    min_arr(arr=A) ~> mn
+    mx - mn >> out
+}
+
+func sum_sq(arr) {
+    past(arr) ~> A
+    F(A) { now * now >> now }
+    sum(arr=A) ~> out
+}
