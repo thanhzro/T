@@ -235,3 +235,51 @@ func arr_union(a, b) {
 }
 
 
+
+func arr_sum_range(arr, from, to) {
+    past(arr) ~> A
+    past(from) ~> Fr
+    past(to) ~> To
+    slice_arr(arr=A, from=Fr, to=To) ~> sub
+    sum(arr=sub) ~> out
+}
+
+func arr_swap(arr, i, j) {
+    past(arr) ~> A
+    past(i) ~> I
+    past(j) ~> J
+    get(arr=A, idx=I) ~> vi
+    get(arr=A, idx=J) ~> vj
+    len(val=A) ~> n
+    range(n=n) ~> idx
+    F(idx) {
+        Gate now (== I) >> is_i
+        isNumber(val=is_i) ~> ii
+        Gate now (== J) >> is_j
+        isNumber(val=is_j) ~> ij
+        [] >> opts
+        get(arr=A, idx=now) ~> orig
+        push(arr=opts, val=orig) ~> opts
+        push(arr=opts, val=vj) ~> opts
+        get(arr=opts, idx=ii) ~> r1
+        [] >> opts2
+        push(arr=opts2, val=r1) ~> opts2
+        push(arr=opts2, val=vi) ~> opts2
+        get(arr=opts2, idx=ij) ~> now
+    }
+    idx >> out
+}
+
+func arr_head(arr, n) {
+    past(arr) ~> A
+    past(n) ~> N
+    slice_arr(arr=A, from=0, to=N) ~> out
+}
+
+func arr_tail(arr, n) {
+    past(arr) ~> A
+    past(n) ~> N
+    len(val=A) ~> L
+    L - N >> start
+    slice_arr(arr=A, from=start, to=L) ~> out
+}
