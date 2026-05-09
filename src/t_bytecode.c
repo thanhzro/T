@@ -34,11 +34,33 @@ typedef struct {
 
 /* ===== STACK VM ===== */
 #define STACK_MAX 256
+#define FRAME_MAX 64
+
+typedef struct {
+    char keys[FRAME_MAX][64];
+    BVal vals[FRAME_MAX];
+    int count;
+} Frame;
+
+void frame_set(Frame *f, const char *k, BVal v){
+    for(int i=0;i<f->count;i++)
+        if(!strcmp(f->keys[i],k)){f->vals[i]=v;return;}
+    strcpy(f->keys[f->count],k);
+    f->vals[f->count++]=v;
+}
+
+BVal frame_get(Frame *f, const char *k){
+    for(int i=0;i<f->count;i++)
+        if(!strcmp(f->keys[i],k)) return f->vals[i];
+    BVal err; err.type=VT_ERR; err.str=NULL; err.num=0;
+    return err;
+}
 typedef struct {
     BVal stack[STACK_MAX];
     int top;
     Chunk *chunk;
     int ip;
+    Frame frame;
 } VM;
 
 void chunk_write(Chunk *c, uint8_t byte) {
@@ -83,10 +105,60 @@ void run(VM *vm) {
                 break;
             }
             case OP_JUMP: { int offset = vm->chunk->code[vm->ip++]; vm->ip += offset; break; }
+            case OP_STORE: {
+                int idx = vm->chunk->code[vm->ip++];
+                frame_set(&vm->frame, vm->chunk->str_consts[idx], pop(vm));
+                break;
+            }
+            case OP_LOAD: {
+                int idx = vm->chunk->code[vm->ip++];
+                push(vm, frame_get(&vm->frame, vm->chunk->str_consts[idx]));
+                break;
+            }
             case OP_SHOW: { BVal v=pop(vm); printf("%g\n",v.num); break; }
             case OP_HALT: return;
         }
     }
+}
+
+
+int chunk_add_str(Chunk *c, const char *s) {
+    c->str_consts = realloc(c->str_consts, sizeof(char*)*(c->str_count+1));
+    c->str_consts[c->str_count] = strdup(s);
+    return c->str_count++;
+}
+
+void test3();
+void test3() {
+    /* x = 5; y = 3; z = x + y; show z  (expect 8) */
+    Chunk chunk = {0};
+    VM vm = {0};
+    vm.chunk = &chunk;
+
+    int n5 = chunk_add_num(&chunk, 5);
+    int n3 = chunk_add_num(&chunk, 3);
+    int sx = chunk_add_str(&chunk, "x");
+    int sy = chunk_add_str(&chunk, "y");
+    int sz = chunk_add_str(&chunk, "z");
+
+    /* x = 5 */
+    chunk_write(&chunk, OP_PUSH_NUM); chunk_write(&chunk, n5);
+    chunk_write(&chunk, OP_STORE);    chunk_write(&chunk, sx);
+    /* y = 3 */
+    chunk_write(&chunk, OP_PUSH_NUM); chunk_write(&chunk, n3);
+    chunk_write(&chunk, OP_STORE);    chunk_write(&chunk, sy);
+    /* z = x + y */
+    chunk_write(&chunk, OP_LOAD);     chunk_write(&chunk, sx);
+    chunk_write(&chunk, OP_LOAD);     chunk_write(&chunk, sy);
+    chunk_write(&chunk, OP_ADD);
+    chunk_write(&chunk, OP_STORE);    chunk_write(&chunk, sz);
+    /* show z */
+    chunk_write(&chunk, OP_LOAD);     chunk_write(&chunk, sz);
+    chunk_write(&chunk, OP_SHOW);
+    chunk_write(&chunk, OP_HALT);
+
+    printf("Test3 (expect 8): ");
+    run(&vm);
 }
 
 void test2();
@@ -111,6 +183,7 @@ int main() {
 
     run(&vm);
     test2();
+    test3();
     return 0;
 }
 
