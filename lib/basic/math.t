@@ -221,3 +221,46 @@ func product(arr) {
     last(arr=A) ~> out
 }
 
+
+func is_even(n) {
+    past(n) ~> N
+    floor(val=N) ~> ni
+    ni / 2 >> half
+    floor(val=half) ~> h
+    h * 2 >> doubled
+    ni - doubled >> rem
+    Gate rem (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func is_odd(n) {
+    past(n) ~> N
+    is_even(n=N) ~> even
+    1 - even >> out
+}
+
+
+func map_range(val, in_lo, in_hi, out_lo, out_hi) {
+    past(val) ~> V
+    past(in_lo) ~> IL
+    past(in_hi) ~> IH
+    past(out_lo) ~> OL
+    past(out_hi) ~> OH
+    V - IL >> shifted
+    IH - IL >> in_range
+    OH - OL >> out_range
+    shifted / in_range >> ratio
+    ratio * out_range >> scaled
+    scaled + OL >> out
+}
+
+func safe_div(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    Gate B (== 0) >> iz_check
+    isNumber(val=iz_check) ~> iz
+    1 - iz >> do_div
+    A * do_div >> safe_a
+    B + iz >> safe_b
+    safe_a / safe_b >> out
+}
