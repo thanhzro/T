@@ -76,7 +76,7 @@ typedef struct {
 struct TValue {
     TValueType type;
     double num;
-    char str[256];
+    char str[4096];
     int boolean;
     TArray arr;
 };
@@ -302,8 +302,8 @@ TValue eval_expr(Frame *f, ExprNode *e){
                 vname[vn]=0;
                 if(s[j]=='}'){
                     TValue val=frame_get(f,vname);
-                    char tmp[256];
-                    if(val.type==TV_NUMBER) snprintf(tmp,255,"%.15g",val.num);
+                    char tmp[4096];
+                    if(val.type==TV_NUMBER) snprintf(tmp,4095,"%.15g",val.num);
                     else { strncpy(tmp,val.str,255); tmp[255]=0; }
                     strncat(out,tmp,511-strlen(out));
                     si=j+1;
@@ -769,7 +769,7 @@ ExecResult exec_node(Frame *f, void *node){
             if(a<0) a=0;
             if(b>len) b=len;
             if(a>=b){ frame_set(f,fc->target,make_string("")); return res; }
-            char buf[256]; int n=b-a;
+            char buf[4096]; int n=b-a;
             if(n>255) n=255;
             strncpy(buf,str.str+a,n);
             buf[n]=0;
@@ -826,7 +826,7 @@ ExecResult exec_node(Frame *f, void *node){
             for(int i=0;i<arr.arr.count;i++){
                 if(i) strncat(buf,sep.str,1023-strlen(buf));
                 TValue it=arr.arr.items[i];
-                if(it.type==TV_NUMBER){ char tmp[64]; snprintf(tmp,63,"%.15g",it.num); strncat(buf,tmp,1023-strlen(buf)); }
+                if(it.type==TV_NUMBER){ char tmp[4096]; snprintf(tmp,63,"%.15g",it.num); strncat(buf,tmp,1023-strlen(buf)); }
                 else strncat(buf,it.str,1023-strlen(buf));
             }
             frame_set(f,fc->target,make_string(buf));
@@ -919,7 +919,7 @@ ExecResult exec_node(Frame *f, void *node){
             if(r){ regfree(&re); frame_set(f,fc->target,make_error("NO_MATCH")); return res; }
             /* Return capture group 1 if exists, else full match */
             regmatch_t *use=(m[1].rm_so>=0)?&m[1]:&m[0];
-            char buf[256]; int len=use->rm_eo-use->rm_so;
+            char buf[4096]; int len=use->rm_eo-use->rm_so;
             strncpy(buf,str.str+use->rm_so,len); buf[len]=0;
             regfree(&re);
             frame_set(f,fc->target,make_string(buf));
@@ -1079,7 +1079,7 @@ ExecResult exec_node(Frame *f, void *node){
     else if(t==NODE_ASK){
         AskNode *a=node;
         printf("%s",a->prompt);
-        char buf[256]; fgets(buf,256,stdin);
+        char buf[4096]; fgets(buf,256,stdin);
         buf[strcspn(buf,"\n")]=0;
 
         if(is_number(buf))
@@ -1143,8 +1143,8 @@ ExecResult exec_node(Frame *f, void *node){
         if(v.type==TV_ERROR){
             if(!s->format[0]) fprintf(stderr,"Warning: %s is error — %s\n",s->coord,v.str);
         } else if(s->format[0]){
-            char out[512]; char tmp[256];
-            if(v.type==TV_NUMBER) snprintf(tmp,255,"%g",v.num);
+            char out[512]; char tmp[4096];
+            if(v.type==TV_NUMBER) snprintf(tmp,4095,"%g",v.num);
             else { strncpy(tmp,v.str,255); tmp[255]=0; }
 
             /* First do {varname} interpolation on format */
