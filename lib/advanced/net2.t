@@ -33,10 +33,31 @@ func api_post(base, path, body) {
     http_post(url=url, body=Body) ~> out
 }
 
-func ping(url) {
+
+func ping(host) {
+    past(host) ~> H
+    exec(cmd="ping -c 1 -W 2 " + H + " > /dev/null 2>&1 && echo 1 || echo 0") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func dns_lookup(host) {
+    past(host) ~> H
+    exec(cmd="nslookup " + H + " | grep Address | tail -1 | awk '{print $2}'") ~> raw
+    trim(str=raw) ~> out
+}
+
+func url_encode_str(str) {
+    past(str) ~> S
+    shell_escape(str=S) ~> esc
+    write_file(path="url_tmp.sh", content="printf %s " + esc + " | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))'") ~> tmp
+    exec(cmd="sh url_tmp.sh") ~> raw
+    trim(str=raw) ~> out
+}
+
+func curl_post_json(url, json) {
     past(url) ~> U
-    http_get(url=U) ~> res
-    len(val=res) ~> n
-    Gate n (> 0) >> O1
-    isNumber(val=O1) ~> out
+    past(json) ~> J
+    write_file(path="post_data.json", content=J) ~> tmp
+    exec(cmd="curl -s -X POST -H Content-Type:application/json -d @post_data.json " + U) ~> out
 }
