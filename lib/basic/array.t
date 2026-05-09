@@ -183,3 +183,39 @@ func arr_range(from, to, step) {
     past(step) ~> ST
     range_step(from=FR, to=TO, step=ST) ~> out
 }
+
+func any_arr(arr) {
+    past(arr) ~> A
+    F(A) {
+        Gate now (> 0) >> O1
+        isNumber(val=O1) ~> now
+    }
+    sum(arr=A) ~> s
+    Gate s (> 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func all_arr(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    F(A) {
+        Gate now (> 0) >> O1
+        isNumber(val=O1) ~> now
+    }
+    sum(arr=A) ~> s
+    Gate s (== n) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func enumerate_arr(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    range(n=n) ~> idx
+    zip(a=idx, b=A) ~> out
+}
+
+func zip_arrays(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    zip(a=A, b=B) ~> out
+}
