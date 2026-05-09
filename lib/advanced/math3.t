@@ -74,3 +74,6 @@ func moving_avg(arr, window) {
     }
     idx >> out
 }
+
+
+
