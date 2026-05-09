@@ -29,7 +29,8 @@ func dice(sides) {
 func rand_float(lo, hi) {
     past(lo) ~> Lo
     past(hi) ~> Hi
-    random() ~> r
+    rand_int(min=0, max=10000) ~> ri
+    ri / 10000 >> r
     Hi - Lo >> range
     r * range >> scaled
     scaled + Lo >> out
@@ -38,7 +39,8 @@ func rand_float(lo, hi) {
 func rand_choice(arr) {
     past(arr) ~> A
     len(val=A) ~> n
-    rand_int(lo=0, hi=n) ~> idx
+    n - 1 >> n1
+    rand_int(min=0, max=n1) ~> idx
     get(arr=A, idx=idx) ~> out
 }
 
