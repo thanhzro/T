@@ -123,6 +123,7 @@ typedef struct {
     Token *tokens;
     int pos;
     int count;
+    const char *source;
 } Parser;
 
 Token* parser_peek(Parser *p){
@@ -145,7 +146,20 @@ int parser_match(Parser *p, TokenType t, const char *v){
 }
 
 void parser_error(Parser *p, const char *msg){
-    printf("Parse error line %d col %d: %s\n", parser_peek(p)->line, parser_peek(p)->col, msg);
+    int line = parser_peek(p)->line;
+    int col = parser_peek(p)->col;
+    printf("Parse error line %d col %d: %s\n", line, col, msg);
+    if(p->source){
+        int cur=0, lnum=1;
+        while(p->source[cur] && lnum<line){
+            if(p->source[cur]=='\n') lnum++;
+            cur++;
+        }
+        int end=cur;
+        while(p->source[end] && p->source[end]!='\n') end++;
+        printf("  >> %.*s\n", end-cur, p->source+cur);
+        printf("  %*s^\n", col-1+5, "");
+    }
     exit(1);
 }
 
@@ -516,10 +530,10 @@ FuncDefNode* parse_func(Parser *p){
 
 /* ===== PROGRAM ===== */
 Token* lex(const char *src, int *out_count);
-ProgramNode* parse(Token *tokens, int count);
+ProgramNode* parse(Token *tokens, int count, const char *src);
 
-ProgramNode* parse(Token *tokens, int count){
-    Parser p={tokens,0,count};
+ProgramNode* parse(Token *tokens, int count, const char *src){
+    Parser p={tokens,0,count,src};
     ProgramNode *prog=malloc(sizeof(ProgramNode));
     prog->tminus_cap=16; prog->tminus=malloc(sizeof(void*)*prog->tminus_cap); prog->tminus_count=0;
     prog->t0_cap=16; prog->t0=malloc(sizeof(void*)*prog->t0_cap); prog->t0_count=0;
@@ -649,7 +663,7 @@ ProgramNode* parse(Token *tokens, int count){
 
                     int tok_count;
                     Token *toks=lex(src,&tok_count);
-                    ProgramNode *lib=parse(toks,tok_count);
+                    ProgramNode *lib=parse(toks,tok_count,src);
 
                     for(int i=0;i<lib->tminus_count;i++){
                         if(*(NodeType*)lib->tminus[i]==NODE_FUNC_DEF){

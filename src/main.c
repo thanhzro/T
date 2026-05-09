@@ -12,7 +12,7 @@ typedef struct ProgramNode ProgramNode;
 Token* lex(const char *src, int *out_count);
 
 /* từ t_parser.c */
-ProgramNode* parse(Token *tokens, int count);
+ProgramNode* parse(Token *tokens, int count, const char *src);
 
 /* từ t_vm.c */
 void run_program(ProgramNode *prog);
@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     Token *tokens = lex(source, &token_count);
 
     /* parse */
-    ProgramNode *program = parse(tokens, token_count);
+    ProgramNode *program = parse(tokens, token_count, source);
 
     /* run */
     run_program(program);
