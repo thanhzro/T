@@ -46,3 +46,18 @@ func validate_min_len(str, n) {
     Gate diff (>= 0) >> O1
     isNumber(val=O1) ~> out
 }
+
+func is_email(str) {
+    past(str) ~> S
+    validate_email(str=S) ~> out
+}
+
+func is_url(str) {
+    past(str) ~> S
+    validate_url(str=S) ~> out
+}
+
+func is_ip(str) {
+    past(str) ~> S
+    validate_ip(str=S) ~> out
+}
