@@ -36,3 +36,29 @@ func date_diff(t1, t2) {
     B - A >> diff
     diff / 86400 >> out
 }
+
+func days_in_month(month, year) {
+    past(month) ~> M
+    past(year) ~> Y
+    toString(val=M) ~> ms
+    toString(val=Y) ~> ys
+    exec(cmd="python3 -c 'import calendar;print(calendar.monthrange(" + ys + "," + ms + ")[1])'") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func is_leap_year(year) {
+    past(year) ~> Y
+    toString(val=Y) ~> ys
+    exec(cmd="python3 -c 'import calendar;print(1 if calendar.isleap(" + ys + ") else 0)'") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func unix_to_date(ts) {
+    past(ts) ~> T
+    toString(val=T) ~> ts_str
+    write_file(path="ts_tmp.sh", content="date -d @$(printf %.0f " + ts_str + ") +%Y-%m-%d") ~> tmp
+    exec(cmd="sh ts_tmp.sh") ~> raw
+    trim(str=raw) ~> out
+}
