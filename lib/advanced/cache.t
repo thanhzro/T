@@ -28,3 +28,14 @@ func cache_has(key) {
     past(key) ~> K
     file_exists(path=K + ".cache") ~> out
 }
+
+func cache_size() {
+    exec(cmd="cat t_cache.json 2>/dev/null | grep -c ':' || echo 0") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func cache_keys() {
+    exec(cmd="cat t_cache.json 2>/dev/null | grep -oP '"[^"]+":' | tr -d '":' ") ~> raw
+    trim(str=raw) ~> out
+}

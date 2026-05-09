@@ -62,3 +62,29 @@ func env_or_default(key, default) {
     push(arr=opts, val=val) ~> opts
     get(arr=opts, idx=ok) ~> out
 }
+
+func sys_ram_free() {
+    exec(cmd="free -m | awk 'NR==2{print $4}'") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func sys_uptime() {
+    exec(cmd="uptime -p") ~> raw
+    trim(str=raw) ~> out
+}
+
+func sys_hostname() {
+    exec(cmd="hostname") ~> raw
+    trim(str=raw) ~> out
+}
+
+func sys_os() {
+    exec(cmd="uname -s") ~> raw
+    trim(str=raw) ~> out
+}
+
+func sys_arch() {
+    exec(cmd="uname -m") ~> raw
+    trim(str=raw) ~> out
+}

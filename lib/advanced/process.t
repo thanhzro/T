@@ -28,3 +28,14 @@ func which(bin) {
 func pwd() {
     exec(cmd="pwd") ~> out
 }
+
+func proc_count() {
+    exec(cmd="ps aux | wc -l") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func env_list() {
+    exec(cmd="env | head -20") ~> raw
+    split(str=raw, sep="\n") ~> out
+}
