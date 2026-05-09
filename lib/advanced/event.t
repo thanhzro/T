@@ -37,3 +37,18 @@ func event_count() {
     push(arr=opts, val=cnt) ~> opts
     get(arr=opts, idx=h) ~> out
 }
+
+
+func event_last(log_path) {
+    past(log_path) ~> P
+    exec(cmd="tail -1 " + P + " 2>/dev/null") ~> raw
+    trim(str=raw) ~> out
+}
+
+func event_search(log_path, keyword) {
+    past(log_path) ~> P
+    past(keyword) ~> K
+    exec(cmd="grep " + K + " " + P + " 2>/dev/null | wc -l") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}

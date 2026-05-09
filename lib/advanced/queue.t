@@ -54,3 +54,20 @@ func is_empty_col(col) {
     Gate n (== 0) >> O1
     isNumber(val=O1) ~> out
 }
+
+func queue_size(q) {
+    past(q) ~> Q
+    len(val=Q) ~> out
+}
+
+func queue_is_empty(q) {
+    past(q) ~> Q
+    len(val=Q) ~> n
+    Gate n (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func queue_peek(q) {
+    past(q) ~> Q
+    get(arr=Q, idx=0) ~> out
+}

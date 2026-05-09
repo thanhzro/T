@@ -289,3 +289,25 @@ func cube(n) {
 
 
 
+
+func between(val, lo, hi) {
+    past(val) ~> V
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    validate_range(val=V, lo=Lo, hi=Hi) ~> out
+}
+
+func to_rad(deg) {
+    past(deg) ~> D
+    pi() ~> p
+    D * p >> scaled
+    scaled / 180 >> out
+}
+
+func to_deg(rad) {
+    past(rad) ~> R
+    pi() ~> p
+    R * 180 >> scaled
+    scaled / p >> out
+}
+
