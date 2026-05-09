@@ -93,6 +93,26 @@ run_t(I, 'cube(n=3) ~> O1', '27')
 run_t(I, 'max3(a=5, b=3, c=9) ~> O1', '9')
 run_t(I, 'str_reverse(str="hello") ~> O1', 'olleh')
 
+
+# Runner tests via template
+template = open('_template.t').read()
+runner_tests = [
+    ("abs(val=-5) ~> O1", "5"),
+    ("pow(base=2, exp=8) ~> O1", "256"),
+    ("gcd(a=48, b=18) ~> O1", "6"),
+    ("fibonacci(n=10) ~> O1", "55"),
+    ("is_prime(n=17) ~> O1", "1"),
+]
+for code, expected in runner_tests:
+    prog = template.replace('PLACEHOLDER', code)
+    open('_t.t','w').write(prog)
+    r = subprocess.run(['./t','_t.t'], capture_output=True, text=True)
+    got = r.stdout.strip()
+    if got == expected: PASS += 1
+    else:
+        FAIL += 1
+        print(f"FAIL: {code} got={got} expected={expected}")
+
 import os
 os.remove('_rt_test.t')
 print(f"\n{'='*40}")
