@@ -21,3 +21,27 @@ func similarity(a, b) {
     dist / mx >> ratio
     1 - ratio >> out
 }
+
+func str_repeat(str, n) {
+    past(str) ~> S
+    past(n) ~> N
+    floor(val=N) ~> ni
+    range(n=ni) ~> idx
+    F(idx) { S >> now }
+    join(arr=idx, sep="") ~> out
+}
+
+func str_chunk(str, size) {
+    past(str) ~> S
+    past(size) ~> SZ
+    len(val=S) ~> n
+    n / SZ >> chunks_f
+    ceil(val=chunks_f) ~> chunks
+    range(n=chunks) ~> idx
+    F(idx) {
+        now * SZ >> from
+        from + SZ >> to
+        slice(str=S, from=from, to=to) ~> now
+    }
+    idx >> out
+}
