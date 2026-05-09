@@ -8,3 +8,5 @@ big_data.txt
 ts_tmp.sh
 
 !check_conflicts.py
+
+!check_runtime.py
