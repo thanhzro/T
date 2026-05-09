@@ -327,3 +327,45 @@ func str_drop_last(str) {
     n - 1 >> last
     slice(str=S, from=0, to=last) ~> out
 }
+
+func str_insert(str, pos, sub) {
+    past(str) ~> S
+    past(pos) ~> P
+    past(sub) ~> I
+    slice(str=S, from=0, to=P) ~> before
+    len(val=S) ~> n
+    slice(str=S, from=P, to=n) ~> after
+    before + I + after >> out
+}
+
+func str_is_alpha(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="^[a-zA-Z]+$") ~> out
+}
+
+func str_is_numeric(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="^-?[0-9]+\.?[0-9]*$") ~> out
+}
+
+func str_is_alnum(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="^[a-zA-Z0-9]+$") ~> out
+}
+
+func str_lpad(str, n, ch) {
+    past(str) ~> S
+    past(n) ~> N
+    past(ch) ~> C
+    len(val=S) ~> slen
+    N - slen >> pad_n
+    Gate pad_n (> 0) >> need_pad
+    isNumber(val=need_pad) ~> np
+    range(n=pad_n) ~> idx
+    F(idx) { C >> now }
+    join(arr=idx, sep="") ~> padding
+    [] >> opts
+    push(arr=opts, val=S) ~> opts
+    push(arr=opts, val=padding + S) ~> opts
+    get(arr=opts, idx=np) ~> out
+}
