@@ -2,9 +2,9 @@
 import "lib/basic/std.t"
 
 [T0]
-exec(cmd="grep -rh '^func ' lib/basic/ | grep -v std | wc -l") ~> rb
-exec(cmd="grep -rh '^func ' lib/intermediate/ | grep -v std | wc -l") ~> ri
-exec(cmd="grep -rh '^func ' lib/advanced/ | grep -v std | wc -l") ~> ra
+exec(cmd="grep -rh '^func ' lib/basic/ | wc -l") ~> rb
+exec(cmd="grep -rh '^func ' lib/intermediate/ | wc -l") ~> ri
+exec(cmd="grep -rh '^func ' lib/advanced/ | wc -l") ~> ra
 trim(str=rb) ~> bc
 trim(str=ri) ~> ic
 trim(str=ra) ~> ac
