@@ -116,3 +116,50 @@ func std_dev(arr) {
     variance(arr=A1) ~> v
     sqrt(val=v) ~> out
 }
+
+func clamp_num(val, lo, hi) {
+    past(val) ~> V
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    clamp(val=V, lo=Lo, hi=Hi) ~> out
+}
+
+func lerp_range(arr, new_lo, new_hi) {
+    past(arr) ~> A
+    past(new_lo) ~> NL
+    past(new_hi) ~> NH
+    min_arr(arr=A) ~> mn
+    max_arr(arr=A) ~> mx
+    mx - mn >> rng
+    NH - NL >> new_rng
+    F(A) {
+        now - mn >> shifted
+        shifted / rng >> ratio
+        ratio * new_rng >> scaled
+        scaled + NL >> now
+    }
+    A >> out
+}
+
+func sum_digits(n) {
+    past(n) ~> N
+    abs(val=N) ~> pos
+    floor(val=pos) ~> int_n
+    toString(val=int_n) ~> s
+    str_chars(str=s) ~> digits
+    F(digits) {
+        toNumber(val=now) ~> now
+    }
+    sum(arr=digits) ~> out
+}
+
+func is_divisor(n, d) {
+    past(n) ~> N
+    past(d) ~> D
+    N / D >> q
+    floor(val=q) ~> qi
+    qi * D >> prod
+    N - prod >> rem
+    Gate rem (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
