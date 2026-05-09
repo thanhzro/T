@@ -52,3 +52,31 @@ func str_between(str, start, end) {
     indexOf(str=S, sub=B) ~> ei
     slice(str=S, from=from_idx, to=ei) ~> out
 }
+
+func str_to_num(str) {
+    past(str) ~> S
+    toNumber(val=S) ~> out
+}
+
+func str_from_num(num) {
+    past(num) ~> N
+    toString(val=N) ~> out
+}
+
+func str_hash(str) {
+    past(str) ~> S
+    md5(str=S) ~> out
+}
+
+func str_contains_num(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="[0-9]") ~> out
+}
+
+func str_only_spaces(str) {
+    past(str) ~> S
+    trim(str=S) ~> t
+    len(val=t) ~> n
+    Gate n (== 0) >> O1
+    isNumber(val=O1) ~> out
+}

@@ -49,3 +49,31 @@ func csv_get_val(path, row, col) {
     exec(cmd="sh csv_tmp.sh") ~> raw
     trim(str=raw) ~> out
 }
+
+func csv_max_col(path, col) {
+    past(path) ~> P
+    past(col) ~> C
+    toString(val=C) ~> cs
+    write_file(path="csv_get.sh", content="tail -n +2 " + P + " | cut -d, -f" + cs + " | sort -n | tail -1") ~> tmp
+    exec(cmd="sh csv_get.sh") ~> raw
+    trim(str=raw) ~> out
+}
+
+func csv_min_col(path, col) {
+    past(path) ~> P
+    past(col) ~> C
+    toString(val=C) ~> cs
+    write_file(path="csv_get.sh", content="tail -n +2 " + P + " | cut -d, -f" + cs + " | sort -n | head -1") ~> tmp
+    exec(cmd="sh csv_get.sh") ~> raw
+    trim(str=raw) ~> out
+}
+
+func csv_sum_col(path, col) {
+    past(path) ~> P
+    past(col) ~> C
+    toString(val=C) ~> cs
+    write_file(path="csv_get.sh", content="tail -n +2 " + P + " | cut -d, -f" + cs + " | paste -sd+ | bc") ~> tmp
+    exec(cmd="sh csv_get.sh") ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
