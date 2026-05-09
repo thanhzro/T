@@ -205,3 +205,33 @@ func arr_index_of(arr, val) {
     }
     result >> out
 }
+
+func arr_zip_map(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    zip_with(a=A, b=B) ~> pairs
+    F(pairs) {
+        get(arr=now, idx=0) ~> x
+        get(arr=now, idx=1) ~> y
+        x + y >> now
+    }
+    pairs >> out
+}
+
+
+
+
+
+
+
+
+
+
+func arr_union(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    arr_concat(a=A, b=B) ~> combined
+    unique(arr=combined) ~> out
+}
+
+
