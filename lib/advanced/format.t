@@ -45,3 +45,28 @@ func format_bytes(bytes) {
     clamp(val=level, lo=0, hi=2) ~> lvl
     get(arr=opts, idx=lvl) ~> out
 }
+
+func format_table(headers, rows) {
+    past(headers) ~> H
+    past(rows) ~> R
+    join(arr=H, sep=" | ") ~> header_line
+    len(val=header_line) ~> hlen
+    range(n=hlen) ~> dashes
+    F(dashes) { "-" >> now }
+    join(arr=dashes, sep="") ~> sep_line
+    F(R) {
+        join(arr=now, sep=" | ") ~> now
+    }
+    join(arr=R, sep="\n") ~> rows_str
+    header_line + "\n" + sep_line + "\n" + rows_str >> out
+}
+
+func format_size(bytes) {
+    past(bytes) ~> B
+    format_bytes(bytes=B) ~> out
+}
+
+func format_duration(secs) {
+    past(secs) ~> S
+    seconds_to_hms(secs=S) ~> out
+}

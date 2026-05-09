@@ -195,3 +195,20 @@ func digits_of(n) {
     }
     chars >> out
 }
+
+func nth_root(val, n) {
+    past(val) ~> V
+    past(n) ~> N
+    safe_div(a=1, b=N) ~> exp
+    ln(val=V) ~> lv
+    lv * exp >> le
+    exp_e(val=le) ~> out
+}
+
+func log_base(val, base) {
+    past(val) ~> V
+    past(base) ~> B
+    ln(val=V) ~> lv
+    ln(val=B) ~> lb
+    safe_div(a=lv, b=lb) ~> out
+}

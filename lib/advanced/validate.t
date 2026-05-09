@@ -61,3 +61,34 @@ func is_ip(str) {
     past(str) ~> S
     validate_ip(str=S) ~> out
 }
+
+func validate_not_empty(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    Gate n (> 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func validate_max_len(str, n) {
+    past(str) ~> S
+    past(n) ~> N
+    len(val=S) ~> slen
+    N - slen >> diff
+    Gate diff (>= 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func validate_num_range(val, lo, hi) {
+    past(val) ~> V
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    validate_range(val=V, lo=Lo, hi=Hi) ~> out
+}
+
+func validate_is_int(val) {
+    past(val) ~> V
+    floor(val=V) ~> fi
+    V - fi >> diff
+    Gate diff (== 0) >> O1
+    isNumber(val=O1) ~> out
+}
