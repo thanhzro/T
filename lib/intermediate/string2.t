@@ -206,3 +206,41 @@ func str_title_case(str) {
     }
     join(arr=words, sep=" ") ~> out
 }
+
+func str_count_words(str) {
+    past(str) ~> S
+    trim(str=S) ~> t
+    split(str=t, sep=" ") ~> words
+    len(val=words) ~> out
+}
+
+func str_longest_word(str) {
+    past(str) ~> S
+    split(str=S, sep=" ") ~> words
+    F(words) {
+        len(val=now) ~> now
+    }
+    max_arr(arr=words) ~> out
+}
+
+func str_common_prefix(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    len(val=A) ~> la
+    len(val=B) ~> lb
+    min2(a=la, b=lb) ~> mn
+    0 >> i
+    "" >> prefix
+    loop {
+        Gate i (>= mn) >> done
+        slice(str=A, from=i, to=i+1) ~> ca
+        slice(str=B, from=i, to=i+1) ~> cb
+        indexOf(str=ca, sub=cb) ~> same
+        Gate same (== 0) >> match
+        isNumber(val=match) ~> im
+        Gate im (== 0) >> done
+        prefix + ca >> prefix
+        i + 1 >> i
+    }
+    prefix >> out
+}

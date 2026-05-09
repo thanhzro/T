@@ -163,3 +163,35 @@ func is_divisor(n, d) {
     Gate rem (== 0) >> O1
     isNumber(val=O1) ~> out
 }
+
+
+func pow_mod(base, exp, mod) {
+    past(base) ~> B
+    past(exp) ~> E
+    past(mod) ~> M
+    1 >> result
+    floor(val=E) ~> ei
+    0 >> i
+    loop {
+        Gate i (>= ei) >> done
+        result * B >> result
+        result / M >> q
+        floor(val=q) ~> qi
+        qi * M >> prod
+        result - prod >> result
+        i + 1 >> i
+    }
+    result >> out
+}
+
+func digits_of(n) {
+    past(n) ~> N
+    abs(val=N) ~> pos
+    floor(val=pos) ~> ni
+    toString(val=ni) ~> s
+    str_chars(str=s) ~> chars
+    F(chars) {
+        toNumber(val=now) ~> now
+    }
+    chars >> out
+}
