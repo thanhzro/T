@@ -25,3 +25,18 @@ if dups:
     exit(1)
 else:
     print('OK: No duplicates')
+
+# Check syntax of all .t files
+import subprocess
+errors = []
+for f in sorted(glob.glob('lib/**/*.t', recursive=True)):
+    if 'std.t' in f: continue
+    r = subprocess.run(['./t', f], capture_output=True, text=True, timeout=3)
+    if 'Parse error' in r.stdout or 'Parse error' in r.stderr:
+        errors.append(f + ': ' + (r.stdout + r.stderr)[:80])
+if errors:
+    print('SYNTAX ERRORS:')
+    for e in errors: print(' ', e)
+    exit(1)
+else:
+    print('OK: No syntax errors')
