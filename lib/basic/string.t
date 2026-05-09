@@ -404,3 +404,26 @@ func str_to_arr(str) {
     past(str) ~> S
     str_chars(str=S) ~> out
 }
+
+func str_wrap_word(str, width) {
+    past(str) ~> S
+    past(width) ~> W
+    len(val=S) ~> n
+    Gate n (<= W) >> short
+    isNumber(val=short) ~> is_short
+    [] >> opts
+    push(arr=opts, val=S) ~> opts
+    slice(str=S, from=0, to=W) ~> cut
+    push(arr=opts, val=cut) ~> opts
+    get(arr=opts, idx=is_short) ~> out
+}
+
+func str_repeat_sep(str, n, sep) {
+    past(str) ~> S
+    past(n) ~> N
+    past(sep) ~> P
+    floor(val=N) ~> ni
+    range(n=ni) ~> idx
+    F(idx) { S >> now }
+    join(arr=idx, sep=P) ~> out
+}

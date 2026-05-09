@@ -76,3 +76,35 @@ func sum_sq(arr) {
     F(A) { now * now >> now }
     sum(arr=A) ~> out
 }
+
+func harmonic_mean(arr) {
+    past(arr) ~> A
+    F(A) {
+        safe_div(a=1, b=now) ~> now
+    }
+    avg(arr=A) ~> avg_recip
+    safe_div(a=1, b=avg_recip) ~> out
+}
+
+func geometric_mean(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    F(A) { ln(val=now) ~> now }
+    sum(arr=A) ~> log_sum
+    log_sum / n >> avg_log
+    exp_e(val=avg_log) ~> out
+}
+
+func weighted_avg(arr, weights) {
+    past(arr) ~> A
+    past(weights) ~> W
+    zip_with(a=A, b=W) ~> pairs
+    F(pairs) {
+        get(arr=now, idx=0) ~> v
+        get(arr=now, idx=1) ~> w
+        v * w >> now
+    }
+    sum(arr=pairs) ~> weighted_sum
+    sum(arr=W) ~> weight_total
+    safe_div(a=weighted_sum, b=weight_total) ~> out
+}

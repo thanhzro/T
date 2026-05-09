@@ -311,3 +311,23 @@ func to_deg(rad) {
     scaled / p >> out
 }
 
+
+func deg_to_rad(deg) {
+    past(deg) ~> D
+    to_rad(deg=D) ~> out
+}
+
+func rad_to_deg(rad) {
+    past(rad) ~> R
+    to_deg(rad=R) ~> out
+}
+
+func interpolate(arr, t) {
+    past(arr) ~> A
+    past(t) ~> Tv
+    len(val=A) ~> n
+    n - 1 >> last
+    get(arr=A, idx=0) ~> first
+    get(arr=A, idx=last) ~> end
+    lerp(a=first, b=end, t=Tv) ~> out
+}
