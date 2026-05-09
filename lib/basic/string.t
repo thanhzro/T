@@ -369,3 +369,38 @@ func str_lpad(str, n, ch) {
     push(arr=opts, val=padding + S) ~> opts
     get(arr=opts, idx=np) ~> out
 }
+
+func str_join(arr, sep) {
+    past(arr) ~> A
+    past(sep) ~> S
+    join(arr=A, sep=S) ~> out
+}
+
+func str_split(str, sep) {
+    past(str) ~> S
+    past(sep) ~> P
+    split(str=S, sep=P) ~> out
+}
+
+func str_eq(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    indexOf(str=A, sub=B) ~> i1
+    indexOf(str=B, sub=A) ~> i2
+    len(val=A) ~> la
+    len(val=B) ~> lb
+    la - lb >> diff
+    Gate diff (== 0) >> len_eq
+    isNumber(val=len_eq) ~> le
+    Gate i1 (== 0) >> p1
+    isNumber(val=p1) ~> ip1
+    Gate i2 (== 0) >> p2
+    isNumber(val=p2) ~> ip2
+    le * ip1 >> t1
+    t1 * ip2 >> out
+}
+
+func str_to_arr(str) {
+    past(str) ~> S
+    str_chars(str=S) ~> out
+}

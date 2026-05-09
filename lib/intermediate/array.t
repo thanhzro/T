@@ -283,3 +283,30 @@ func arr_tail(arr, n) {
     L - N >> start
     slice_arr(arr=A, from=start, to=L) ~> out
 }
+
+func arr_fill(val, n) {
+    past(val) ~> V
+    past(n) ~> N
+    floor(val=N) ~> ni
+    range(n=ni) ~> idx
+    F(idx) { V >> now }
+    idx >> out
+}
+
+func arr_step(from, to, step) {
+    past(from) ~> Fr
+    past(to) ~> To
+    past(step) ~> St
+    range_step(from=Fr, to=To, step=St) ~> out
+}
+
+func arr_flatten_once(arr) {
+    past(arr) ~> A
+    [] >> result
+    F(A) {
+        flatten(arr=now) ~> flat
+        arr_concat(a=result, b=flat) ~> result
+        result >> now
+    }
+    last(arr=A) ~> out
+}

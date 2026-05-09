@@ -53,3 +53,7 @@ func log_clear(path) {
     past(path) ~> P
     exec(cmd="echo -n > " + P) ~> out
 }
+
+
+
+
