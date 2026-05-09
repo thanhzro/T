@@ -77,3 +77,16 @@ func json_arr(key, arr) {
     join(arr=A, sep=", ") ~> items
     "{\"" + K + "\":[" + items + "]}" >> out
 }
+
+func json_build(keys, vals) {
+    past(keys) ~> K
+    past(vals) ~> V
+    zip_with(a=K, b=V) ~> pairs
+    F(pairs) {
+        get(arr=now, idx=0) ~> k
+        get(arr=now, idx=1) ~> v
+        json_str(key=k, val=v) ~> now
+    }
+    join(arr=pairs, sep=",") ~> inner
+    "{" + inner + "}" >> out
+}

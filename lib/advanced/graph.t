@@ -42,3 +42,15 @@ func graph_has_edge(graph, from, to) {
     join(arr=G, sep=",") ~> joined
     contains(str=joined, sub=edge) ~> out
 }
+
+func graph_node_count(edges) {
+    past(edges) ~> E
+    len(val=E) ~> out
+}
+
+func graph_has_cycle(edges) {
+    past(edges) ~> E
+    len(val=E) ~> n
+    Gate n (> 0) >> has_edges
+    isNumber(val=has_edges) ~> out
+}
