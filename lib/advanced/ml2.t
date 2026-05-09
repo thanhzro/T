@@ -41,8 +41,3 @@ func normalize(arr) {
     }
     A >> out
 }
-
-        pairs >> now
-    }
-    ri >> out
-}

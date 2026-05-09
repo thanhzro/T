@@ -19,22 +19,34 @@ func mat_get(m, i, j) {
     get(arr=row, idx=J) ~> out
 }
 
-func mat_add(a, b) {
+
+
+
+func softmax(arr) {
+    past(arr) ~> A
+    max_arr(arr=A) ~> mx
+    F(A) {
+        now - mx >> sv
+        exp_e(val=sv) ~> ev
+        ev >> now
+    }
+    sum(arr=A) ~> total
+    F(A) {
+        now / total >> now
+    }
+    A >> out
+}
+
+func cosine_sim(a, b) {
     past(a) ~> A
     past(b) ~> B
-    mat_rows(m=A) ~> rows
-    mat_cols(m=A) ~> cols
-    range(n=rows) ~> ri
-    F(ri) {
-        get(arr=A, idx=now) ~> ra
-        get(arr=B, idx=now) ~> rb
-        zip_with(a=ra, b=rb) ~> pairs
-        F(pairs) {
-            get(arr=now, idx=0) ~> x
-            get(arr=now, idx=1) ~> y
-            x + y >> now
-        }
-        pairs >> now
-    }
-    ri >> out
+    dot_product(a=A, b=B) ~> dot
+    F(A) { now * now >> now }
+    sum(arr=A) ~> sq_a
+    sqrt_n(val=sq_a) ~> na
+    F(B) { now * now >> now }
+    sum(arr=B) ~> sq_b
+    sqrt_n(val=sq_b) ~> nb
+    na * nb >> denom
+    safe_div(a=dot, b=denom) ~> out
 }
