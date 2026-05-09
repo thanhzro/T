@@ -193,8 +193,9 @@ func str_normalize(str) {
     past(str) ~> S
     trim(str=S) ~> t
     lower(str=t) ~> lo
-    split(str=lo, sep="  ") ~> parts
-    join(arr=parts, sep=" ") ~> out
+    shell_escape(str=lo) ~> esc
+    exec(cmd="echo " + esc + " | tr -s ' '") ~> raw
+    trim(str=raw) ~> out
 }
 
 func str_title_case(str) {
