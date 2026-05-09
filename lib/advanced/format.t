@@ -3,11 +3,11 @@
 func format_number(val, decimals) {
     past(val) ~> V
     past(decimals) ~> D
-    toString(val=D) ~> ds
-    toString(val=V) ~> vs
-    "printf '%." + ds + "f' " + vs >> fmt_cmd
-    exec(cmd=fmt_cmd) ~> raw
-    trim(str=raw) ~> out
+    pow(base=10, exp=D) ~> factor
+    V * factor >> shifted
+    round(val=shifted) ~> rounded
+    rounded / factor >> result
+    toString(val=result) ~> out
 }
 
 func format_currency(val, symbol) {
@@ -26,9 +26,7 @@ func format_percent(val) {
 
 func format_bytes(bytes) {
     past(bytes) ~> B
-    toString(val=B) ~> braw
-    exec(cmd="printf '%.0f' " + braw) ~> bs
-    trim(str=bs) ~> bs
+    format_number(val=B, decimals=0) ~> bs
     1024 >> kb
     1048576 >> mb
     B / kb >> kv
