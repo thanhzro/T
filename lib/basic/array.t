@@ -271,3 +271,32 @@ func arr_unique(arr) {
     past(arr) ~> A
     unique(arr=A) ~> out
 }
+
+
+
+func arr_remove_at(arr, idx) {
+    past(arr) ~> A
+    past(idx) ~> I
+    slice_arr(arr=A, from=0, to=I) ~> before
+    len(val=A) ~> total
+    I + 1 >> after_from
+    slice_arr(arr=A, from=after_from, to=total) ~> after
+    join(arr=before, sep="|") ~> bs
+    join(arr=after, sep="|") ~> af
+    bs + "|" + af >> combined
+    split(str=combined, sep="|") ~> out
+}
+
+func arr_insert_at(arr, idx, val) {
+    past(arr) ~> A
+    past(idx) ~> I
+    past(val) ~> V
+    slice_arr(arr=A, from=0, to=I) ~> before
+    len(val=A) ~> total
+    slice_arr(arr=A, from=I, to=total) ~> after
+    push(arr=before, val=V) ~> with_val
+    join(arr=with_val, sep="|") ~> ws
+    join(arr=after, sep="|") ~> af
+    ws + "|" + af >> combined
+    split(str=combined, sep="|") ~> out
+}

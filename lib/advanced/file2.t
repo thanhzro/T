@@ -66,3 +66,35 @@ func file_move(src, dst) {
     past(dst) ~> D
     exec(cmd="mv " + S + " " + D) ~> out
 }
+
+func file_ext(path) {
+    past(path) ~> P
+    split(str=P, sep=".") ~> parts
+    len(val=parts) ~> n
+    n - 1 >> last
+    get(arr=parts, idx=last) ~> out
+}
+
+func file_basename(path) {
+    past(path) ~> P
+    split(str=P, sep="/") ~> parts
+    len(val=parts) ~> n
+    n - 1 >> last
+    get(arr=parts, idx=last) ~> out
+}
+
+func file_dir(path) {
+    past(path) ~> P
+    split(str=P, sep="/") ~> parts
+    len(val=parts) ~> n
+    n - 1 >> last
+    slice_arr(arr=parts, from=0, to=last) ~> dir_parts
+    join(arr=dir_parts, sep="/") ~> out
+}
+
+func file_read_lines(path) {
+    past(path) ~> P
+    exec(cmd="cat " + P) ~> raw
+    trim(str=raw) ~> clean
+    split(str=clean, sep="\n") ~> out
+}

@@ -61,3 +61,26 @@ func curl_post_json(url, json) {
     write_file(path="post_data.json", content=J) ~> tmp
     exec(cmd="curl -s -X POST -H Content-Type:application/json -d @post_data.json " + U) ~> out
 }
+
+func http_get_json(url, key) {
+    past(url) ~> U
+    past(key) ~> K
+    http_fetch(url=U) ~> resp
+    json_get(json=resp, key=K) ~> out
+}
+
+func url_domain(url) {
+    past(url) ~> U
+    split(str=U, sep="/") ~> parts
+    get(arr=parts, idx=2) ~> out
+}
+
+func url_path(url) {
+    past(url) ~> U
+    indexOf(str=U, sub="//") ~> si
+    si + 2 >> from
+    slice(str=U, from=from, to=len(val=U)) ~> after
+    indexOf(str=after, sub="/") ~> pi
+    pi + from >> path_start
+    slice(str=U, from=path_start, to=len(val=U)) ~> out
+}
