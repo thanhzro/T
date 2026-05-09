@@ -37,3 +37,26 @@ func sleep_sec(n) {
     toString(val=N) ~> ns
     exec(cmd="sleep " + ns) ~> out
 }
+
+func elapsed(start, end) {
+    past(start) ~> S
+    past(end) ~> E
+    E - S >> out
+}
+
+func seconds_to_hms(secs) {
+    past(secs) ~> S
+    floor(val=S) ~> si
+    si / 3600 >> h
+    floor(val=h) ~> hours
+    hours * 3600 >> h_secs
+    si - h_secs >> rem
+    rem / 60 >> m
+    floor(val=m) ~> mins
+    mins * 60 >> m_secs
+    rem - m_secs >> secs_left
+    toString(val=hours) ~> hs
+    toString(val=mins) ~> ms
+    toString(val=secs_left) ~> ss
+    hs + "h " + ms + "m " + ss + "s" >> out
+}

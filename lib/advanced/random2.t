@@ -25,3 +25,27 @@ func dice(sides) {
     past(sides) ~> S
     rand_int(min=1, max=S) ~> out
 }
+
+func rand_float(lo, hi) {
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    random() ~> r
+    Hi - Lo >> range
+    r * range >> scaled
+    scaled + Lo >> out
+}
+
+func rand_choice(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    rand_int(lo=0, hi=n) ~> idx
+    get(arr=A, idx=idx) ~> out
+}
+
+func rand_sample(arr, n) {
+    past(arr) ~> A
+    past(n) ~> N
+    sort(arr=A) ~> sorted
+    floor(val=N) ~> ni
+    slice_arr(arr=sorted, from=0, to=ni) ~> out
+}
