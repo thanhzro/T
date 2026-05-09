@@ -80,6 +80,19 @@ run_t(B, 'is_error(val="!ERROR") ~> O1', 1)
 run_t(B, 'is_error(val="hello") ~> O1', 0)
 run_t(B, 'is_error(val=42) ~> O1', 0)
 
+
+# Auto-generated
+run_t(I, 'gcd(a=48, b=18) ~> O1', '6')
+run_t(I, 'fibonacci(n=10) ~> O1', '55')
+run_t(I, 'upper(str="hello") ~> O1', 'HELLO')
+run_t(I, 'avg(arr=[1,2,3]) ~> O1', '2')
+run_t(I, 'str_count(str="hello", sub="l") ~> O1', '2')
+run_t(I, 'factorial(n=5) ~> O1', '120')
+run_t(I, 'lcm(a=12, b=8) ~> O1', '24')
+run_t(I, 'cube(n=3) ~> O1', '27')
+run_t(I, 'max3(a=5, b=3, c=9) ~> O1', '9')
+run_t(I, 'str_reverse(str="hello") ~> O1', 'olleh')
+
 import os
 os.remove('_rt_test.t')
 print(f"\n{'='*40}")
