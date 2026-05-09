@@ -219,3 +219,55 @@ func zip_arrays(a, b) {
     past(b) ~> B
     zip(a=A, b=B) ~> out
 }
+
+func arr_min(arr) {
+    past(arr) ~> A
+    min_arr(arr=A) ~> out
+}
+
+func arr_max(arr) {
+    past(arr) ~> A
+    max_arr(arr=A) ~> out
+}
+
+func arr_avg(arr) {
+    past(arr) ~> A
+    avg(arr=A) ~> out
+}
+
+func arr_count(arr) {
+    past(arr) ~> A
+    len(val=A) ~> out
+}
+
+func arr_first(arr) {
+    past(arr) ~> A
+    get(arr=A, idx=0) ~> out
+}
+
+func arr_last(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    n - 1 >> last
+    get(arr=A, idx=last) ~> out
+}
+
+func arr_flatten(arr) {
+    past(arr) ~> A
+    flatten(arr=A) ~> out
+}
+
+func arr_reverse(arr) {
+    past(arr) ~> A
+    reverse(arr=A) ~> out
+}
+
+func arr_sort(arr) {
+    past(arr) ~> A
+    sort(arr=A) ~> out
+}
+
+func arr_unique(arr) {
+    past(arr) ~> A
+    unique(arr=A) ~> out
+}

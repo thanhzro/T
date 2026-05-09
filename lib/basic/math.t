@@ -264,3 +264,26 @@ func safe_div(a, b) {
     B + iz >> safe_b
     safe_a / safe_b >> out
 }
+
+func max3(a, b, c) {
+    past(a) ~> A
+    past(b) ~> B
+    past(c) ~> C
+    max2(a=A, b=B) ~> ab
+    max2(a=ab, b=C) ~> out
+}
+
+func min3(a, b, c) {
+    past(a) ~> A
+    past(b) ~> B
+    past(c) ~> C
+    min2(a=A, b=B) ~> ab
+    min2(a=ab, b=C) ~> out
+}
+
+func cube(n) {
+    past(n) ~> N
+    N * N >> sq
+    sq * N >> out
+}
+
