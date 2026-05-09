@@ -169,37 +169,5 @@ func str_pad_center(str, width) {
     lpad + S + rpad >> out
 }
 
-func str_split_words(str) {
-    past(str) ~> S
-    trim(str=S) ~> t
-    split(str=t, sep=" ") ~> out
-}
 
-func is_palindrome(str) {
-    past(str) ~> S
-    lower(str=S) ~> lo
-    str_reverse(str=lo) ~> rev
-    contains(str=lo, sub=rev) ~> c1
-    len(val=lo) ~> l1
-    len(val=rev) ~> l2
-    Gate l1 (== l2) >> eq
-    isNumber(val=eq) ~> l_eq
-    c1 * l_eq >> out
-}
 
-func str_pad_center(str, width) {
-    past(str) ~> S
-    past(width) ~> W
-    len(val=S) ~> slen
-    W - slen >> pad_total
-    pad_total / 2 >> pl
-    floor(val=pl) ~> pad_left
-    W - slen - pad_left >> pad_right
-    range(n=pad_left) ~> li
-    F(li) { " " >> now }
-    join(arr=li, sep="") ~> lpad
-    range(n=pad_right) ~> ri
-    F(ri) { " " >> now }
-    join(arr=ri, sep="") ~> rpad
-    lpad + S + rpad >> out
-}

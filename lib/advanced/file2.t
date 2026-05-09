@@ -46,12 +46,6 @@ func file_count_lines(path) {
     toNumber(val=n_str) ~> out
 }
 
-func file_append(path, content) {
-    past(path) ~> P
-    past(content) ~> C
-    shell_escape(str=C) ~> esc
-    exec(cmd="echo " + esc + " >> " + P) ~> out
-}
 
 func file_lines(path) {
     past(path) ~> P
