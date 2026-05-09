@@ -171,3 +171,37 @@ func str_pad_center(str, width) {
 
 
 
+
+func regex_split(str, pat) {
+    past(str) ~> S
+    past(pat) ~> P
+    shell_escape(str=S) ~> esc
+    write_file(path="rsplit_tmp.sh", content="echo " + esc + " | grep -oP " + P) ~> tmp
+    exec(cmd="sh rsplit_tmp.sh") ~> raw
+    split(str=raw, sep="\n") ~> parts
+    pop(arr=parts) ~> out
+}
+
+func str_remove(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    split(str=S, sep=P) ~> parts
+    join(arr=parts, sep="") ~> out
+}
+
+func str_normalize(str) {
+    past(str) ~> S
+    trim(str=S) ~> t
+    lower(str=t) ~> lo
+    split(str=lo, sep="  ") ~> parts
+    join(arr=parts, sep=" ") ~> out
+}
+
+func str_title_case(str) {
+    past(str) ~> S
+    split(str=S, sep=" ") ~> words
+    F(words) {
+        capitalize(str=now) ~> now
+    }
+    join(arr=words, sep=" ") ~> out
+}
