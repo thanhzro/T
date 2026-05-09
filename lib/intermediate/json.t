@@ -49,3 +49,31 @@ func json_set_key(json, key, val) {
     past(val) ~> V
     json_set(json=J, key=K, val=V) ~> out
 }
+
+func json_has(json, key) {
+    past(json) ~> J
+    past(key) ~> K
+    indexOf(str=J, sub=K) ~> idx
+    Gate idx (>= 0) >> O1
+    isNumber(val=O1) ~> out
+}
+
+func json_str(key, val) {
+    past(key) ~> K
+    past(val) ~> V
+    "{\"" + K + "\": \"" + V + "\"}" >> out
+}
+
+func json_num(key, val) {
+    past(key) ~> K
+    past(val) ~> V
+    toString(val=V) ~> vs
+    "{\"" + K + "\":" + vs + "}" >> out
+}
+
+func json_arr(key, arr) {
+    past(key) ~> K
+    past(arr) ~> A
+    join(arr=A, sep=", ") ~> items
+    "{\"" + K + "\":[" + items + "]}" >> out
+}
