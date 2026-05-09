@@ -64,3 +64,50 @@ func is_empty(str) {
     Gate n (== 0) >> O1
     isNumber(val=O1) ~> out
 }
+
+func str_wrap(str, width) {
+    past(str) ~> S
+    past(width) ~> W
+    split(str=S, sep=" ") ~> words
+    len(val=words) ~> n
+    "" >> line
+    "" >> result
+    0 >> i
+    loop {
+        Gate i (>= n) >> done
+        get(arr=words, idx=i) ~> word
+        len(val=line) ~> ll
+        len(val=word) ~> wl
+        ll + wl >> total
+        Gate total (> W) >> wrap
+        isNumber(val=wrap) ~> do_wrap
+        [] >> opts
+        push(arr=opts, val=line + " " + word) ~> opts
+        push(arr=opts, val=word) ~> opts
+        get(arr=opts, idx=do_wrap) ~> line
+        [] >> opts2
+        push(arr=opts2, val=result) ~> opts2
+        push(arr=opts2, val=result + "
+") ~> opts2
+        get(arr=opts2, idx=do_wrap) ~> result
+        i + 1 >> i
+    }
+    result + line >> out
+}
+
+func str_center(str, width) {
+    past(str) ~> S
+    past(width) ~> W
+    len(val=S) ~> n
+    W - n >> pad
+    pad / 2 >> lpad
+    floor(val=lpad) ~> lp
+    W - n - lp >> rp
+    range(n=lp) ~> li
+    F(li) { " " >> now }
+    join(arr=li, sep="") ~> ls
+    range(n=rp) ~> ri
+    F(ri) { " " >> now }
+    join(arr=ri, sep="") ~> rs
+    ls + S + rs >> out
+}
