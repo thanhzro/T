@@ -287,3 +287,5 @@ func cube(n) {
     sq * N >> out
 }
 
+
+
