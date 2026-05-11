@@ -24,6 +24,12 @@ double nat_len(double*a,int n){return a[0];}
 double nat_isArray(double*a,int n){return 0;}
 double nat_charCode(double*a,int n){return a[0];}
 
+
+double nat_max2(double*a,int n){return a[0]>a[1]?a[0]:a[1];}
+double nat_min2(double*a,int n){return a[0]<a[1]?a[0]:a[1];}
+double nat_mod(double*a,int n){return fmod(a[0],a[1]);}
+double nat_pi(double*a,int n){return 3.14159265358979323846;}
+
 /* ===== REGISTER ALL NATIVES ===== */
 void register_all_natives(VM *vm) {
     TFunc *f;
@@ -49,6 +55,10 @@ void register_all_natives(VM *vm) {
     REG2("atan2",  nat_atan2,  "y","x")
     REG1("round",  nat_round,  "val")
     REG2("pow",    nat_pow,    "base","exp")
+    REG2("max2",   nat_max2,   "a","b")
+    REG2("min2",   nat_min2,   "a","b")
+    REG2("fmod",   nat_mod,    "a","b")
+    REG1("pi",     nat_pi,     "x")
 
     #undef REG1
     #undef REG2
