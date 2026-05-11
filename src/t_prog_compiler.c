@@ -101,5 +101,17 @@ int main() {
     printf("Program test (expect 27): ");
     run(vm);
     free(vm);
+
+    /* Test 2: multi-show */
+    const char *prog2[] = {
+        "5 * 5 >> sq",
+        "sq + 1 >> result",
+        "show sq",
+        "show result"
+    };
+    Chunk c2={0}; VM *vm2=calloc(1,sizeof(VM)); vm2->chunk=&c2;
+    compile_program(&c2, prog2, 4);
+    printf("Multi-show test (expect 25, 26):\n");
+    run(vm2); free(vm2);
     return 0;
 }
