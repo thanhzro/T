@@ -52,6 +52,52 @@ void compile_line(Chunk *chunk, const char *line) {
         return;
     }
 
+    /* Gate x (op val) >> target */
+    if(strncmp(p, "Gate ", 5) == 0) {
+        char var[64], op_str[8], val_str[64], target[64];
+        /* parse: Gate var (op val) >> target */
+        char *lp = strchr(p, '(');
+        char *rp = strchr(p, ')');
+        char *arr = strstr(p, ">>");
+        if(lp && rp && arr) {
+            /* extract var */
+            char tmp[64];
+            strncpy(tmp, p+5, lp-p-5);
+            tmp[lp-p-5]=0;
+            /* trim */
+            char *v=tmp; while(*v==' ')v++;
+            int vl=strlen(v); while(vl>0&&v[vl-1]==' ')v[--vl]=0;
+            /* extract op and val from (op val) */
+            char inside[64];
+            strncpy(inside, lp+1, rp-lp-1);
+            inside[rp-lp-1]=0;
+            sscanf(inside, "%s %s", op_str, val_str);
+            /* extract target */
+            char *tgt = arr+2; while(*tgt==' ')tgt++;
+            /* emit: LOAD var */
+            int iv = chunk_add_str(chunk, v);
+            chunk_write(chunk, OP_LOAD); chunk_write(chunk, iv);
+            /* emit: PUSH val */
+            double dval = atof(val_str);
+            int iv2 = chunk_add_num(chunk, dval);
+            chunk_write(chunk, OP_PUSH_NUM); chunk_write(chunk, iv2);
+            /* emit: CMP op */
+            if(strcmp(op_str,">")==0)  chunk_write(chunk, OP_GT);
+            else if(strcmp(op_str,"<")==0)  chunk_write(chunk, OP_LT);
+            else if(strcmp(op_str,"==")==0) chunk_write(chunk, OP_EQ);
+            else if(strcmp(op_str,">=")==0) chunk_write(chunk, OP_GE);
+            else if(strcmp(op_str,"<=")==0) chunk_write(chunk, OP_LE);
+            /* emit: JUMP_IF_0 over STORE */
+            chunk_write(chunk, OP_JUMP_IF_0); chunk_write(chunk, 4);
+            /* emit: PUSH 1, STORE target */
+            int i1g = chunk_add_num(chunk, 1);
+            chunk_write(chunk, OP_PUSH_NUM); chunk_write(chunk, i1g);
+            int it = chunk_add_str(chunk, tgt);
+            chunk_write(chunk, OP_STORE); chunk_write(chunk, it);
+        }
+        return;
+    }
+
     /* A op B >> target */
     char *arrow = strstr(buf, ">>");
     if(arrow) {
