@@ -6,7 +6,7 @@
 
 /* ===== OPCODES ===== */
 typedef enum {
-    OP_PUSH_NUM, OP_PUSH_STR, OP_PUSH_NIL,
+    OP_PUSH_NUM, OP_PUSH_STR, OP_PUSH_NIL, OP_PUSH_ARR,
     OP_LOAD, OP_STORE,
     OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_NEG,
     OP_EQ, OP_LT, OP_GT, OP_LE, OP_GE,
@@ -19,11 +19,18 @@ typedef enum {
 
 /* ===== VALUE ===== */
 typedef enum { VT_NUM, VT_STR, VT_ARR, VT_ERR } VType;
-typedef struct { VType type; double num; char *str; } BVal;
+typedef struct BVal {
+    VType type;
+    double num;
+    char *str;
+    struct BVal *arr;
+    int arr_len;
+} BVal;
 
-BVal make_num(double n){BVal v;v.type=VT_NUM;v.num=n;v.str=NULL;return v;}
-BVal make_str(const char*s){BVal v;v.type=VT_STR;v.num=0;v.str=s?strdup(s):NULL;return v;}
-void bval_free(BVal*v){if(v->str){free(v->str);v->str=NULL;}}
+BVal make_num(double n){BVal v;v.type=VT_NUM;v.num=n;v.str=NULL;v.arr=NULL;v.arr_len=0;return v;}
+BVal make_str(const char*s){BVal v;v.type=VT_STR;v.num=0;v.str=s?strdup(s):NULL;v.arr=NULL;v.arr_len=0;return v;}
+BVal make_arr(int len){BVal v;v.type=VT_ARR;v.num=len;v.str=NULL;v.arr=len>0?(BVal*)calloc(len,sizeof(BVal)):NULL;v.arr_len=len;return v;}
+void bval_free(BVal*v){if(v->str){free(v->str);v->str=NULL;}if(v->arr){free(v->arr);v->arr=NULL;}}
 BVal bval_copy(BVal v){if(v.type==VT_STR&&v.str)return make_str(v.str);return v;}
 BVal bval_concat(BVal a,BVal b){
     char buf[4096];
@@ -219,6 +226,25 @@ void run(VM*vm){
                     frame_set(&vm->frame,vm->chunk->str_consts[inow],make_num(vm->iter_idx[top]));
                     vm->ip=body;
                 }
+                break;
+            }
+            case OP_PUSH_ARR:{
+                /* pop n items and wrap as array */
+                int n=vm->chunk->code[vm->ip++];
+                BVal arr=make_arr(n);
+                for(int i=n-1;i>=0;i--){
+                    vm->top--;
+                    arr.arr[i].type=vm->stack[vm->top].type;
+                    arr.arr[i].num=vm->stack[vm->top].num;
+                    arr.arr[i].str=vm->stack[vm->top].str?strdup(vm->stack[vm->top].str):NULL;
+                    arr.arr[i].arr=NULL; arr.arr[i].arr_len=0;
+                }
+                vm->stack[vm->top].type=VT_ARR;
+                vm->stack[vm->top].num=arr.num;
+                vm->stack[vm->top].str=NULL;
+                vm->stack[vm->top].arr=arr.arr;
+                vm->stack[vm->top].arr_len=arr.arr_len;
+                vm->top++;
                 break;
             }
             case OP_SHOW:{vm->top--;BVal*v=&vm->stack[vm->top];if(v->type==VT_STR)printf("%s\n",v->str?v->str:"");else printf("%g\n",v->num);break;}
