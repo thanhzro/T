@@ -79,13 +79,15 @@ void frame_get(Frame*f,const char*k,BVal*out){
 #define FUNC_MAX 256
 typedef double (*NativeFn)(double *args, int argc);
 typedef char* (*NativeStrFn)(char **sargs, int argc);
+typedef double (*NativeMixFn)(BVal *stack, int argc);
 typedef struct TFunc {
     char name[64];
     char params[8][64];
     int param_count;
-    int is_native;      /* 0=T func, 1=native num, 2=native str */
+    int is_native;      /* 0=T func, 1=native num, 2=native str, 3=native mix */
     NativeFn native;
     NativeStrFn native_s;
+    NativeMixFn native_m;
     Chunk chunk;
 } TFunc;
 
@@ -148,6 +150,16 @@ void run(VM*vm){
                     for(int i=0;i<argc&&i<8;i++) dargs[i]=vm->stack[base+i].num;
                     vm->top-=argc;
                     double r=fn->native(dargs,argc);
+                    vm->stack[vm->top].type=VT_NUM;
+                    vm->stack[vm->top].num=r;
+                    vm->stack[vm->top].str=NULL;
+                    vm->top++;
+                    break;
+                }
+                if(fn->is_native==3){
+                    int base=vm->top-argc;
+                    double r=fn->native_m(&vm->stack[base],argc);
+                    vm->top-=argc;
                     vm->stack[vm->top].type=VT_NUM;
                     vm->stack[vm->top].num=r;
                     vm->stack[vm->top].str=NULL;

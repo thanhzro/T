@@ -32,6 +32,30 @@ double nat_pi(double*a,int n){return 3.14159265358979323846;}
 
 #include <ctype.h>
 
+/* Mixed native: access full BVal stack */
+typedef double (*NativeMixFn)(BVal *stack, int argc);
+
+double nat_len_mix(BVal *stack, int argc){
+    if(argc<1) return 0;
+    if(stack[0].type==VT_STR) return stack[0].str?strlen(stack[0].str):0;
+    return stack[0].num;
+}
+double nat_contains_mix(BVal *stack, int argc){
+    if(argc<2||stack[0].type!=VT_STR||stack[1].type!=VT_STR) return 0;
+    return strstr(stack[0].str, stack[1].str)?1:0;
+}
+double nat_starts_mix(BVal *stack, int argc){
+    if(argc<2||stack[0].type!=VT_STR||stack[1].type!=VT_STR) return 0;
+    return strncmp(stack[0].str,stack[1].str,strlen(stack[1].str))==0?1:0;
+}
+double nat_ends_mix(BVal *stack, int argc){
+    if(argc<2||stack[0].type!=VT_STR||stack[1].type!=VT_STR) return 0;
+    int sl=strlen(stack[0].str),el=strlen(stack[1].str);
+    if(el>sl) return 0;
+    return strcmp(stack[0].str+sl-el,stack[1].str)==0?1:0;
+}
+
+
 char* nat_str_len(char**a,int n){
     char buf[32]; snprintf(buf,31,"%d",(int)strlen(a[0])); return strdup(buf);
 }
@@ -151,6 +175,19 @@ void register_all_natives(VM *vm) {
     REG_S1("reverse", nat_reverse, "str")
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
+    /* Mixed natives */
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"len"); f->is_native=3; f->native_m=nat_len_mix;
+    f->param_count=1; strcpy(f->params[0],"val");
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"contains"); f->is_native=3; f->native_m=nat_contains_mix;
+    f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"str_starts"); f->is_native=3; f->native_m=nat_starts_mix;
+    f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"str_ends"); f->is_native=3; f->native_m=nat_ends_mix;
+    f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
 
     #undef REG1
     #undef REG2
