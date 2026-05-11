@@ -1,4 +1,7 @@
 #pragma once
+/* Global iter state */
+static void* _g_iter_arr[16];
+static int _g_iter_is_arr[16];
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -123,6 +126,7 @@ typedef struct {
     int iter_count[16];
     int iter_idx[16];
     int iter_top;
+
 } VM;
 
 void push(VM*vm,BVal v){
@@ -166,7 +170,8 @@ void run(VM*vm){
                 TFunc*fn=NULL;
                 for(int fi=0;fi<vm->func_count;fi++)
                     if(strcmp(vm->funcs[fi].name,fname)==0){fn=&vm->funcs[fi];break;}
-                if(fn==NULL){fprintf(stderr,"!NO_FUNC(%s)\n",fname);break;}
+                if(fn==NULL){
+break;}
                 if(fn->is_native==1){
                     int base=vm->top-argc;
                     double dargs[8];
@@ -222,13 +227,26 @@ void run(VM*vm){
             case OP_CONCAT:{int tb=--vm->top;int ta=--vm->top;push(vm,bval_concat(vm->stack[ta],vm->stack[tb]));break;}
             case OP_TOSTR:{int ta=--vm->top;push(vm,bval_tostr(vm->stack[ta]));break;}
             case OP_ITER_START:{
-                BVal arr=pop(vm);
-                int n=(int)arr.num;
+                vm->top--;
+                BVal *arr=&vm->stack[vm->top];
+                int n=arr->arr_len>0?arr->arr_len:(int)arr->num;
                 int inow=vm->chunk->code[vm->ip++];
+                /* Store array ref */
                 vm->iter_count[vm->iter_top]=n;
                 vm->iter_idx[vm->iter_top]=0;
+                /* Store array ptr - use iter_arr */
+                /* Check by type - most reliable on ARM64 */
+                int is_real_arr = (vm->stack[vm->top].type == VT_ARR);
+                _g_iter_is_arr[vm->iter_top] = is_real_arr;
+                _g_iter_arr[vm->iter_top] = is_real_arr ? (void*)vm->stack[vm->top].arr : NULL;
+
                 vm->iter_top++;
-                { BVal _tmp=make_num(0); frame_set(&vm->frame,vm->chunk->str_consts[inow],&_tmp); }
+                /* Set now = first element */
+                if(_g_iter_is_arr[vm->iter_top-1] && n>0){
+                    frame_set(&vm->frame,vm->chunk->str_consts[inow],&_g_iter_arr[vm->iter_top-1][0]);
+                } else {
+                    BVal _tmp=make_num(0); frame_set(&vm->frame,vm->chunk->str_consts[inow],&_tmp);
+                }
                 break;
             }
             case OP_ITER_NEXT:{
@@ -239,7 +257,15 @@ void run(VM*vm){
                 if(vm->iter_idx[top]>=vm->iter_count[top]){
                     vm->iter_top--;
                 }else{
-                    { BVal _ftmp=make_num(vm->iter_idx[top]); frame_set(&vm->frame,vm->chunk->str_consts[inow],&_ftmp); };
+                    int idx=vm->iter_idx[top];
+                    if(_g_iter_is_arr[top] && _g_iter_arr[top]){
+                        /* Array iteration - use actual element value */
+                        frame_set(&vm->frame,vm->chunk->str_consts[inow],&((BVal*)_g_iter_arr[top])[idx]);
+                    } else {
+                        /* Count iteration - use index as value */
+                        BVal _ftmp=make_num((double)idx);
+                        frame_set(&vm->frame,vm->chunk->str_consts[inow],&_ftmp);
+                    }
                     vm->ip=body;
                 }
                 break;

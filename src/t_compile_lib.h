@@ -160,6 +160,111 @@ void compile_line(Chunk *chunk, const char *line) {
 }
 
 
+
+void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int body_count) {
+    int iarr = chunk_add_str(chunk, arr_var);
+    chunk_write(chunk, OP_LOAD); chunk_write(chunk, iarr);
+    int inow = chunk_add_str(chunk, "now");
+    chunk_write(chunk, OP_ITER_START); chunk_write(chunk, inow);
+    int body_start = chunk->count;
+    for(int i=0;i<body_count;i++)
+        compile_line(chunk, body[i]);
+    chunk_write(chunk, OP_ITER_NEXT);
+    chunk_write(chunk, inow);
+    chunk_write(chunk, (uint8_t)body_start);
+}
+
 void compile_program(Chunk *c, const char *lines[], int n);
 
 /* Read and compile a .t file */
+int run_file(const char *path) {
+    FILE *f = fopen(path, "r");
+    if(!f){ fprintf(stderr, "Cannot open %s\n", path); return 1; }
+    
+    char *lines[1024];
+    int count = 0;
+    char buf[256];
+    
+    int section=0; /* 0=T-, 1=T0, 2=T+ */
+    while(fgets(buf, sizeof(buf), f) && count < 1024) {
+        int len = strlen(buf);
+        if(len > 0 && buf[len-1] == '\n') buf[len-1] = 0;
+        if(strncmp(buf,"[T-]",4)==0){section=0;continue;}
+        if(strncmp(buf,"[T0]",4)==0){section=1;continue;}
+        if(strncmp(buf,"[T+]",4)==0){section=2;continue;}
+        if(strncmp(buf,"import",6)==0) continue;
+        if(buf[0]==0||buf[0]=='#') continue;
+        /* T+: show shall(X) → show X */
+        if(section==2){
+            if(strncmp(buf,"show shall(",11)==0){
+                /* parse multi-arg: show shall(O1, O2, O3) */
+                char inner[512]; strncpy(inner,buf+11,511);
+                int l=strlen(inner); if(l>0&&inner[l-1]==')')inner[l-1]=0;
+                /* split by comma and emit show for each */
+                char *tok=strtok(inner,",");
+                while(tok){
+                    while(*tok==' ')tok++;
+                    int tl=strlen(tok);
+                    while(tl>0&&tok[tl-1]==' ')tok[--tl]=0;
+                    char line[256]; snprintf(line,255,"show %s",tok);
+                    lines[count++]=strdup(line);
+                    tok=strtok(NULL,",");
+                }
+            } else if(strncmp(buf,"show ",5)==0){
+                lines[count++]=strdup(buf);
+            }
+            continue;
+        }
+        /* T0: processing only */
+        if(section==1) lines[count++]=strdup(buf);
+        /* T-: static literals only */
+        if(section==0){
+            /* allow: literal >> var (no function calls, no ~>) */
+            char *arr=strstr(buf,">>");
+            char *tilde=strstr(buf,"~>");
+            if(arr && !tilde && !strchr(buf,'(')){
+                /* no function calls, just literals */
+                lines[count++]=strdup(buf);
+            }
+        }
+    }
+    fclose(f);
+    
+    Chunk chunk = {0};
+    VM *vm = calloc(1, sizeof(VM));
+    vm->chunk = &chunk;
+    register_all_natives(vm);
+    compile_program(&chunk, (const char**)lines, count);
+    run(vm);
+    free(vm);
+    for(int i=0;i<count;i++) free(lines[i]);
+    return 0;
+}
+
+/* Compile full T program from lines array */
+
+
+
+void compile_program(Chunk *c, const char *lines[], int n) {
+    int i=0;
+    while(i<n){
+        const char *line=lines[i];
+        if(strncmp(line,"F(",2)==0 && strchr(line,'{')){
+            char arr_var[64]={0};
+            char *lp=strchr(line,'('); char *rp=strchr(line,')');
+            if(lp&&rp){ strncpy(arr_var,lp+1,rp-lp-1); arr_var[rp-lp-1]=0; }
+            i++;
+            const char *body[64]; int bc=0;
+            while(i<n && lines[i][0]!='}'){
+                if(lines[i][0]!=0) body[bc++]=lines[i];
+                i++;
+            }
+            i++;
+            compile_f_block(c, arr_var, body, bc);
+        } else {
+            compile_line(c, line);
+            i++;
+        }
+    }
+    chunk_write(c, OP_HALT);
+}
