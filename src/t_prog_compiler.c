@@ -174,9 +174,32 @@ void compile_line(Chunk *chunk, const char *line) {
             chunk_write(chunk,OP_STORE); chunk_write(chunk,it3);
             return;
         }
-        /* var + "string" concat */
+        /* var + var or var + "string" concat */
         char *plus_q=strstr(expr," + ");
-        if(plus_q&&plus_q[3]==34) {
+        if(plus_q) {
+            /* Check if right side is string literal */
+            int rhs_is_str = (plus_q[3]==34);
+            /* Always try concat for + - runtime will handle type */
+            strncpy(a,expr,plus_q-expr); a[plus_q-expr]=0;
+            char *av=a; while(*av==' ')av++;
+            int al=strlen(av); while(al>0&&av[al-1]==' ')av[--al]=0;
+            char *bv=plus_q+3;
+            while(*bv==' ')bv++;
+            compile_expr(chunk,av);
+            compile_expr(chunk,bv);
+            /* Use CONCAT for strings, ADD for numbers */
+            /* Check if either side starts with letter (variable) or quote */
+            int av_is_var = (av[0]>='a'&&av[0]<='z')||(av[0]>='A'&&av[0]<='Z');
+            int bv_is_str = (bv[0]==34);
+            if(bv_is_str||rhs_is_str)
+                chunk_write(chunk,OP_CONCAT);
+            else
+                chunk_write(chunk,OP_ADD);
+            int it4=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it4);
+            return;
+        }
+        if(0&&plus_q&&plus_q[3]==34) {
             strncpy(a,expr,plus_q-expr); a[plus_q-expr]=0;
             char *av=a; while(*av==' ')av++;
             int al=strlen(av); while(al>0&&av[al-1]==' ')av[--al]=0;

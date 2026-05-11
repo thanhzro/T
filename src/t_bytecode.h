@@ -153,7 +153,28 @@ void run(VM*vm){
             case OP_PUSH_STR:{int i=vm->chunk->code[vm->ip++];push(vm,make_str(vm->chunk->str_consts[i]));break;}
             case OP_LOAD:{int i=vm->chunk->code[vm->ip++];BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
             case OP_STORE:{int i=vm->chunk->code[vm->ip++];vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
-            case OP_ADD:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a+b));break;}
+            case OP_ADD:{
+    vm->top--;
+    BVal *rb=&vm->stack[vm->top];
+    vm->top--;
+    BVal *ra=&vm->stack[vm->top];
+    if(ra->type==VT_STR||rb->type==VT_STR){
+        char _ab[4096];
+        const char *sa=ra->type==VT_STR&&ra->str?ra->str:"";
+        const char *sb=rb->type==VT_STR&&rb->str?rb->str:"";
+        snprintf(_ab,sizeof(_ab),"%s%s",sa,sb);
+        vm->stack[vm->top].type=VT_STR;
+        vm->stack[vm->top].num=0;
+        vm->stack[vm->top].str=strdup(_ab);
+        vm->stack[vm->top].arr=NULL;
+        vm->stack[vm->top].arr_len=0;
+    }else{
+        vm->stack[vm->top].type=VT_NUM;
+        vm->stack[vm->top].num=ra->num+rb->num;
+        vm->stack[vm->top].str=NULL;
+    }
+    vm->top++;
+    break;}
             case OP_SUB:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a-b));break;}
             case OP_MUL:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a*b));break;}
             case OP_DIV:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?a/b:0));break;}
