@@ -163,8 +163,10 @@ void compile_line(Chunk *chunk, const char *line) {
             /* Find closing quote */
             char *cq=strchr(expr+1,34);
             if(cq && strncmp(cq+1," + ",3)==0){
-                /* "string" + var pattern */
-                compile_expr(chunk,expr);
+                /* "string" + var: extract just the string part */
+                char strpart[256]={0};
+                strncpy(strpart,expr,cq-expr+1);
+                compile_expr(chunk,strpart);
                 compile_expr(chunk,cq+4);
                 chunk_write(chunk,OP_CONCAT);
             } else {
