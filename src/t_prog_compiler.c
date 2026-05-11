@@ -209,11 +209,15 @@ int run_file(const char *path) {
         }
         /* T0: processing only */
         if(section==1) lines[count++]=strdup(buf);
-        /* T-: static data - compile assignments only */
+        /* T-: static literals only */
         if(section==0){
-            /* only allow: var = literal or import */
-            if(strstr(buf,">>") || strstr(buf,"~>"))
+            /* allow: literal >> var (no function calls, no ~>) */
+            char *arr=strstr(buf,">>");
+            char *tilde=strstr(buf,"~>");
+            if(arr && !tilde && !strchr(buf,'(')){
+                /* no function calls, just literals */
                 lines[count++]=strdup(buf);
+            }
         }
     }
     fclose(f);
