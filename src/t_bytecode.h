@@ -224,7 +224,21 @@ break;}
                 vm->frame=cf->frame;vm->ip=cf->return_ip;vm->chunk=cf->return_chunk;
                 push(vm,ret);break;
             }
-            case OP_CONCAT:{int tb=--vm->top;int ta=--vm->top;push(vm,bval_concat(vm->stack[ta],vm->stack[tb]));break;}
+            case OP_CONCAT:{
+                int tb=--vm->top;
+                int ta=--vm->top;
+                char _cbuf[4096];
+                snprintf(_cbuf,sizeof(_cbuf),"%s%s",
+                    vm->stack[ta].str?vm->stack[ta].str:"",
+                    vm->stack[tb].str?vm->stack[tb].str:"");
+                vm->stack[vm->top].type=VT_STR;
+                vm->stack[vm->top].num=0;
+                vm->stack[vm->top].str=strdup(_cbuf);
+                vm->stack[vm->top].arr=NULL;
+                vm->stack[vm->top].arr_len=0;
+                vm->top++;
+                break;
+            }
             case OP_TOSTR:{int ta=--vm->top;push(vm,bval_tostr(vm->stack[ta]));break;}
             case OP_ITER_START:{
                 vm->top--;

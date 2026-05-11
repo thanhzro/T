@@ -210,6 +210,19 @@ char* nat_concat(char**a,int n){
     return strdup(buf);
 }
 
+double nat_write_file(double*a,int n){return 0;}
+double nat_write_mix(BVal *stack, int argc){
+    if(argc<2) return 0;
+    const char *content = stack[0].type==VT_STR ? (stack[0].str?stack[0].str:"") : "";
+    const char *fname   = stack[1].type==VT_STR ? (stack[1].str?stack[1].str:"") : "";
+    if(!fname||!fname[0]) return 0;
+    FILE *dbg=fopen("debug_write.txt","a"); if(dbg){fprintf(dbg,"content=[%s] fname=[%s]\n",content,fname);fclose(dbg);}
+    char wcmd[4096];
+    snprintf(wcmd,sizeof(wcmd),"echo '%s' >> '%s'",content,fname);
+    int wr=system(wcmd);
+    return wr==0?1:0;
+}
+
 /* ===== REGISTER ALL NATIVES ===== */
 void register_all_natives(VM *vm) {
     TFunc *f;
@@ -258,6 +271,9 @@ void register_all_natives(VM *vm) {
     REG_S1("lower", nat_lower, "str")
     REG_S1("trim",  nat_trim,  "str")
     REG_S2("concat",nat_concat,"a","b")
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
+    f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
     REG_S1("reverse", nat_reverse, "str")
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")

@@ -7,52 +7,39 @@
 #include <math.h>
 
 /* Forward declarations */
-void compile_expr(Chunk *c, const char *expr);
-void compile_assign(Chunk *c, const char *a, char op, const char *b, const char *target);
-void compile_line(Chunk *chunk, const char *line);
-
 void compile_expr(Chunk *c, const char *expr) {
-    /* String literal: "hello" */
-    if(expr[0] == '"') {
+    if(expr[0] == 34) {
         char buf[256]; strncpy(buf, expr+1, 255);
-        int l=strlen(buf); if(l>0&&buf[l-1]=='"') buf[l-1]=0;
+        int l=strlen(buf); if(l>0&&buf[l-1]==34) buf[l-1]=0;
         int idx=chunk_add_str(c, buf);
         chunk_write(c, OP_PUSH_STR); chunk_write(c, idx);
         return;
     }
-    /* Number */
     char *end;
     double val = strtod(expr, &end);
     if(end != expr && *end == 0) {
         int idx = chunk_add_num(c, val);
-        chunk_write(c, OP_PUSH_NUM);
-        chunk_write(c, idx);
+        chunk_write(c, OP_PUSH_NUM); chunk_write(c, idx);
         return;
     }
-    /* Variable */
     int idx = chunk_add_str(c, expr);
-    chunk_write(c, OP_LOAD);
-    chunk_write(c, idx);
+    chunk_write(c, OP_LOAD); chunk_write(c, idx);
 }
 
 void compile_assign(Chunk *c, const char *a, char op, const char *b, const char *target) {
-    compile_expr(c, a);
-    compile_expr(c, b);
-    switch(op) {
-        case '+': chunk_write(c, OP_ADD); break;
-        case '-': chunk_write(c, OP_SUB); break;
-        case '*': chunk_write(c, OP_MUL); break;
-        case '/': chunk_write(c, OP_DIV); break;
+    compile_expr(c, a); compile_expr(c, b);
+    switch(op){
+        case '+': chunk_write(c,OP_ADD); break;
+        case '-': chunk_write(c,OP_SUB); break;
+        case '*': chunk_write(c,OP_MUL); break;
+        case '/': chunk_write(c,OP_DIV); break;
     }
-    int idx = chunk_add_str(c, target);
-    chunk_write(c, OP_STORE);
-    chunk_write(c, idx);
+    int idx=chunk_add_str(c,target);
+    chunk_write(c,OP_STORE); chunk_write(c,idx);
 }
 
 void compile_line(Chunk *chunk, const char *line) {
-    char buf[256];
-    strncpy(buf, line, 255);
-    /* skip empty */
+    char buf[256]; strncpy(buf, line, 255); buf[255]=0;
     char *p = buf;
     while(*p == ' ') p++;
     if(*p == 0 || *p == '#') return;
@@ -64,19 +51,34 @@ void compile_line(Chunk *chunk, const char *line) {
         return;
     }
 
+    /* write("file") shall(var) */
+    if(strncmp(p, "write(", 6) == 0) {
+        char *lp=strchr(p,40), *rp=strchr(p,41);
+        char *sh=strstr(p,"shall(");
+        if(lp&&rp&&sh) {
+            char fn[128]={0}; strncpy(fn,lp+1,rp-lp-1);
+            if(fn[0]==34){memmove(fn,fn+1,strlen(fn));int fl=strlen(fn);if(fl>0&&fn[fl-1]==34)fn[fl-1]=0;}
+            char vn[64]={0}; char *vs=sh+6, *ve=strrchr(vs,41);
+            if(ve){strncpy(vn,vs,ve-vs);vn[ve-vs]=0;}
+            compile_expr(chunk,vn);
+            int ifn2=chunk_add_str(chunk,fn);
+            chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,ifn2);
+            int iw2=chunk_add_str(chunk,"write_file_t");
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,iw2); chunk_write(chunk,2);
+        }
+        return;
+    }
+
     /* func(args) ~> target */
     char *tilde = strstr(p, "~>");
     if(tilde && strchr(p, '(')) {
-        char *tp = tilde; *tp = 0;
-        char *target = tp + 2;
-        while(*target == ' ') target++;
-        char *lp = strchr(p, '(');
-        char *rp = strrchr(p, ')');
-        if(lp && rp) {
+        char *tp=tilde; *tp=0;
+        char *target=tp+2; while(*target==' ')target++;
+        char *lp=strchr(p,'('); char *rp=strrchr(p,')');
+        if(lp&&rp){
             char fname[64]; strncpy(fname,p,lp-p); fname[lp-p]=0;
             char *fn=fname; while(*fn==' ')fn++;
             char args[256]; strncpy(args,lp+1,rp-lp-1); args[rp-lp-1]=0;
-            /* parse multiple key=val, key=val */
             int argc=0;
             char *tok=strtok(args,",");
             while(tok){
@@ -97,46 +99,30 @@ void compile_line(Chunk *chunk, const char *line) {
 
     /* Gate x (op val) >> target */
     if(strncmp(p, "Gate ", 5) == 0) {
-        char var[64], op_str[8], val_str[64], target[64];
-        /* parse: Gate var (op val) >> target */
-        char *lp = strchr(p, '(');
-        char *rp = strchr(p, ')');
-        char *arr = strstr(p, ">>");
-        if(lp && rp && arr) {
-            /* extract var */
-            char tmp[64];
-            strncpy(tmp, p+5, lp-p-5);
-            tmp[lp-p-5]=0;
-            /* trim */
+        char *lp=strchr(p,'('), *rp=strchr(p,')'), *arr=strstr(p,">>");
+        if(lp&&rp&&arr) {
+            char tmp[64]; strncpy(tmp,p+5,lp-p-5); tmp[lp-p-5]=0;
             char *v=tmp; while(*v==' ')v++;
             int vl=strlen(v); while(vl>0&&v[vl-1]==' ')v[--vl]=0;
-            /* extract op and val from (op val) */
-            char inside[64];
-            strncpy(inside, lp+1, rp-lp-1);
-            inside[rp-lp-1]=0;
-            sscanf(inside, "%s %s", op_str, val_str);
-            /* extract target */
-            char *tgt = arr+2; while(*tgt==' ')tgt++;
-            /* emit: LOAD var */
-            int iv = chunk_add_str(chunk, v);
-            chunk_write(chunk, OP_LOAD); chunk_write(chunk, iv);
-            /* emit: PUSH val */
-            double dval = atof(val_str);
-            int iv2 = chunk_add_num(chunk, dval);
-            chunk_write(chunk, OP_PUSH_NUM); chunk_write(chunk, iv2);
-            /* emit: CMP op */
-            if(strcmp(op_str,">")==0)  chunk_write(chunk, OP_GT);
-            else if(strcmp(op_str,"<")==0)  chunk_write(chunk, OP_LT);
-            else if(strcmp(op_str,"==")==0) chunk_write(chunk, OP_EQ);
-            else if(strcmp(op_str,">=")==0) chunk_write(chunk, OP_GE);
-            else if(strcmp(op_str,"<=")==0) chunk_write(chunk, OP_LE);
-            /* emit: JUMP_IF_0 over STORE */
-            chunk_write(chunk, OP_JUMP_IF_0); chunk_write(chunk, 4);
-            /* emit: PUSH 1, STORE target */
-            int i1g = chunk_add_num(chunk, 1);
-            chunk_write(chunk, OP_PUSH_NUM); chunk_write(chunk, i1g);
-            int it = chunk_add_str(chunk, tgt);
-            chunk_write(chunk, OP_STORE); chunk_write(chunk, it);
+            char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
+            char op_str[8],val_str[64];
+            sscanf(inside,"%s %s",op_str,val_str);
+            char *tgt=arr+2; while(*tgt==' ')tgt++;
+            int iv=chunk_add_str(chunk,v);
+            chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv);
+            double dval=atof(val_str);
+            int iv2=chunk_add_num(chunk,dval);
+            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+            if(strcmp(op_str,">")==0)  chunk_write(chunk,OP_GT);
+            else if(strcmp(op_str,"<")==0)  chunk_write(chunk,OP_LT);
+            else if(strcmp(op_str,"==")==0) chunk_write(chunk,OP_EQ);
+            else if(strcmp(op_str,">=")==0) chunk_write(chunk,OP_GE);
+            else if(strcmp(op_str,"<=")==0) chunk_write(chunk,OP_LE);
+            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,4);
+            int i1g=chunk_add_num(chunk,1);
+            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,i1g);
+            int it=chunk_add_str(chunk,tgt);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
         }
         return;
     }
@@ -144,25 +130,22 @@ void compile_line(Chunk *chunk, const char *line) {
     /* A op B >> target */
     char *arrow = strstr(buf, ">>");
     if(arrow) {
-        *arrow = 0;
-        char *target = arrow + 2;
-        while(*target == ' ') target++;
-        /* trim expr */
-        char *expr = buf;
-        while(*expr == ' ') expr++;
-        int elen = strlen(expr);
-        while(elen > 0 && expr[elen-1] == ' ') expr[--elen] = 0;
-
-        char a[64], b[64]; char op = '+';
-        /* String literal only assignment: "..." >> var */
-        if(expr[0] == '"'){
-            compile_expr(chunk, expr);
+        *arrow=0;
+        char *target=arrow+2; while(*target==' ')target++;
+        char *expr=buf; while(*expr==' ')expr++;
+        int elen=strlen(expr);
+        while(elen>0&&expr[elen-1]==' ')expr[--elen]=0;
+        char a[64],b[64]; char op='+';
+        /* String literal assignment */
+        if(expr[0]==34) {
+            compile_expr(chunk,expr);
             int it3=chunk_add_str(chunk,target);
             chunk_write(chunk,OP_STORE); chunk_write(chunk,it3);
             return;
         }
-        char *plus_q = strstr(expr, " + \"");
-        if(plus_q){
+        /* var + "string" concat */
+        char *plus_q=strstr(expr," + ");
+        if(plus_q&&plus_q[3]==34) {
             strncpy(a,expr,plus_q-expr); a[plus_q-expr]=0;
             char *av=a; while(*av==' ')av++;
             int al=strlen(av); while(al>0&&av[al-1]==' ')av[--al]=0;
@@ -170,19 +153,26 @@ void compile_line(Chunk *chunk, const char *line) {
             compile_expr(chunk,av);
             compile_expr(chunk,bv);
             chunk_write(chunk,OP_CONCAT);
-            int it2=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it2);
-        } else if(sscanf(expr, "%s %c %s", a, &op, b) == 3) {
-            compile_assign(chunk, a, op, b, target);
-        } else {
-            compile_expr(chunk, expr);
-            int idx = chunk_add_str(chunk, target);
-            chunk_write(chunk, OP_STORE);
-            chunk_write(chunk, idx);
+            int it4=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it4);
+            return;
         }
+        if(sscanf(expr,"%s %c %s",a,&op,b)==3) {
+            compile_expr(chunk,a);
+            compile_expr(chunk,b);
+            switch(op){
+                case '+': chunk_write(chunk,OP_ADD); break;
+                case '-': chunk_write(chunk,OP_SUB); break;
+                case '*': chunk_write(chunk,OP_MUL); break;
+                case '/': chunk_write(chunk,OP_DIV); break;
+            }
+        } else {
+            compile_expr(chunk,expr);
+        }
+        int idx=chunk_add_str(chunk,target);
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,idx);
     }
 }
-
 
 void compile_program(Chunk *c, const char *lines[], int n);
 
@@ -222,6 +212,12 @@ int run_file(const char *path) {
                     tok=strtok(NULL,",");
                 }
             } else if(strncmp(buf,"show ",5)==0){
+                lines[count++]=strdup(buf);
+            } else {
+ }
+            if(strncmp(buf,"write(",6)==0){
+                lines[count++]=strdup(buf);
+            } else if(strncmp(buf,"append(",7)==0){
                 lines[count++]=strdup(buf);
             }
             continue;
