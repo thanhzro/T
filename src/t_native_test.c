@@ -5,18 +5,9 @@
 #include <math.h>
 #include "t_bytecode.h"
 
-/* Native functions */
-BVal native_abs(BVal *args, int argc) {
-    printf("DEBUG abs argc=%d\n", argc);
-    if(argc>0) printf("DEBUG args[0]=%g\n", args[0].num);
-    return make_num(fabs(args[0].num));
-}
-BVal native_sqrt(BVal *args, int argc) {
-    return make_num(sqrt(args[0].num));
-}
-BVal native_floor(BVal *args, int argc) {
-    return make_num(floor(args[0].num));
-}
+double native_abs(double *args, int argc)   { return fabs(args[0]); }
+double native_sqrt(double *args, int argc)  { return sqrt(args[0]); }
+double native_floor(double *args, int argc) { return floor(args[0]); }
 
 void register_natives(VM *vm) {
     TFunc *f;
@@ -37,15 +28,9 @@ void compile_expr(Chunk *c, const char *expr);
 void compile_line(Chunk *chunk, const char *line);
 
 void compile_expr(Chunk *c, const char *expr) {
-    char *end;
-    double val = strtod(expr, &end);
-    if(end != expr) {
-        int idx = chunk_add_num(c, val);
-        chunk_write(c, OP_PUSH_NUM); chunk_write(c, idx);
-        return;
-    }
-    int idx = chunk_add_str(c, expr);
-    chunk_write(c, OP_LOAD); chunk_write(c, idx);
+    char *end; double val=strtod(expr,&end);
+    if(end!=expr){int idx=chunk_add_num(c,val);chunk_write(c,OP_PUSH_NUM);chunk_write(c,idx);return;}
+    int idx=chunk_add_str(c,expr);chunk_write(c,OP_LOAD);chunk_write(c,idx);
 }
 
 void compile_line(Chunk *chunk, const char *line) {
@@ -54,7 +39,7 @@ void compile_line(Chunk *chunk, const char *line) {
     if(*p==0||*p=='#') return;
     if(strncmp(p,"show ",5)==0){ compile_expr(chunk,p+5); chunk_write(chunk,OP_SHOW); return; }
     char *tilde=strstr(p,"~>");
-    if(tilde&&strchr(p,'(')) {
+    if(tilde&&strchr(p,'(')){
         char *tp=tilde; *tp=0;
         char *target=tp+2; while(*target==' ')target++;
         char *lp=strchr(p,'('); char *rp=strrchr(p,')');
