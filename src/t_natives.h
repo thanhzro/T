@@ -297,6 +297,10 @@ void register_all_natives(VM *vm) {
     REG_S1("trim",  nat_trim,  "str")
     REG_S2("concat",nat_concat,"a","b")
     REG_S1("exec_bc",nat_exec_s,"cmd")
+    /* past(x) = identity - returns x as-is */
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"past"); f->is_native=3; f->native_m=nat_toNumber_mix;
+    f->param_count=1; strcpy(f->params[0],"val");
     /* toString - special: returns string from any type */
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"toString"); f->is_native=2; f->native_s=NULL;

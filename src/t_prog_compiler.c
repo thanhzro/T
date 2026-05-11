@@ -86,6 +86,9 @@ void compile_line(Chunk *chunk, const char *line) {
                 char *eq=strchr(tok,'=');
                 if(eq){ char *val=eq+1; while(*val==' ')val++;
                     compile_expr(chunk,val); argc++;
+                } else if(*tok){
+                    /* no = : treat as positional arg */
+                    compile_expr(chunk,tok); argc++;
                 }
                 tok=strtok(NULL,",");
             }
@@ -183,7 +186,7 @@ void compile_line(Chunk *chunk, const char *line) {
     }
 }
 
-void compile_program(Chunk *c, const char *lines[], int n);
+void compile_program(VM *vm, Chunk *c, const char *lines[], int n);
 
 /* Read and compile a .t file */
 int run_file(const char *path) {
@@ -250,7 +253,7 @@ int run_file(const char *path) {
     VM *vm = calloc(1, sizeof(VM));
     vm->chunk = &chunk;
     register_all_natives(vm);
-    compile_program(&chunk, (const char**)lines, count);
+    compile_program(vm, &chunk, (const char**)lines, count);
     run(vm);
     free(vm);
     for(int i=0;i<count;i++) free(lines[i]);
@@ -258,10 +261,83 @@ int run_file(const char *path) {
 }
 
 /* Compile full T program from lines array */
-void compile_program(Chunk *c, const char *lines[], int n) {
-    for(int i=0;i<n;i++)
-        compile_line(c, lines[i]);
-    chunk_write(c, OP_HALT);
+/* Compile a T function body into a TFunc */
+void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int body_count) {
+    int iarr = chunk_add_str(chunk, arr_var);
+    chunk_write(chunk, OP_LOAD); chunk_write(chunk, iarr);
+    int inow = chunk_add_str(chunk, "now");
+    chunk_write(chunk, OP_ITER_START); chunk_write(chunk, inow);
+    int body_start = chunk->count;
+    for(int i=0;i<body_count;i++)
+        compile_line(chunk, body[i]);
+    chunk_write(chunk, OP_ITER_NEXT);
+    chunk_write(chunk, inow);
+    chunk_write(chunk, (uint8_t)body_start);
+}
+
+void compile_func(VM *vm, const char *name, const char **params, int nparams,
+                  const char **body, int body_count) {
+    TFunc *f = &vm->funcs[vm->func_count++];
+    strcpy(f->name, name);
+    f->param_count = nparams;
+    for(int i=0;i<nparams;i++) strcpy(f->params[i], params[i]);
+    f->is_native = 0;
+    /* Compile body into f->chunk */
+    memset(&f->chunk, 0, sizeof(Chunk));
+    for(int i=0;i<body_count;i++)
+        compile_line(&f->chunk, body[i]);
+    /* Add RETURN at end */
+    /* Load "out" variable and return */
+    int iout = chunk_add_str(&f->chunk, "out");
+    chunk_write(&f->chunk, OP_LOAD); chunk_write(&f->chunk, iout);
+    chunk_write(&f->chunk, OP_RETURN);
+    {FILE*_cd=fopen("chunk_dbg.txt","w");if(_cd){fprintf(_cd,"func=%s bc=%d cc=%d\n",name,body_count,f->chunk.count);fclose(_cd);}}
+}
+
+void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
+    int i=0;
+    while(i<n){
+        const char *line=lines[i];
+        if(strncmp(line,"func ",5)==0 && strchr(line,'(')){
+            char fname[64]={0};
+            char *lp=strchr(line,'('), *rp=strchr(line,')');
+            if(lp) strncpy(fname,line+5,lp-line-5);
+            char pbuf[256]={0};
+            if(lp&&rp) strncpy(pbuf,lp+1,rp-lp-1);
+            const char *params[8]; int nparams=0;
+            char ptoks[8][64]; char tmp[256]; strcpy(tmp,pbuf);
+            char *pt=strtok(tmp,",");
+            while(pt&&nparams<8){
+                while(*pt==' ')pt++;
+                int pl=strlen(pt); while(pl>0&&pt[pl-1]==' ')pt[--pl]=0;
+                strcpy(ptoks[nparams],pt); params[nparams]=ptoks[nparams]; nparams++;
+                pt=strtok(NULL,",");
+            }
+            i++;
+            const char *body[128]; int bc=0;
+            while(i<n && lines[i][0]!='}'){
+                if(lines[i][0]!=0) body[bc++]=lines[i]; i++;
+            }
+            i++;
+            compile_func(vm,fname,params,nparams,body,bc);
+            continue;
+        }
+        if(strncmp(line,"F(",2)==0 && strchr(line,'{')){
+            char arr_var[64]={0};
+            char *lp=strchr(line,'('); char *rp=strchr(line,')');
+            if(lp&&rp){strncpy(arr_var,lp+1,rp-lp-1);arr_var[rp-lp-1]=0;}
+            i++;
+            const char *body[64]; int bc=0;
+            while(i<n && lines[i][0]!='}'){
+                if(lines[i][0]!=0) body[bc++]=lines[i]; i++;
+            }
+            i++;
+            compile_f_block(c,arr_var,body,bc);
+        } else {
+            compile_line(c,lines[i]); i++;
+        }
+    }
+    chunk_write(c,OP_HALT);
 }
 
 int main(int argc, char *argv[]) {
@@ -281,7 +357,7 @@ int main(int argc, char *argv[]) {
     VM *vm = calloc(1, sizeof(VM));
     vm->chunk = &c;
 
-    compile_program(&c, program, 4);
+    compile_program(vm, &c, program, 4);
 
     printf("Program test (expect 27): ");
     run(vm);
@@ -295,7 +371,7 @@ int main(int argc, char *argv[]) {
         "show result"
     };
     Chunk c2={0}; VM *vm2=calloc(1,sizeof(VM)); vm2->chunk=&c2;
-    compile_program(&c2, prog2, 4);
+    compile_program(vm2, &c2, (const char**)prog2, 4);
     printf("Multi-show test (expect 25, 26):\n");
     run(vm2); free(vm2);
 

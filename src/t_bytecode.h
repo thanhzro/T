@@ -219,10 +219,18 @@ break;}
                 break;
             }
             case OP_RETURN:{
-                BVal ret=pop(vm);
+                FILE*_rd=fopen("ret_dbg.txt","w");if(_rd){fprintf(_rd,"top=%d stack[top-1].num=%g\n",vm->top,vm->stack[vm->top-1].num);fclose(_rd);}
+                vm->top--;
+                int ret_top=vm->top;
                 CallFrame*cf=&vm->calls[--vm->call_depth];
                 vm->frame=cf->frame;vm->ip=cf->return_ip;vm->chunk=cf->return_chunk;
-                push(vm,ret);break;
+                vm->stack[vm->top].type=vm->stack[ret_top].type;
+                vm->stack[vm->top].num=vm->stack[ret_top].num;
+                vm->stack[vm->top].str=vm->stack[ret_top].str;
+                vm->stack[vm->top].arr=vm->stack[ret_top].arr;
+                vm->stack[vm->top].arr_len=vm->stack[ret_top].arr_len;
+                vm->top++;
+                break;
             }
             case OP_CONCAT:{
                 int tb=--vm->top;
