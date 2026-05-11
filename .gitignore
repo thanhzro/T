@@ -13,3 +13,9 @@ ts_tmp.sh
 _t.t
 t_bc_test
 t_compiler_test
+t_call_test
+t_debug
+t_debug2
+t_iter_test
+t_compiler_test
+t_bc_test
