@@ -45,6 +45,12 @@ void compile_line(Chunk *chunk, const char *line) {
     if(*p == 0 || *p == '#') return;
 
     /* show X */
+    /* return X */
+    if(strncmp(p, "return ", 7) == 0) {
+        compile_expr(chunk, p+7);
+        chunk_write(chunk, OP_RETURN);
+        return;
+    }
     if(strncmp(p, "show ", 5) == 0) {
         compile_expr(chunk, p+5);
         chunk_write(chunk, OP_SHOW);
@@ -218,7 +224,30 @@ int run_file(const char *path) {
         if(strncmp(buf,"[T-]",4)==0){section=0;continue;}
         if(strncmp(buf,"[T0]",4)==0){section=1;continue;}
         if(strncmp(buf,"[T+]",4)==0){section=2;continue;}
-        if(strncmp(buf,"import",6)==0) continue;
+        if(strncmp(buf,"import",6)==0){
+            /* Load imported file's functions */
+            char ipath[256]={0};
+            char *q1=strchr(buf,'"'), *q2=q1?strchr(q1+1,'"'):NULL;
+            if(q1&&q2){ strncpy(ipath,q1+1,q2-q1-1); }
+            if(ipath[0]){
+                FILE *imp=fopen(ipath,"r");
+                if(imp){
+                    char ibuf[256]; int isec=0;
+                    while(fgets(ibuf,sizeof(ibuf),imp)){
+                        int il=strlen(ibuf);
+                        if(il>0&&ibuf[il-1]==10) ibuf[il-1]=0;
+                        if(strncmp(ibuf,"[T-]",4)==0){isec=0;continue;}
+                        if(strncmp(ibuf,"[T0]",4)==0){isec=1;continue;}
+                        if(strncmp(ibuf,"[T+]",4)==0){isec=2;continue;}
+                        if(strncmp(ibuf,"import",6)==0) continue;
+                        if(ibuf[0]==0) continue;
+                        if(count<1024) lines[count++]=strdup(ibuf);
+                    }
+                    fclose(imp);
+                }
+            }
+            continue;
+        }
         if(buf[0]==0||buf[0]=='#') continue;
         /* T+: show shall(X) → show X */
         if(section==2){
