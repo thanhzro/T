@@ -248,6 +248,18 @@ char* nat_toString_s(BVal *stack, int argc){
     return strdup(buf);
 }
 
+
+double nat_line_count(BVal *stack, int argc){
+    if(argc<1||!stack[0].str) return 0;
+    char *s=stack[0].str; int n=0;
+    for(int i=0;s[i];i++) if(s[i]==10) n++;
+    if(s[0]&&s[strlen(s)-1]!=10) n++;
+    return n;
+}
+double nat_get_line(BVal *stack, int argc){
+    return 0; /* placeholder - use exec grep instead */
+}
+
 /* ===== REGISTER ALL NATIVES ===== */
 void register_all_natives(VM *vm) {
     TFunc *f;
@@ -297,6 +309,9 @@ void register_all_natives(VM *vm) {
     REG_S1("trim",  nat_trim,  "str")
     REG_S2("concat",nat_concat,"a","b")
     REG_S1("exec_bc",nat_exec_s,"cmd")
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"line_count"); f->is_native=3; f->native_m=nat_line_count;
+    f->param_count=1; strcpy(f->params[0],"str");
     /* past(x) = identity - returns x as-is */
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"past"); f->is_native=3; f->native_m=nat_toNumber_mix;

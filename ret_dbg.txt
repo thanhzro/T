@@ -1,0 +1,1 @@
+top=1 stack[top-1].num=15

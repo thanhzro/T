@@ -69,6 +69,19 @@ void compile_line(Chunk *chunk, const char *line) {
         return;
     }
 
+    /* past(x) ~> y = identity: just LOAD x STORE y */
+    if(strncmp(p,"past(",5)==0){
+        char *tilde2=strstr(p,"~>");
+        if(tilde2){
+            char *rp=strchr(p,')');
+            char vn[64]={0}; strncpy(vn,p+5,rp-p-5);
+            char *tgt=tilde2+2; while(*tgt==' ')tgt++;
+            compile_expr(chunk,vn);
+            int it=chunk_add_str(chunk,tgt);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+        }
+        return;
+    }
     /* func(args) ~> target */
     char *tilde = strstr(p, "~>");
     if(tilde && strchr(p, '(')) {
