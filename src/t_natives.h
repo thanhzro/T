@@ -45,6 +45,25 @@ double nat_safe_div(double*a,int n){
 double nat_is_even(double*a,int n){return fmod(a[0],2)==0?1:0;}
 double nat_is_odd(double*a,int n){return fmod(a[0],2)!=0?1:0;}
 
+
+/* Simple array encoding as comma-separated string */
+double nat_range_d(double*a,int n){ return a[0]; }
+char* nat_range_s(char**a,int n){
+    int count=(int)atof(a[0]);
+    char buf[4096]; buf[0]=0;
+    for(int i=0;i<count;i++){
+        char tmp[32]; snprintf(tmp,31,"%d",i);
+        if(i>0) strcat(buf,",");
+        strcat(buf,tmp);
+    }
+    return strdup(buf);
+}
+
+double nat_sum_s(double*a,int n){
+    /* sum of array encoded as string - handle later */
+    return 0;
+}
+
 double nat_max2(double*a,int n){return a[0]>a[1]?a[0]:a[1];}
 double nat_min2(double*a,int n){return a[0]<a[1]?a[0]:a[1];}
 double nat_mod(double*a,int n){return fmod(a[0],a[1]);}
@@ -216,6 +235,8 @@ void register_all_natives(VM *vm) {
     REG2("is_odd",   nat_is_odd,   "n","x")
     REG2("between",  nat_between,  "val","lo")
     REG2("lerp",     nat_lerp,     "a","b")
+    /* Range - returns string encoded array */
+    REG_S1("range_bc", nat_range_s, "n")
     REG_S1("upper", nat_upper, "str")
     REG_S1("lower", nat_lower, "str")
     REG_S1("trim",  nat_trim,  "str")
