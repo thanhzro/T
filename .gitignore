@@ -10,3 +10,6 @@ ts_tmp.sh
 !check_conflicts.py
 
 !check_runtime.py
+_t.t
+t_bc_test
+t_compiler_test
