@@ -1,0 +1,105 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "t_bytecode.h"
+
+/* Forward declarations */
+void compile_expr(Chunk *c, const char *expr);
+void compile_assign(Chunk *c, const char *a, char op, const char *b, const char *target);
+void compile_line(Chunk *chunk, const char *line);
+
+void compile_expr(Chunk *c, const char *expr) {
+    char *end;
+    double val = strtod(expr, &end);
+    if(end != expr) {
+        int idx = chunk_add_num(c, val);
+        chunk_write(c, OP_PUSH_NUM);
+        chunk_write(c, idx);
+        return;
+    }
+    int idx = chunk_add_str(c, expr);
+    chunk_write(c, OP_LOAD);
+    chunk_write(c, idx);
+}
+
+void compile_assign(Chunk *c, const char *a, char op, const char *b, const char *target) {
+    compile_expr(c, a);
+    compile_expr(c, b);
+    switch(op) {
+        case '+': chunk_write(c, OP_ADD); break;
+        case '-': chunk_write(c, OP_SUB); break;
+        case '*': chunk_write(c, OP_MUL); break;
+        case '/': chunk_write(c, OP_DIV); break;
+    }
+    int idx = chunk_add_str(c, target);
+    chunk_write(c, OP_STORE);
+    chunk_write(c, idx);
+}
+
+void compile_line(Chunk *chunk, const char *line) {
+    char buf[256];
+    strncpy(buf, line, 255);
+    /* skip empty */
+    char *p = buf;
+    while(*p == ' ') p++;
+    if(*p == 0 || *p == '#') return;
+
+    /* show X */
+    if(strncmp(p, "show ", 5) == 0) {
+        compile_expr(chunk, p+5);
+        chunk_write(chunk, OP_SHOW);
+        return;
+    }
+
+    /* A op B >> target */
+    char *arrow = strstr(buf, ">>");
+    if(arrow) {
+        *arrow = 0;
+        char *target = arrow + 2;
+        while(*target == ' ') target++;
+        /* trim expr */
+        char *expr = buf;
+        while(*expr == ' ') expr++;
+        int elen = strlen(expr);
+        while(elen > 0 && expr[elen-1] == ' ') expr[--elen] = 0;
+
+        char a[64], b[64]; char op = '+';
+        if(sscanf(expr, "%s %c %s", a, &op, b) == 3) {
+            compile_assign(chunk, a, op, b, target);
+        } else {
+            compile_expr(chunk, expr);
+            int idx = chunk_add_str(chunk, target);
+            chunk_write(chunk, OP_STORE);
+            chunk_write(chunk, idx);
+        }
+    }
+}
+
+/* Compile full T program from lines array */
+void compile_program(Chunk *c, const char *lines[], int n) {
+    for(int i=0;i<n;i++)
+        compile_line(c, lines[i]);
+    chunk_write(c, OP_HALT);
+}
+
+int main() {
+    /* Test: full T-like program */
+    const char *program[] = {
+        "10 + 5 >> x",
+        "x * 2 >> y",
+        "y - 3 >> result",
+        "show result"
+    };
+
+    Chunk c = {0};
+    VM *vm = calloc(1, sizeof(VM));
+    vm->chunk = &c;
+
+    compile_program(&c, program, 4);
+
+    printf("Program test (expect 27): ");
+    run(vm);
+    free(vm);
+    return 0;
+}
