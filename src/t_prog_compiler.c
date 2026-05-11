@@ -154,7 +154,25 @@ void compile_line(Chunk *chunk, const char *line) {
         while(elen > 0 && expr[elen-1] == ' ') expr[--elen] = 0;
 
         char a[64], b[64]; char op = '+';
-        if(sscanf(expr, "%s %c %s", a, &op, b) == 3) {
+        /* String literal only assignment: "..." >> var */
+        if(expr[0] == '"'){
+            compile_expr(chunk, expr);
+            int it3=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it3);
+            return;
+        }
+        char *plus_q = strstr(expr, " + \"");
+        if(plus_q){
+            strncpy(a,expr,plus_q-expr); a[plus_q-expr]=0;
+            char *av=a; while(*av==' ')av++;
+            int al=strlen(av); while(al>0&&av[al-1]==' ')av[--al]=0;
+            char *bv=plus_q+3;
+            compile_expr(chunk,av);
+            compile_expr(chunk,bv);
+            chunk_write(chunk,OP_CONCAT);
+            int it2=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it2);
+        } else if(sscanf(expr, "%s %c %s", a, &op, b) == 3) {
             compile_assign(chunk, a, op, b, target);
         } else {
             compile_expr(chunk, expr);
@@ -171,7 +189,8 @@ void compile_program(Chunk *c, const char *lines[], int n);
 /* Read and compile a .t file */
 int run_file(const char *path) {
     FILE *f = fopen(path, "r");
-    if(!f){ fprintf(stderr, "Cannot open %s\n", path); return 1; }
+    if(!f){
+ return 1; }
     
     char *lines[1024];
     int count = 0;
