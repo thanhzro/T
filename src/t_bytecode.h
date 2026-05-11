@@ -77,11 +77,14 @@ void frame_get(Frame*f,const char*k,BVal*out){
 
 /* ===== FUNC REGISTRY ===== */
 #define FUNC_MAX 256
-typedef struct {
+typedef double (*NativeFn)(double *args, int argc);
+typedef struct TFunc {
     char name[64];
-    Chunk chunk;
     char params[8][64];
     int param_count;
+    int is_native;
+    NativeFn native;
+    Chunk chunk;
 } TFunc;
 
 /* ===== CALL FRAME ===== */
@@ -118,25 +121,45 @@ void run(VM*vm){
             case OP_PUSH_NUM:{int i=vm->chunk->code[vm->ip++];push(vm,make_num(vm->chunk->num_consts[i]));break;}
             case OP_PUSH_STR:{int i=vm->chunk->code[vm->ip++];push(vm,make_str(vm->chunk->str_consts[i]));break;}
             case OP_LOAD:{int i=vm->chunk->code[vm->ip++];BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
-            case OP_STORE:{int i=vm->chunk->code[vm->ip++];frame_set(&vm->frame,vm->chunk->str_consts[i],pop(vm));break;}
-            case OP_ADD:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(a.num+b.num));break;}
-            case OP_SUB:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(a.num-b.num));break;}
-            case OP_MUL:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(a.num*b.num));break;}
-            case OP_DIV:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(b.num?a.num/b.num:0));break;}
-            case OP_GT:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(a.num>b.num?1:0));break;}
-            case OP_LT:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(a.num<b.num?1:0));break;}
-            case OP_EQ:{BVal b=pop(vm);BVal a=pop(vm);push(vm,make_num(a.num==b.num?1:0));break;}
-            case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];BVal v=pop(vm);if(v.num==0)vm->ip+=off;break;}
+            case OP_STORE:{int i=vm->chunk->code[vm->ip++];vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],vm->stack[vm->top]);break;}
+            case OP_ADD:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a+b));break;}
+            case OP_SUB:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a-b));break;}
+            case OP_MUL:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a*b));break;}
+            case OP_DIV:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?a/b:0));break;}
+            case OP_GT:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a>b?1:0));break;}
+            case OP_LT:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a<b?1:0));break;}
+            case OP_EQ:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a==b?1:0));break;}
+            case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
             case OP_JUMP:{int off=vm->chunk->code[vm->ip++];vm->ip+=off;break;}
             case OP_CALL:{
                 int ni=vm->chunk->code[vm->ip++];
                 int argc=vm->chunk->code[vm->ip++];
                 const char*fname=vm->chunk->str_consts[ni];
-                TFunc*fn=vm_find_func(vm,fname);
+                /* inline find - avoid vm_find_func return bug */
+                TFunc*fn=NULL;
+                for(int fi=0;fi<vm->func_count;fi++)
+                    if(strcmp(vm->funcs[fi].name,fname)==0){fn=&vm->funcs[fi];break;}
+                if(fn==NULL){fprintf(stderr,"!NO_FUNC(%s)\n",fname);break;}
+                if(fn->is_native){
+                    int base=vm->top-argc;
+                    double dargs[8];
+                    for(int i=0;i<argc&&i<8;i++) dargs[i]=vm->stack[base+i].num;
+                    vm->top-=argc;
+                    double r=fn->native(dargs,argc);
+                    vm->stack[vm->top].type=VT_NUM;
+                    vm->stack[vm->top].num=r;
+                    vm->stack[vm->top].str=NULL;
+                    vm->top++;
+                    break;
+                }
                 CallFrame*cf=&vm->calls[vm->call_depth++];
                 cf->frame=vm->frame;cf->return_ip=vm->ip;cf->return_chunk=vm->chunk;
                 memset(&vm->frame,0,sizeof(Frame));
-                for(int i=argc-1;i>=0;i--){BVal arg=pop(vm);if(i<fn->param_count)frame_set(&vm->frame,fn->params[i],arg);}
+                for(int i=argc-1;i>=0;i--){
+                    vm->top--;
+                    if(i<fn->param_count)
+                        frame_set(&vm->frame,fn->params[i],vm->stack[vm->top]);
+                }
                 vm->chunk=&fn->chunk;vm->ip=0;
                 break;
             }
@@ -146,8 +169,8 @@ void run(VM*vm){
                 vm->frame=cf->frame;vm->ip=cf->return_ip;vm->chunk=cf->return_chunk;
                 push(vm,ret);break;
             }
-            case OP_CONCAT:{BVal b=pop(vm);BVal a=pop(vm);push(vm,bval_concat(a,b));break;}
-            case OP_TOSTR:{BVal a=pop(vm);push(vm,bval_tostr(a));break;}
+            case OP_CONCAT:{int tb=--vm->top;int ta=--vm->top;push(vm,bval_concat(vm->stack[ta],vm->stack[tb]));break;}
+            case OP_TOSTR:{int ta=--vm->top;push(vm,bval_tostr(vm->stack[ta]));break;}
             case OP_ITER_START:{
                 BVal arr=pop(vm);
                 int n=(int)arr.num;
@@ -171,7 +194,7 @@ void run(VM*vm){
                 }
                 break;
             }
-            case OP_SHOW:{BVal v=pop(vm);if(v.type==VT_STR)printf("%s\n",v.str?v.str:"");else printf("%g\n",v.num);bval_free(&v);break;}
+            case OP_SHOW:{vm->top--;BVal*v=&vm->stack[vm->top];if(v->type==VT_STR)printf("%s\n",v->str?v->str:"");else printf("%g\n",v->num);break;}
             case OP_HALT:return;
         }
     }
