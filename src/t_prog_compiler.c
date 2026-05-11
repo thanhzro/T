@@ -240,7 +240,11 @@ void compile_program(Chunk *c, const char *lines[], int n) {
     chunk_write(c, OP_HALT);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if(argc > 1) {
+        run_file(argv[1]);
+        return 0;
+    }
     /* Test: full T-like program */
     const char *program[] = {
         "10 + 5 >> x",
