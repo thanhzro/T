@@ -11,6 +11,8 @@ typedef enum {
     OP_LOAD, OP_STORE,
     OP_JUMP, OP_JUMP_IF_0,
     OP_CALL, OP_RETURN,
+    OP_CONCAT,
+    OP_TOSTR,
     OP_SHOW, OP_HALT
 } OpCode;
 
@@ -79,6 +81,39 @@ int chunk_add_num(Chunk *c, double val) {
 
 BVal make_num(double n) { BVal v; v.type=VT_NUM; v.num=n; v.str=NULL; return v; }
 
+BVal make_str(const char *s) {
+    BVal v; v.type=VT_STR; v.num=0;
+    v.str = s ? strdup(s) : NULL;
+    return v;
+}
+
+void bval_free(BVal *v) {
+    if(v->str) { free(v->str); v->str=NULL; }
+}
+
+BVal bval_copy(BVal v) {
+    if(v.type==VT_STR && v.str)
+        return make_str(v.str);
+    return v;
+}
+
+/* String concat */
+BVal bval_concat(BVal a, BVal b) {
+    char buf[4096];
+    const char *sa = a.type==VT_STR ? a.str : "";
+    const char *sb = b.type==VT_STR ? b.str : "";
+    snprintf(buf, sizeof(buf), "%s%s", sa, sb);
+    return make_str(buf);
+}
+
+/* Number to string */
+BVal bval_tostr(BVal v) {
+    if(v.type==VT_STR) return bval_copy(v);
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%g", v.num);
+    return make_str(buf);
+}
+
 void push(VM *vm, BVal v) { vm->stack[vm->top++] = v; }
 BVal pop(VM *vm) { return vm->stack[--vm->top]; }
 
@@ -115,7 +150,30 @@ void run(VM *vm) {
                 push(vm, frame_get(&vm->frame, vm->chunk->str_consts[idx]));
                 break;
             }
-            case OP_SHOW: { BVal v=pop(vm); printf("%g\n",v.num); break; }
+            case OP_PUSH_STR: {
+                int idx = vm->chunk->code[vm->ip++];
+                push(vm, make_str(vm->chunk->str_consts[idx]));
+                break;
+            }
+            case OP_CONCAT: {
+                BVal b=pop(vm); BVal a=pop(vm);
+                push(vm, bval_concat(a,b));
+                bval_free(&a); bval_free(&b);
+                break;
+            }
+            case OP_TOSTR: {
+                BVal a=pop(vm);
+                push(vm, bval_tostr(a));
+                bval_free(&a);
+                break;
+            }
+            case OP_SHOW: {
+                BVal v=pop(vm);
+                if(v.type==VT_STR) printf("%s\n", v.str?v.str:"");
+                else printf("%g\n", v.num);
+                bval_free(&v);
+                break;
+            }
             case OP_HALT: return;
         }
     }

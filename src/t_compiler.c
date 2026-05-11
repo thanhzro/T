@@ -110,5 +110,19 @@ int main() {
     printf("compile_block test (expect 27): ");
     run(&vm3);
 
+    /* Test heap strings */
+    Chunk c4 = {0}; VM vm4 = {0}; vm4.chunk = &c4;
+    /* push "hello" + " world" → concat → show */
+    int is1 = chunk_add_str(&c4, "hello");
+    int is2 = chunk_add_str(&c4, " world");
+    chunk_write(&c4, OP_PUSH_STR); chunk_write(&c4, is1);
+    chunk_write(&c4, OP_PUSH_STR); chunk_write(&c4, is2);
+    chunk_write(&c4, OP_CONCAT);
+    chunk_write(&c4, OP_SHOW);
+    chunk_write(&c4, OP_HALT);
+    printf("heap string test (expect hello world): ");
+    run(&vm4);
+
+
     return 0;
 }
