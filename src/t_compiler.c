@@ -31,6 +31,39 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
     chunk_write(c, idx);
 }
 
+
+/* Parse "A op B >> target" và compile */
+void compile_line(Chunk *chunk, const char *line) {
+    char buf[256];
+    strncpy(buf, line, 255);
+    
+    /* Split on >> */
+    char *arrow = strstr(buf, ">>");
+    if(!arrow) return;
+    *arrow = 0;
+    char *target = arrow + 2;
+    while(*target == ' ') target++;
+    
+    /* Trim expr */
+    char *expr = buf;
+    while(*expr == ' ') expr++;
+    int elen = strlen(expr);
+    while(elen > 0 && expr[elen-1] == ' ') expr[--elen] = 0;
+    
+    /* Parse expr: A op B */
+    char a[64], b[64];
+    char op = '+';
+    if(sscanf(expr, "%s %c %s", a, &op, b) == 3) {
+        compile_assign(chunk, a, op, b, target);
+    } else {
+        /* Simple: just a value */
+        compile_expr(chunk, expr);
+        int idx = chunk_add_str(chunk, target);
+        chunk_write(chunk, OP_STORE);
+        chunk_write(chunk, idx);
+    }
+}
+
 int main() {
     Chunk chunk = {0};
     VM vm = {0};
@@ -44,5 +77,15 @@ int main() {
 
     printf("Compiler test (expect 7): ");
     run(&vm);
+
+    /* Test compile_line */
+    Chunk c2 = {0}; VM vm2 = {0}; vm2.chunk = &c2;
+    compile_line(&c2, "10 + 5 >> result");
+    int ir = chunk_add_str(&c2, "result");
+    chunk_write(&c2, OP_LOAD); chunk_write(&c2, ir);
+    chunk_write(&c2, OP_SHOW);
+    chunk_write(&c2, OP_HALT);
+    printf("compile_line test (expect 15): ");
+    run(&vm2);
     return 0;
 }
