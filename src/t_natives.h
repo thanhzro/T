@@ -25,6 +25,26 @@ double nat_isArray(double*a,int n){return 0;}
 double nat_charCode(double*a,int n){return a[0];}
 
 
+
+double nat_clamp(double*a,int n){
+    double v=a[0],lo=a[1],hi=a[2];
+    if(v<lo)return lo; if(v>hi)return hi; return v;
+}
+double nat_between(double*a,int n){
+    return a[0]>=a[1]&&a[0]<=a[2]?1:0;
+}
+double nat_sign(double*a,int n){
+    return a[0]>0?1:(a[0]<0?-1:0);
+}
+double nat_lerp(double*a,int n){
+    return a[0]+(a[1]-a[0])*a[2];
+}
+double nat_safe_div(double*a,int n){
+    return a[1]==0?0:a[0]/a[1];
+}
+double nat_is_even(double*a,int n){return fmod(a[0],2)==0?1:0;}
+double nat_is_odd(double*a,int n){return fmod(a[0],2)!=0?1:0;}
+
 double nat_max2(double*a,int n){return a[0]>a[1]?a[0]:a[1];}
 double nat_min2(double*a,int n){return a[0]<a[1]?a[0]:a[1];}
 double nat_mod(double*a,int n){return fmod(a[0],a[1]);}
@@ -191,6 +211,11 @@ void register_all_natives(VM *vm) {
     REG2("min2",   nat_min2,   "a","b")
     REG2("fmod",   nat_mod,    "a","b")
     REG1("pi",     nat_pi,     "x")
+    REG2("safe_div", nat_safe_div, "a","b")
+    REG2("is_even",  nat_is_even,  "n","x")
+    REG2("is_odd",   nat_is_odd,   "n","x")
+    REG2("between",  nat_between,  "val","lo")
+    REG2("lerp",     nat_lerp,     "a","b")
     REG_S1("upper", nat_upper, "str")
     REG_S1("lower", nat_lower, "str")
     REG_S1("trim",  nat_trim,  "str")
