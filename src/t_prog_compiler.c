@@ -52,6 +52,48 @@ void compile_line(Chunk *chunk, const char *line) {
         return;
     }
 
+    /* func(args) ~> target */
+    char *tilde = strstr(p, "~>");
+    if(tilde && !strstr(p, "Gate") && strchr(p, '(')) {
+        char *tp = tilde;
+        *tp = 0;
+        char *target = tp + 2;
+        while(*target == ' ') target++;
+        /* parse func name and args */
+        char *lp = strchr(p, '(');
+        char *rp = strrchr(p, ')');
+        if(lp && rp) {
+            char fname[64];
+            strncpy(fname, p, lp-p);
+            fname[lp-p] = 0;
+            /* trim fname */
+            char *fn = fname;
+            while(*fn == ' ') fn++;
+            /* parse args: key=val pairs */
+            char args[128];
+            strncpy(args, lp+1, rp-lp-1);
+            args[rp-lp-1] = 0;
+            /* simple: find value after = */
+            char *eq = strchr(args, '=');
+            if(eq) {
+                char *val = eq+1;
+                while(*val == ' ') val++;
+                /* push arg value */
+                compile_expr(chunk, val);
+                /* CALL fname 1 */
+                int ifn = chunk_add_str(chunk, fn);
+                chunk_write(chunk, OP_CALL);
+                chunk_write(chunk, ifn);
+                chunk_write(chunk, 1);
+                /* STORE target */
+                int it = chunk_add_str(chunk, target);
+                chunk_write(chunk, OP_STORE);
+                chunk_write(chunk, it);
+            }
+        }
+        return;
+    }
+
     /* Gate x (op val) >> target */
     if(strncmp(p, "Gate ", 5) == 0) {
         char var[64], op_str[8], val_str[64], target[64];
@@ -196,6 +238,34 @@ int main() {
 
     /* Test file runner */
     printf("File runner test:\n");
-    run_file("_bc_test.t");
+    /* pre-register test function "double(val)" */
+    extern int run_file_with_setup(const char *path, VM *setup_vm);
+    
+    /* inline test with registered func */
+    {
+        Chunk fn={0};
+        int iv=chunk_add_str(&fn,"val");
+        int i2=chunk_add_num(&fn,2);
+        chunk_write(&fn,OP_LOAD); chunk_write(&fn,iv);
+        chunk_write(&fn,OP_PUSH_NUM); chunk_write(&fn,i2);
+        chunk_write(&fn,OP_MUL);
+        chunk_write(&fn,OP_RETURN);
+
+        Chunk main={0};
+        VM *vm=calloc(1,sizeof(VM)); vm->chunk=&main;
+        TFunc *f=&vm->funcs[vm->func_count++];
+        strcpy(f->name,"double"); f->chunk=fn;
+        strcpy(f->params[0],"val"); f->param_count=1;
+
+        const char *prog[]={
+            "3 + 4 >> x",
+            "double(val=x) ~> result",
+            "show result"
+        };
+        for(int i=0;i<3;i++) compile_line(&main,prog[i]);
+        chunk_write(&main,OP_HALT);
+        printf("~> call test (expect 14): ");
+        run(vm); free(vm);
+    }
     return 0;
 }
