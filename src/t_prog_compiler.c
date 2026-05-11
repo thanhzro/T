@@ -7,6 +7,16 @@
 #include <math.h>
 
 /* Forward declarations */
+
+static char* find_arrow(char *s) {
+    int in_str = 0;
+    for(int i=0; s[i]; i++) {
+        if(s[i]=='"') in_str=!in_str;
+        if(!in_str && s[i]=='>' && s[i+1]=='>') return s+i;
+    }
+    return NULL;
+}
+
 void compile_expr(Chunk *c, const char *expr) {
     if(expr[0] == 34) {
         char buf[256]; strncpy(buf, expr+1, 255);
@@ -150,7 +160,7 @@ void compile_line(Chunk *chunk, const char *line) {
     }
 
     /* A op B >> target */
-    char *arrow = strstr(buf, ">>");
+    char *arrow = find_arrow(buf);
     if(arrow) {
         *arrow=0;
         char *target=arrow+2; while(*target==' ')target++;
