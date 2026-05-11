@@ -223,6 +223,20 @@ double nat_write_mix(BVal *stack, int argc){
     return wr==0?1:0;
 }
 
+
+char* nat_exec_s(char**a,int n){
+    if(n<1||!a[0]) return strdup("");
+    FILE *p=popen(a[0],"r");
+    if(!p) return strdup("");
+    char *buf=(char*)malloc(8192);
+    int total=0,rd;
+    while((rd=fread(buf+total,1,8191-total,p))>0) total+=rd;
+    buf[total]=0; pclose(p);
+    while(total>0&&(buf[total-1]==10||buf[total-1]==13)) buf[--total]=0;
+    char *result=strdup(buf); free(buf);
+    return result;
+}
+
 /* ===== REGISTER ALL NATIVES ===== */
 void register_all_natives(VM *vm) {
     TFunc *f;
@@ -271,6 +285,7 @@ void register_all_natives(VM *vm) {
     REG_S1("lower", nat_lower, "str")
     REG_S1("trim",  nat_trim,  "str")
     REG_S2("concat",nat_concat,"a","b")
+    REG_S1("exec_bc",nat_exec_s,"cmd")
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
     f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
