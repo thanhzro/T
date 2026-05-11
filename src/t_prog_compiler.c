@@ -76,6 +76,40 @@ void compile_line(Chunk *chunk, const char *line) {
     }
 }
 
+
+void compile_program(Chunk *c, const char *lines[], int n);
+
+/* Read and compile a .t file */
+int run_file(const char *path) {
+    FILE *f = fopen(path, "r");
+    if(!f){ fprintf(stderr, "Cannot open %s\n", path); return 1; }
+    
+    char *lines[1024];
+    int count = 0;
+    char buf[256];
+    
+    while(fgets(buf, sizeof(buf), f) && count < 1024) {
+        /* strip newline */
+        int len = strlen(buf);
+        if(len > 0 && buf[len-1] == '\n') buf[len-1] = 0;
+        /* skip T- T0 T+ section markers */
+        if(buf[0] == '[') continue;
+        /* skip import */
+        if(strncmp(buf, "import", 6) == 0) continue;
+        lines[count++] = strdup(buf);
+    }
+    fclose(f);
+    
+    Chunk chunk = {0};
+    VM *vm = calloc(1, sizeof(VM));
+    vm->chunk = &chunk;
+    compile_program(&chunk, (const char**)lines, count);
+    run(vm);
+    free(vm);
+    for(int i=0;i<count;i++) free(lines[i]);
+    return 0;
+}
+
 /* Compile full T program from lines array */
 void compile_program(Chunk *c, const char *lines[], int n) {
     for(int i=0;i<n;i++)
@@ -113,5 +147,9 @@ int main() {
     compile_program(&c2, prog2, 4);
     printf("Multi-show test (expect 25, 26):\n");
     run(vm2); free(vm2);
+
+    /* Test file runner */
+    printf("File runner test:\n");
+    run_file("_bc_test.t");
     return 0;
 }
