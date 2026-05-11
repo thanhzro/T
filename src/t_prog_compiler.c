@@ -177,15 +177,39 @@ int run_file(const char *path) {
     int count = 0;
     char buf[256];
     
+    int section=0; /* 0=T-, 1=T0, 2=T+ */
     while(fgets(buf, sizeof(buf), f) && count < 1024) {
-        /* strip newline */
         int len = strlen(buf);
         if(len > 0 && buf[len-1] == '\n') buf[len-1] = 0;
-        /* skip T- T0 T+ section markers */
-        if(buf[0] == '[') continue;
-        /* skip import */
-        if(strncmp(buf, "import", 6) == 0) continue;
-        lines[count++] = strdup(buf);
+        if(strncmp(buf,"[T-]",4)==0){section=0;continue;}
+        if(strncmp(buf,"[T0]",4)==0){section=1;continue;}
+        if(strncmp(buf,"[T+]",4)==0){section=2;continue;}
+        if(strncmp(buf,"import",6)==0) continue;
+        if(buf[0]==0||buf[0]=='#') continue;
+        /* T+: show shall(X) → show X */
+        if(section==2){
+            if(strncmp(buf,"show shall(",11)==0){
+                /* parse multi-arg: show shall(O1, O2, O3) */
+                char inner[512]; strncpy(inner,buf+11,511);
+                int l=strlen(inner); if(l>0&&inner[l-1]==')')inner[l-1]=0;
+                /* split by comma and emit show for each */
+                char *tok=strtok(inner,",");
+                while(tok){
+                    while(*tok==' ')tok++;
+                    int tl=strlen(tok);
+                    while(tl>0&&tok[tl-1]==' ')tok[--tl]=0;
+                    char line[256]; snprintf(line,255,"show %s",tok);
+                    lines[count++]=strdup(line);
+                    tok=strtok(NULL,",");
+                }
+            } else if(strncmp(buf,"show ",5)==0){
+                lines[count++]=strdup(buf);
+            }
+            continue;
+        }
+        /* T0: processing only */
+        if(section==1) lines[count++]=strdup(buf);
+        /* T-: skip for now */
     }
     fclose(f);
     
