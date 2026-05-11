@@ -136,9 +136,18 @@ void compile_line(Chunk *chunk, const char *line) {
         int elen=strlen(expr);
         while(elen>0&&expr[elen-1]==' ')expr[--elen]=0;
         char a[64],b[64]; char op='+';
-        /* String literal assignment */
+        /* String literal - check for concat first */
         if(expr[0]==34) {
-            compile_expr(chunk,expr);
+            /* Find closing quote */
+            char *cq=strchr(expr+1,34);
+            if(cq && strncmp(cq+1," + ",3)==0){
+                /* "string" + var pattern */
+                compile_expr(chunk,expr);
+                compile_expr(chunk,cq+4);
+                chunk_write(chunk,OP_CONCAT);
+            } else {
+                compile_expr(chunk,expr);
+            }
             int it3=chunk_add_str(chunk,target);
             chunk_write(chunk,OP_STORE); chunk_write(chunk,it3);
             return;

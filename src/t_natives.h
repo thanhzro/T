@@ -237,6 +237,17 @@ char* nat_exec_s(char**a,int n){
     return result;
 }
 
+
+char* nat_toString_s(BVal *stack, int argc){
+    if(argc<1) return strdup("0");
+    if(stack[0].type==VT_STR) return strdup(stack[0].str?stack[0].str:"");
+    char buf[64];
+    double n=stack[0].num;
+    if(n==(long long)n) snprintf(buf,63,"%lld",(long long)n);
+    else snprintf(buf,63,"%g",n);
+    return strdup(buf);
+}
+
 /* ===== REGISTER ALL NATIVES ===== */
 void register_all_natives(VM *vm) {
     TFunc *f;
@@ -286,6 +297,11 @@ void register_all_natives(VM *vm) {
     REG_S1("trim",  nat_trim,  "str")
     REG_S2("concat",nat_concat,"a","b")
     REG_S1("exec_bc",nat_exec_s,"cmd")
+    /* toString - special: returns string from any type */
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"toString"); f->is_native=2; f->native_s=NULL;
+    f->param_count=1; strcpy(f->params[0],"val");
+    f->native_m=(NativeMixFn)nat_toString_s;  /* reuse field */
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
     f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
