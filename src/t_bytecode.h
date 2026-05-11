@@ -13,6 +13,7 @@ typedef enum {
     OP_JUMP, OP_JUMP_IF_0, OP_JUMP_IF_1,
     OP_CALL, OP_RETURN,
     OP_CONCAT, OP_TOSTR,
+    OP_ITER_START, OP_ITER_NEXT, OP_ITER_END,
     OP_SHOW, OP_HALT
 } OpCode;
 
@@ -57,6 +58,9 @@ typedef struct {
 } Frame;
 
 void frame_set(Frame*f,const char*k,BVal v){
+    for(int i=0;i<f->count;i++){
+        if(strcmp(f->keys[i],k)==0){f->vals[i]=v;return;}
+    }
     strcpy(f->keys[f->count],k);f->vals[f->count++]=v;
 }
 void frame_get(Frame*f,const char*k,BVal*out){
