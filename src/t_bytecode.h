@@ -64,19 +64,28 @@ typedef struct {
     int count;
 } Frame;
 
-void frame_set(Frame*f,const char*k,BVal v){
+void frame_set(Frame*f,const char*k,BVal*v){
     for(int i=0;i<f->count;i++){
-        if(strcmp(f->keys[i],k)==0){f->vals[i]=v;return;}
+        if(strcmp(f->keys[i],k)==0){
+            f->vals[i].type=v->type; f->vals[i].num=v->num;
+            f->vals[i].str=v->str; f->vals[i].arr=v->arr;
+            f->vals[i].arr_len=v->arr_len; return;
+        }
     }
-    strcpy(f->keys[f->count],k);f->vals[f->count++]=v;
+    strcpy(f->keys[f->count],k);
+    f->vals[f->count].type=v->type; f->vals[f->count].num=v->num;
+    f->vals[f->count].str=v->str; f->vals[f->count].arr=v->arr;
+    f->vals[f->count].arr_len=v->arr_len; f->count++;
 }
 void frame_get(Frame*f,const char*k,BVal*out){
-    out->type=VT_NUM; out->num=0; out->str=NULL;
+    out->type=VT_NUM; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
     for(int i=0;i<f->count;i++){
         if(strcmp(f->keys[i],k)==0){
             out->type=f->vals[i].type;
             out->num=f->vals[i].num;
             out->str=f->vals[i].str;
+            out->arr=f->vals[i].arr;
+            out->arr_len=f->vals[i].arr_len;
             return;
         }
     }
@@ -116,7 +125,14 @@ typedef struct {
     int iter_top;
 } VM;
 
-void push(VM*vm,BVal v){vm->stack[vm->top++]=v;}
+void push(VM*vm,BVal v){
+    vm->stack[vm->top].type=v.type;
+    vm->stack[vm->top].num=v.num;
+    vm->stack[vm->top].str=v.str;
+    vm->stack[vm->top].arr=v.arr;
+    vm->stack[vm->top].arr_len=v.arr_len;
+    vm->top++;
+}
 BVal pop(VM*vm){return vm->stack[--vm->top];}
 
 TFunc* vm_find_func(VM*vm,const char*name){
@@ -132,7 +148,7 @@ void run(VM*vm){
             case OP_PUSH_NUM:{int i=vm->chunk->code[vm->ip++];push(vm,make_num(vm->chunk->num_consts[i]));break;}
             case OP_PUSH_STR:{int i=vm->chunk->code[vm->ip++];push(vm,make_str(vm->chunk->str_consts[i]));break;}
             case OP_LOAD:{int i=vm->chunk->code[vm->ip++];BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
-            case OP_STORE:{int i=vm->chunk->code[vm->ip++];vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],vm->stack[vm->top]);break;}
+            case OP_STORE:{int i=vm->chunk->code[vm->ip++];vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
             case OP_ADD:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a+b));break;}
             case OP_SUB:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a-b));break;}
             case OP_MUL:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a*b));break;}
@@ -192,7 +208,7 @@ void run(VM*vm){
                 for(int i=argc-1;i>=0;i--){
                     vm->top--;
                     if(i<fn->param_count)
-                        frame_set(&vm->frame,fn->params[i],vm->stack[vm->top]);
+                        frame_set(&vm->frame,fn->params[i],&vm->stack[vm->top]);
                 }
                 vm->chunk=&fn->chunk;vm->ip=0;
                 break;
@@ -212,7 +228,7 @@ void run(VM*vm){
                 vm->iter_count[vm->iter_top]=n;
                 vm->iter_idx[vm->iter_top]=0;
                 vm->iter_top++;
-                frame_set(&vm->frame,vm->chunk->str_consts[inow],make_num(0));
+                { BVal _tmp=make_num(0); frame_set(&vm->frame,vm->chunk->str_consts[inow],&_tmp); }
                 break;
             }
             case OP_ITER_NEXT:{
@@ -223,31 +239,45 @@ void run(VM*vm){
                 if(vm->iter_idx[top]>=vm->iter_count[top]){
                     vm->iter_top--;
                 }else{
-                    frame_set(&vm->frame,vm->chunk->str_consts[inow],make_num(vm->iter_idx[top]));
+                    { BVal _ftmp=make_num(vm->iter_idx[top]); frame_set(&vm->frame,vm->chunk->str_consts[inow],&_ftmp); };
                     vm->ip=body;
                 }
                 break;
             }
             case OP_PUSH_ARR:{
-                /* pop n items and wrap as array */
                 int n=vm->chunk->code[vm->ip++];
-                BVal arr=make_arr(n);
+                BVal *items=(BVal*)calloc(n,sizeof(BVal));
                 for(int i=n-1;i>=0;i--){
                     vm->top--;
-                    arr.arr[i].type=vm->stack[vm->top].type;
-                    arr.arr[i].num=vm->stack[vm->top].num;
-                    arr.arr[i].str=vm->stack[vm->top].str?strdup(vm->stack[vm->top].str):NULL;
-                    arr.arr[i].arr=NULL; arr.arr[i].arr_len=0;
+                    items[i].type=vm->stack[vm->top].type;
+                    items[i].num=vm->stack[vm->top].num;
+                    items[i].str=vm->stack[vm->top].str?strdup(vm->stack[vm->top].str):NULL;
+                    items[i].arr=NULL; items[i].arr_len=0;
                 }
                 vm->stack[vm->top].type=VT_ARR;
-                vm->stack[vm->top].num=arr.num;
+                vm->stack[vm->top].num=n;
                 vm->stack[vm->top].str=NULL;
-                vm->stack[vm->top].arr=arr.arr;
-                vm->stack[vm->top].arr_len=arr.arr_len;
+                vm->stack[vm->top].arr=items;
+                vm->stack[vm->top].arr_len=n;
                 vm->top++;
                 break;
             }
-            case OP_SHOW:{vm->top--;BVal*v=&vm->stack[vm->top];if(v->type==VT_STR)printf("%s\n",v->str?v->str:"");else printf("%g\n",v->num);break;}
+            case OP_SHOW:{
+                vm->top--;
+                BVal*v=&vm->stack[vm->top];
+                if(v->type==VT_STR) printf("%s\n",v->str?v->str:"");
+                else if(v->type==VT_ARR){
+                    printf("[");
+                    for(int i=0;i<v->arr_len;i++){
+                        if(i>0)printf(", ");
+                        if(v->arr[i].type==VT_STR) printf("%s",v->arr[i].str?v->arr[i].str:"");
+                        else printf("%g",v->arr[i].num);
+                    }
+                    printf("]\n");
+                }
+                else printf("%g\n",v->num);
+                break;
+            }
             case OP_HALT:return;
         }
     }
