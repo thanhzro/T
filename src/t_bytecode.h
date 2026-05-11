@@ -96,6 +96,10 @@ typedef struct {
     Frame frame;
     CallFrame calls[CALL_MAX]; int call_depth;
     TFunc funcs[FUNC_MAX]; int func_count;
+    /* ITER stack */
+    int iter_count[16];
+    int iter_idx[16];
+    int iter_top;
 } VM;
 
 void push(VM*vm,BVal v){vm->stack[vm->top++]=v;}
@@ -144,6 +148,29 @@ void run(VM*vm){
             }
             case OP_CONCAT:{BVal b=pop(vm);BVal a=pop(vm);push(vm,bval_concat(a,b));break;}
             case OP_TOSTR:{BVal a=pop(vm);push(vm,bval_tostr(a));break;}
+            case OP_ITER_START:{
+                BVal arr=pop(vm);
+                int n=(int)arr.num;
+                int inow=vm->chunk->code[vm->ip++];
+                vm->iter_count[vm->iter_top]=n;
+                vm->iter_idx[vm->iter_top]=0;
+                vm->iter_top++;
+                frame_set(&vm->frame,vm->chunk->str_consts[inow],make_num(0));
+                break;
+            }
+            case OP_ITER_NEXT:{
+                int inow=vm->chunk->code[vm->ip++];
+                int body=vm->chunk->code[vm->ip++];
+                int top=vm->iter_top-1;
+                vm->iter_idx[top]++;
+                if(vm->iter_idx[top]>=vm->iter_count[top]){
+                    vm->iter_top--;
+                }else{
+                    frame_set(&vm->frame,vm->chunk->str_consts[inow],make_num(vm->iter_idx[top]));
+                    vm->ip=body;
+                }
+                break;
+            }
             case OP_SHOW:{BVal v=pop(vm);if(v.type==VT_STR)printf("%s\n",v.str?v.str:"");else printf("%g\n",v.num);bval_free(&v);break;}
             case OP_HALT:return;
         }
