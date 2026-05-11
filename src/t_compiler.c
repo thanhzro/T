@@ -64,6 +64,13 @@ void compile_line(Chunk *chunk, const char *line) {
     }
 }
 
+
+/* Compile multiple lines */
+void compile_block(Chunk *chunk, const char *lines[], int n) {
+    for(int i = 0; i < n; i++)
+        compile_line(chunk, lines[i]);
+}
+
 int main() {
     Chunk chunk = {0};
     VM vm = {0};
@@ -87,5 +94,21 @@ int main() {
     chunk_write(&c2, OP_HALT);
     printf("compile_line test (expect 15): ");
     run(&vm2);
+
+    /* Test compile_block: 10+5>>x; x*2>>y; y-3>>result = 27 */
+    Chunk c3 = {0}; VM vm3 = {0}; vm3.chunk = &c3;
+    const char *block[] = {
+        "10 + 5 >> x",
+        "x * 2 >> y",
+        "y - 3 >> result"
+    };
+    compile_block(&c3, block, 3);
+    int ir2 = chunk_add_str(&c3, "result");
+    chunk_write(&c3, OP_LOAD); chunk_write(&c3, ir2);
+    chunk_write(&c3, OP_SHOW);
+    chunk_write(&c3, OP_HALT);
+    printf("compile_block test (expect 27): ");
+    run(&vm3);
+
     return 0;
 }
