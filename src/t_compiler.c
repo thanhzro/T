@@ -123,6 +123,24 @@ int main() {
     printf("heap string test (expect hello world): ");
     run(&vm4);
 
+    /* Test ITER: F([0..4]) now*2 */
+    Chunk c5={0}; VM *vm5=calloc(1,sizeof(VM)); vm5->chunk=&c5;
+    int i5b=chunk_add_num(&c5,5);
+    int i2b=chunk_add_num(&c5,2);
+    int inow=chunk_add_str(&c5,"now");
+    chunk_write(&c5,OP_PUSH_NUM); chunk_write(&c5,i5b);
+    chunk_write(&c5,OP_ITER_START); chunk_write(&c5,inow);
+    int body=c5.count;
+    chunk_write(&c5,OP_LOAD); chunk_write(&c5,inow);
+    chunk_write(&c5,OP_PUSH_NUM); chunk_write(&c5,i2b);
+    chunk_write(&c5,OP_MUL);
+    chunk_write(&c5,OP_SHOW);
+    chunk_write(&c5,OP_ITER_NEXT); chunk_write(&c5,inow); chunk_write(&c5,body);
+    chunk_write(&c5,OP_HALT);
+    printf("ITER test (expect 0,2,4,6,8):\n");
+    run(vm5); free(vm5);
+
+
 
     return 0;
 }
