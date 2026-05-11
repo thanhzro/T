@@ -209,7 +209,12 @@ int run_file(const char *path) {
         }
         /* T0: processing only */
         if(section==1) lines[count++]=strdup(buf);
-        /* T-: skip for now */
+        /* T-: static data - compile assignments only */
+        if(section==0){
+            /* only allow: var = literal or import */
+            if(strstr(buf,">>") || strstr(buf,"~>"))
+                lines[count++]=strdup(buf);
+        }
     }
     fclose(f);
     
