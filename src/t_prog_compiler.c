@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "t_bytecode.h"
+#include "t_natives.h"
+#include <math.h>
 
 /* Forward declarations */
 void compile_expr(Chunk *c, const char *expr);
@@ -54,42 +56,31 @@ void compile_line(Chunk *chunk, const char *line) {
 
     /* func(args) ~> target */
     char *tilde = strstr(p, "~>");
-    if(tilde && !strstr(p, "Gate") && strchr(p, '(')) {
-        char *tp = tilde;
-        *tp = 0;
+    if(tilde && strchr(p, '(')) {
+        char *tp = tilde; *tp = 0;
         char *target = tp + 2;
         while(*target == ' ') target++;
-        /* parse func name and args */
         char *lp = strchr(p, '(');
         char *rp = strrchr(p, ')');
         if(lp && rp) {
-            char fname[64];
-            strncpy(fname, p, lp-p);
-            fname[lp-p] = 0;
-            /* trim fname */
-            char *fn = fname;
-            while(*fn == ' ') fn++;
-            /* parse args: key=val pairs */
-            char args[128];
-            strncpy(args, lp+1, rp-lp-1);
-            args[rp-lp-1] = 0;
-            /* simple: find value after = */
-            char *eq = strchr(args, '=');
-            if(eq) {
-                char *val = eq+1;
-                while(*val == ' ') val++;
-                /* push arg value */
-                compile_expr(chunk, val);
-                /* CALL fname 1 */
-                int ifn = chunk_add_str(chunk, fn);
-                chunk_write(chunk, OP_CALL);
-                chunk_write(chunk, ifn);
-                chunk_write(chunk, 1);
-                /* STORE target */
-                int it = chunk_add_str(chunk, target);
-                chunk_write(chunk, OP_STORE);
-                chunk_write(chunk, it);
+            char fname[64]; strncpy(fname,p,lp-p); fname[lp-p]=0;
+            char *fn=fname; while(*fn==' ')fn++;
+            char args[256]; strncpy(args,lp+1,rp-lp-1); args[rp-lp-1]=0;
+            /* parse multiple key=val, key=val */
+            int argc=0;
+            char *tok=strtok(args,",");
+            while(tok){
+                while(*tok==' ')tok++;
+                char *eq=strchr(tok,'=');
+                if(eq){ char *val=eq+1; while(*val==' ')val++;
+                    compile_expr(chunk,val); argc++;
+                }
+                tok=strtok(NULL,",");
             }
+            int ifn=chunk_add_str(chunk,fn);
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,ifn); chunk_write(chunk,argc);
+            int it=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
         }
         return;
     }
@@ -191,6 +182,7 @@ int run_file(const char *path) {
     Chunk chunk = {0};
     VM *vm = calloc(1, sizeof(VM));
     vm->chunk = &chunk;
+    register_all_natives(vm);
     compile_program(&chunk, (const char**)lines, count);
     run(vm);
     free(vm);
@@ -267,5 +259,7 @@ int main() {
         printf("~> call test (expect 14): ");
         run(vm); free(vm);
     }
+    printf("File _bc_test.t:\n");
+    run_file("_bc_test.t");
     return 0;
 }
