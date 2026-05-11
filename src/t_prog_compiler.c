@@ -12,14 +12,24 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
 void compile_line(Chunk *chunk, const char *line);
 
 void compile_expr(Chunk *c, const char *expr) {
+    /* String literal: "hello" */
+    if(expr[0] == '"') {
+        char buf[256]; strncpy(buf, expr+1, 255);
+        int l=strlen(buf); if(l>0&&buf[l-1]=='"') buf[l-1]=0;
+        int idx=chunk_add_str(c, buf);
+        chunk_write(c, OP_PUSH_STR); chunk_write(c, idx);
+        return;
+    }
+    /* Number */
     char *end;
     double val = strtod(expr, &end);
-    if(end != expr) {
+    if(end != expr && *end == 0) {
         int idx = chunk_add_num(c, val);
         chunk_write(c, OP_PUSH_NUM);
         chunk_write(c, idx);
         return;
     }
+    /* Variable */
     int idx = chunk_add_str(c, expr);
     chunk_write(c, OP_LOAD);
     chunk_write(c, idx);

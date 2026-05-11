@@ -78,12 +78,14 @@ void frame_get(Frame*f,const char*k,BVal*out){
 /* ===== FUNC REGISTRY ===== */
 #define FUNC_MAX 256
 typedef double (*NativeFn)(double *args, int argc);
+typedef char* (*NativeStrFn)(char **sargs, int argc);
 typedef struct TFunc {
     char name[64];
     char params[8][64];
     int param_count;
-    int is_native;
+    int is_native;      /* 0=T func, 1=native num, 2=native str */
     NativeFn native;
+    NativeStrFn native_s;
     Chunk chunk;
 } TFunc;
 
@@ -140,7 +142,7 @@ void run(VM*vm){
                 for(int fi=0;fi<vm->func_count;fi++)
                     if(strcmp(vm->funcs[fi].name,fname)==0){fn=&vm->funcs[fi];break;}
                 if(fn==NULL){fprintf(stderr,"!NO_FUNC(%s)\n",fname);break;}
-                if(fn->is_native){
+                if(fn->is_native==1){
                     int base=vm->top-argc;
                     double dargs[8];
                     for(int i=0;i<argc&&i<8;i++) dargs[i]=vm->stack[base+i].num;
@@ -149,6 +151,19 @@ void run(VM*vm){
                     vm->stack[vm->top].type=VT_NUM;
                     vm->stack[vm->top].num=r;
                     vm->stack[vm->top].str=NULL;
+                    vm->top++;
+                    break;
+                }
+                if(fn->is_native==2){
+                    int base=vm->top-argc;
+                    char *sargs[8];
+                    for(int i=0;i<argc&&i<8;i++)
+                        sargs[i]=vm->stack[base+i].str?vm->stack[base+i].str:"";
+                    vm->top-=argc;
+                    char *r=fn->native_s(sargs,argc);
+                    vm->stack[vm->top].type=VT_STR;
+                    vm->stack[vm->top].num=0;
+                    vm->stack[vm->top].str=r?strdup(r):NULL;
                     vm->top++;
                     break;
                 }

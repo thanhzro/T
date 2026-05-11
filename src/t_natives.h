@@ -30,9 +30,46 @@ double nat_min2(double*a,int n){return a[0]<a[1]?a[0]:a[1];}
 double nat_mod(double*a,int n){return fmod(a[0],a[1]);}
 double nat_pi(double*a,int n){return 3.14159265358979323846;}
 
+#include <ctype.h>
+
+/* String natives */
+char* nat_upper(char**a,int n){
+    char *s=a[0]; int len=strlen(s);
+    char *r=malloc(len+1);
+    for(int i=0;i<=len;i++) r[i]=toupper((unsigned char)s[i]);
+    return r;
+}
+char* nat_lower(char**a,int n){
+    char *s=a[0]; int len=strlen(s);
+    char *r=malloc(len+1);
+    for(int i=0;i<=len;i++) r[i]=tolower((unsigned char)s[i]);
+    return r;
+}
+char* nat_trim(char**a,int n){
+    char *s=a[0];
+    while(*s==' '||*s=='\t'||*s=='\n') s++;
+    char *r=strdup(s);
+    int l=strlen(r);
+    while(l>0&&(r[l-1]==' '||r[l-1]=='\t'||r[l-1]=='\n')) r[--l]=0;
+    return r;
+}
+char* nat_concat(char**a,int n){
+    char buf[4096];
+    snprintf(buf,sizeof(buf),"%s%s",a[0],a[1]);
+    return strdup(buf);
+}
+
 /* ===== REGISTER ALL NATIVES ===== */
 void register_all_natives(VM *vm) {
     TFunc *f;
+    #define REG_S1(nm, fn, p0) \
+        f=&vm->funcs[vm->func_count++]; \
+        strcpy(f->name,nm); f->is_native=2; f->native_s=fn; \
+        f->param_count=1; strcpy(f->params[0],p0);
+    #define REG_S2(nm, fn, p0, p1) \
+        f=&vm->funcs[vm->func_count++]; \
+        strcpy(f->name,nm); f->is_native=2; f->native_s=fn; \
+        f->param_count=2; strcpy(f->params[0],p0); strcpy(f->params[1],p1);
     #define REG1(nm, fn, p0) \
         f=&vm->funcs[vm->func_count++]; \
         strcpy(f->name,nm); f->is_native=1; f->native=fn; \
@@ -59,7 +96,13 @@ void register_all_natives(VM *vm) {
     REG2("min2",   nat_min2,   "a","b")
     REG2("fmod",   nat_mod,    "a","b")
     REG1("pi",     nat_pi,     "x")
+    REG_S1("upper", nat_upper, "str")
+    REG_S1("lower", nat_lower, "str")
+    REG_S1("trim",  nat_trim,  "str")
+    REG_S2("concat",nat_concat,"a","b")
 
     #undef REG1
     #undef REG2
+    #undef REG_S1
+    #undef REG_S2
 }
