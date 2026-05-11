@@ -97,11 +97,20 @@ void run(VM *vm) {
             case OP_DIV: { BVal b=pop(vm); BVal a=pop(vm); push(vm,make_num(a.num/b.num)); break; }
             case OP_GT:  { BVal b=pop(vm); BVal a=pop(vm); push(vm,make_num(a.num>b.num?1:0)); break; }
             case OP_LT:  { BVal b=pop(vm); BVal a=pop(vm); push(vm,make_num(a.num<b.num?1:0)); break; }
-            case OP_EQ:  { BVal b=pop(vm); BVal a=pop(vm); push(vm,make_num(a.num==b.num?1:0)); break; }
+            case OP_EQ: {
+    vm->top--;
+    double bv=vm->stack[vm->top].num;
+    vm->top--;
+    double av=vm->stack[vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(av==bv)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->top++;
+    break; }
             case OP_JUMP_IF_0: {
                 int offset = vm->chunk->code[vm->ip++];
-                BVal v = pop(vm);
-                if(v.num == 0) vm->ip += offset;
+                vm->top--;
+                if(vm->stack[vm->top].num == 0) vm->ip += offset;
                 break;
             }
             case OP_JUMP: { int offset = vm->chunk->code[vm->ip++]; vm->ip += offset; break; }
