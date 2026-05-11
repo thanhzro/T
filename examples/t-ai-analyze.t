@@ -2,36 +2,30 @@
 import "lib/basic/std.t"
 import "lib/intermediate/string2.t"
 
-func analyze_func(code) {
-    past(code) ~> C
-    contains(str=C, sub="Gate") ~> has_gate
-    contains(str=C, sub="loop") ~> has_loop
-    contains(str=C, sub="exec") ~> has_exec
-    contains(str=C, sub="past") ~> has_past
-    contains(str=C, sub=">> out") ~> has_return
-    str_count(str=C, sub="Gate") ~> gate_count
-    str_count(str=C, sub="F(") ~> f_count
-    1 - has_return >> no_return
-    has_loop * (1 - has_gate) >> inf_loop_risk
-    [] >> issues
-    push(arr=issues, val="ok") ~> issues
-    push(arr=issues, val="WARN: no return") ~> issues
-    get(arr=issues, idx=no_return) ~> ret_warn
-    [] >> loop_warn
-    push(arr=loop_warn, val="ok") ~> loop_warn
-    push(arr=loop_warn, val="WARN: loop no gate") ~> loop_warn
-    get(arr=loop_warn, idx=inf_loop_risk) ~> lw
-    [] >> exec_warn
-    push(arr=exec_warn, val="ok") ~> exec_warn
-    push(arr=exec_warn, val="INFO: uses exec") ~> exec_warn
-    get(arr=exec_warn, idx=has_exec) ~> ew
-    ret_warn + " | " + lw + " | " + ew >> out
+func check_line(line) {
+    past(line) ~> L
+    contains(str=L, sub="BVal") ~> has_bval
+    contains(str=L, sub="pop(vm)") ~> has_pop
+    contains(str=L, sub="iter_arr") ~> has_iter
+    contains(str=L, sub="->arr") ~> has_arr
+    contains(str=L, sub="/*") ~> is_comment
+    1 - is_comment >> not_comment
+    has_bval * has_pop * not_comment >> risk1
+    has_iter * has_arr * not_comment >> risk2
+    risk1 + risk2 >> total
+    clamp(val=total, lo=0, hi=1) ~> has_risk
+    "WARN: " + L >> warn_line
+    [] >> opts
+    push(arr=opts, val="OK") ~> opts
+    push(arr=opts, val=warn_line) ~> opts
+    get(arr=opts, idx=has_risk) ~> out
 }
 
 [T0]
-analyze_func(code="func f(x) { past(x) ~> V; V * 2 >> out }") ~> O1
-analyze_func(code="func f(x) { loop { 1 >> x } }") ~> O2
-analyze_func(code="func f(x) { exec(cmd=x) ~> out }") ~> O3
+check_line(line="/* BVal comment */") ~> O1
+check_line(line="BVal *v = &stack[top];") ~> O2
+check_line(line="BVal v = pop(vm);") ~> O3
+check_line(line="vm->iter_arr[top]->arr = NULL;") ~> O4
 
 [T+]
-show shall(O1, O2, O3)
+show shall(O1, O2, O3, O4)
