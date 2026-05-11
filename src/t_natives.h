@@ -32,6 +32,54 @@ double nat_pi(double*a,int n){return 3.14159265358979323846;}
 
 #include <ctype.h>
 
+char* nat_str_len(char**a,int n){
+    char buf[32]; snprintf(buf,31,"%d",(int)strlen(a[0])); return strdup(buf);
+}
+double nat_len_n(double*a,int n){return a[0];}
+
+char* nat_reverse(char**a,int n){
+    char *s=a[0]; int l=strlen(s);
+    char *r=malloc(l+1); r[l]=0;
+    for(int i=0;i<l;i++) r[i]=s[l-1-i];
+    return r;
+}
+char* nat_substr(char**a,int n){
+    /* a[0]=str, numeric from/to passed as str */
+    return strdup(a[0]);
+}
+double nat_contains(double*a,int n){return a[0];}
+char* nat_nat_replace(char**a,int n){
+    char *s=a[0],*f=a[1],*r=a[2];
+    int sl=strlen(s),fl=strlen(f),rl=strlen(r);
+    char *buf=malloc(sl*2+256);
+    char *p=buf; const char *cur=s;
+    while((cur=strstr(cur,f))){
+        int pre=cur-s-(p-buf-(p-buf));
+        /* simple version */
+        break;
+    }
+    free(buf);
+    /* Simple replace first occurrence */
+    char *found=strstr(s,f);
+    if(!found) return strdup(s);
+    int pre=found-s;
+    char *res=malloc(pre+rl+(sl-pre-fl)+1);
+    strncpy(res,s,pre);
+    strcpy(res+pre,r);
+    strcpy(res+pre+rl,found+fl);
+    return res;
+}
+char* nat_split_first(char**a,int n){
+    /* Return part before separator */
+    char *s=a[0],*sep=a[1];
+    char *found=strstr(s,sep);
+    if(!found) return strdup(s);
+    int l=found-s;
+    char *r=malloc(l+1); strncpy(r,s,l); r[l]=0;
+    return r;
+}
+
+
 /* String natives */
 char* nat_upper(char**a,int n){
     char *s=a[0]; int len=strlen(s);
@@ -100,6 +148,9 @@ void register_all_natives(VM *vm) {
     REG_S1("lower", nat_lower, "str")
     REG_S1("trim",  nat_trim,  "str")
     REG_S2("concat",nat_concat,"a","b")
+    REG_S1("reverse", nat_reverse, "str")
+    REG_S2("replace_first", nat_nat_replace, "str","from")
+    REG_S2("split_first", nat_split_first, "str","sep")
 
     #undef REG1
     #undef REG2
