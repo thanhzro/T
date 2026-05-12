@@ -18,3 +18,11 @@ run "clamp" "val=15, lo=0, hi=10" ""
 bash _mk_test.sh "upper" "lib/basic/string.t" "str=hello" "" 2>/dev/null || true
 bash _mk_test.sh "lower" "lib/basic/string.t" "str=HELLO" "" 2>/dev/null || true  
 bash _mk_test.sh "trim" "lib/basic/string.t" "str=s" "s=\"  hi  \"" 2>/dev/null || true
+bash _mk_test.sh "sort" "lib/basic/array.t" "arr=nums" "nums=[3,1,4,1,5]"
+bash _mk_test.sh "reverse" "lib/basic/array.t" "arr=nums" "nums=[1,2,3]"
+bash _mk_test.sh "first" "lib/basic/array.t" "arr=nums" "nums=[5,3,1]"
+bash _mk_test.sh "last" "lib/basic/array.t" "arr=nums" "nums=[5,3,1]"
+bash _mk_test.sh "push" "lib/basic/array.t" "arr=nums, val=9" "nums=[1,2,3]"
+bash _mk_test.sh "len" "lib/basic/std.t" "val=nums" "nums=[1,2,3]"
+echo "================================"
+echo "Done."

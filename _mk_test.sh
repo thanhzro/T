@@ -14,6 +14,7 @@ show shall(r)
 TEND
 REF=$(./t _tmp.t 2>/dev/null)
 BC=$(./t_bc _tmp.t 2>/dev/null)
+echo -n "Testing $FUNC... "
 if [ "$REF" = "$BC" ]; then
     echo "PASS $FUNC"
 elif [ -z "$REF" ] && [ -z "$BC" ]; then
