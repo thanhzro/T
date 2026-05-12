@@ -23,3 +23,9 @@ loop construct: not in t_bc - replace with range(n=N) + F() loop workaround
 gcd/lcm: loop-based implementation fails in t_bc - implement as native C instead
 slice_arr/flatten/concat: missing natives - port from t_vm.c or implement new
 F() write-back: OP_ITER_NEXT must write now back to source array for mutate pattern
+---learning---
+scan: 
+mismatch: pow output differs t_bc vs AST - check lib/basic/math.t:29:func pow(base, exp) {
+mismatch: upper output differs t_bc vs AST - check lib/basic/string.t:4:func upper(str) {
+mismatch: lower output differs t_bc vs AST - check lib/basic/string.t:17:func lower(str) {
+mismatch: trim output differs t_bc vs AST - check lib/basic/string.t:69:func trim(str) {
