@@ -16,6 +16,8 @@ REF=$(./t _tmp.t 2>/dev/null)
 BC=$(./t_bc _tmp.t 2>/dev/null)
 if [ "$REF" = "$BC" ]; then
     echo "PASS $FUNC"
+elif [ -z "$REF" ] && [ -z "$BC" ]; then
+    echo "SKIP $FUNC (both empty)"
 elif [ -z "$REF" ]; then
     LINE=$(grep -n "func $FUNC" lib/basic/*.t lib/intermediate/*.t 2>/dev/null | head -1)
     echo "FAIL $FUNC → AST bug at: $LINE"
