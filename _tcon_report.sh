@@ -9,13 +9,15 @@ echo "[2/4] Unit tests..."
 UNITS=$(python3 check_runtime.py 2>&1 | tail -1)
 echo "     $UNITS"
 
-echo "[3/4] Integration tests..."
+echo "[3/4] Integration tests (4/4)..."
 R1=$(bash _run_test.sh tests/accumulator.t | tr '\n' ' ')
 R2=$(bash _run_test.sh tests/sumavg.t | tr '\n' ' ')
 R3=$(bash _run_test.sh tests/basic.t | tr '\n' ' ')
+R4=$(bash _run_test.sh tests/filter.t | tr '\n' ' ')
 echo "     accumulator: $R1"
 echo "     sumavg:      $R2"
 echo "     basic:       $R3"
+echo "     filter:      $R4"
 
 echo "[4/4] Function tests..."
 FOUT=$(bash _run_tests.sh 2>/dev/null | tail -1)
