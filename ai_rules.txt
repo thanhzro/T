@@ -14,3 +14,4 @@ range_step: not in t_bc natives - must port from t_vm.c when array funcs fail
 split/join: not in t_bc natives - port needed for string replace to work
 unique: Gate filter not supported in t_bc F() loop - implement as native instead
 inline array literal in func args: strtok splits on comma inside [] - use variable instead
+# T con - T AI name (born 2026-05-12)
