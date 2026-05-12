@@ -15,3 +15,11 @@ split/join: not in t_bc natives - port needed for string replace to work
 unique: Gate filter not supported in t_bc F() loop - implement as native instead
 inline array literal in func args: strtok splits on comma inside [] - use variable instead
 # T con - T AI name (born 2026-05-12)
+F() mutate pattern: now assigned inside loop must save index first (now >> idx) before overwriting now
+OP_MOD: missing from compile_line switch - % operator falls through to wrong handler
+show shall: strtok splits comma in string literals - use quote-aware parser
+nested array display: VT_ARR inside VT_ARR not handled in OP_SHOW - add nested case
+loop construct: not in t_bc - replace with range(n=N) + F() loop workaround
+gcd/lcm: loop-based implementation fails in t_bc - implement as native C instead
+slice_arr/flatten/concat: missing natives - port from t_vm.c or implement new
+F() write-back: OP_ITER_NEXT must write now back to source array for mutate pattern
