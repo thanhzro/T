@@ -1,0 +1,2 @@
+argc=2 s0.type=0 s0.arr_len=0 s1.type=1 s1.str=FAIL
+argc=2 s0.type=2 s0.arr_len=0 s1.type=1 s1.str=PASS
