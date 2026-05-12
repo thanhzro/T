@@ -1,31 +1,23 @@
 [T-]
 import "lib/basic/std.t"
-import "lib/intermediate/string2.t"
 
-func check_line(line) {
-    past(line) ~> L
-    contains(str=L, sub="BVal") ~> has_bval
-    contains(str=L, sub="pop(vm)") ~> has_pop
-    contains(str=L, sub="iter_arr") ~> has_iter
-    contains(str=L, sub="->arr") ~> has_arr
-    contains(str=L, sub="/*") ~> is_comment
-    1 - is_comment >> not_comment
-    has_bval * has_pop * not_comment >> risk1
-    has_iter * has_arr * not_comment >> risk2
-    risk1 + risk2 >> total
-    clamp(val=total, lo=0, hi=1) ~> has_risk
-    "WARN: " + L >> warn_line
-    [] >> opts
-    push(arr=opts, val="OK") ~> opts
-    push(arr=opts, val=warn_line) ~> opts
-    get(arr=opts, idx=has_risk) ~> out
+func check_status(test_out) {
+past(test_out) ~> T
+contains(str=T, sub="FAIL: 0") ~> all_pass
+contains(str=T, sub="FAIL") ~> has_fail
+"STABLE: all tests passing" >> msg_ok
+"UNSTABLE: tests failing - need fix" >> msg_fail
+[] >> opts
+push(arr=opts, val=msg_ok) ~> opts
+push(arr=opts, val=msg_fail) ~> opts
+get(arr=opts, idx=has_fail) ~> out
 }
 
 [T0]
-check_line(line="/* BVal comment */") ~> O1
-check_line(line="BVal *v = &stack[top];") ~> O2
-check_line(line="BVal v = pop(vm);") ~> O3
-check_line(line="vm->iter_arr[top]->arr = NULL;") ~> O4
+exec_bc(cmd="python3 check_runtime.py 2>&1 | tail -3") ~> test_out
+exec_bc(cmd="./t_bc tests/sumavg.t 2>/dev/null | md5sum") ~> sumavg_hash
+exec_bc(cmd="./t tests/sumavg.t 2>/dev/null | md5sum") ~> sumavg_ref
+check_status(test_out=test_out) ~> status
 
 [T+]
-show shall(O1, O2, O3, O4)
+show shall(status, sumavg_hash, sumavg_ref)

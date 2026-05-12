@@ -299,6 +299,18 @@ double nat_get_line(BVal *stack, int argc){
 }
 
 /* ===== REGISTER ALL NATIVES ===== */
+
+void nat_exec_val(BVal *stack, int argc, BVal *out){
+    const char *cmd = argc>0 && stack[0].str ? stack[0].str : "";
+    FILE *fp = popen(cmd, "r");
+    if(!fp){ out->type=VT_STR; out->str=strdup("EXEC_FAIL"); return; }
+    char buf[65536]; buf[0]=0;
+    char line[1024];
+    while(fgets(line,1023,fp)) strncat(buf,line,65535-strlen(buf));
+    pclose(fp);
+    int l=strlen(buf); if(l>0&&buf[l-1]=='\n') buf[l-1]=0;
+    out->type=VT_STR; out->str=strdup(buf);
+}
 void nat_sort_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -416,8 +428,10 @@ void register_all_natives(VM *vm) {
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"reverse_arr");f2->is_native=4;f2->native_v=nat_reverse_arr_val;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
     f=&vm->funcs[vm->func_count++];
