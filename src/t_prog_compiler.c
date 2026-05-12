@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "t_signal.h"
 #include "t_bytecode.h"
 #include "t_natives.h"
 #include <math.h>
@@ -482,6 +483,7 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
 }
 
 int main(int argc, char *argv[]) {
+    register_signals();
     if(argc > 1) {
         run_file(argv[1]);
         return 0;
