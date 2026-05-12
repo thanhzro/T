@@ -56,3 +56,4 @@ push_dbg.txt
 write_count.txt
 call_dbg.txt
 *_dbg.txt
+.env
