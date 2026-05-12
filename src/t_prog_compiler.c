@@ -486,6 +486,7 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             }
             /* i now past closing } */
             compile_f_block(c,arr_var,body,bc);
+            continue;
         } else {
             compile_line(c,lines[i]); i++;
         }
