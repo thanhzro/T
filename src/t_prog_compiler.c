@@ -399,10 +399,28 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
     f->param_count = nparams;
     for(int i=0;i<nparams;i++) strcpy(f->params[i], params[i]);
     f->is_native = 0;
-    /* Compile body into f->chunk */
+    /* Compile body into f->chunk - handle F() blocks */
     memset(&f->chunk, 0, sizeof(Chunk));
-    for(int i=0;i<body_count;i++)
-        compile_line(&f->chunk, body[i]);
+    int bi=0;
+    while(bi<body_count){
+        const char *bl=body[bi];
+        if(strncmp(bl,"F(",2)==0 && strchr(bl,'{')){
+            char fv[64]={0};
+            char *lp2=strchr(bl,'('),*rp2=strchr(bl,')');
+            if(lp2&&rp2){strncpy(fv,lp2+1,rp2-lp2-1);}
+            bi++;
+            const char *fb[64]; int fc=0;
+            while(bi<body_count && body[bi][0]!='}'){
+                if(body[bi][0]!=0) fb[fc++]=body[bi];
+                bi++;
+            }
+            if(bi<body_count) bi++; /* skip } */
+            compile_f_block(&f->chunk,fv,fb,fc);
+        } else {
+            compile_line(&f->chunk, bl);
+            bi++;
+        }
+    }
     /* Add RETURN at end */
     /* Load "out" variable and return */
     int iout = chunk_add_str(&f->chunk, "out");
@@ -431,11 +449,14 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 pt=strtok(NULL,",");
             }
             i++;
-            const char *body[128]; int bc=0;
-            while(i<n && lines[i][0]!='}'){
-                if(lines[i][0]!=0) body[bc++]=lines[i]; i++;
+            const char *body[128]; int bc=0; int bdepth=1;
+            while(i<n&&bdepth>0){
+                if(strchr(lines[i],'{'))bdepth++;
+                if(lines[i][0]=='}')bdepth--;
+                if(bdepth>0&&lines[i][0]!=0)body[bc++]=lines[i];
+                i++;
             }
-            i++;
+            /* i now past closing } */
             compile_func(vm,fname,params,nparams,body,bc);
             continue;
         }
@@ -444,11 +465,14 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             char *lp=strchr(line,'('); char *rp=strchr(line,')');
             if(lp&&rp){strncpy(arr_var,lp+1,rp-lp-1);arr_var[rp-lp-1]=0;}
             i++;
-            const char *body[64]; int bc=0;
-            while(i<n && lines[i][0]!='}'){
-                if(lines[i][0]!=0) body[bc++]=lines[i]; i++;
+            const char *body[64]; int bc=0; int bdepth=1;
+            while(i<n&&bdepth>0){
+                if(strchr(lines[i],'{'))bdepth++;
+                if(lines[i][0]=='}')bdepth--;
+                if(bdepth>0&&lines[i][0]!=0)body[bc++]=lines[i];
+                i++;
             }
-            i++;
+            /* i now past closing } */
             compile_f_block(c,arr_var,body,bc);
         } else {
             compile_line(c,lines[i]); i++;
