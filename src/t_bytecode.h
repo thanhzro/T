@@ -181,9 +181,56 @@ void run(VM*vm){
             case OP_SUB:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a-b));break;}
             case OP_MUL:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a*b));break;}
             case OP_DIV:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?a/b:0));break;}
-            case OP_GT:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a>b?1:0));break;}
-            case OP_LT:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a<b?1:0));break;}
-            case OP_EQ:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a==b?1:0));break;}
+            case OP_GT:{
+    double b=vm->stack[--vm->top].num;
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(a>b)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++;
+    break;}
+case OP_LE:{
+    double b=vm->stack[--vm->top].num;
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(a<=b)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++;
+    break;}
+case OP_GE:{
+    double b=vm->stack[--vm->top].num;
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(a>=b)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++;
+    break;}
+            case OP_LT:{
+    double b=vm->stack[--vm->top].num;
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(a<b)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++;
+    break;}
+            case OP_EQ:{
+    double b=vm->stack[--vm->top].num;
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(a==b)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++;
+    break;}
             case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
             case OP_JUMP:{int off=vm->chunk->code[vm->ip++];vm->ip+=off;break;}
             case OP_CALL:{
