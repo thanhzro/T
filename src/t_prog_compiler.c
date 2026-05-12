@@ -383,6 +383,65 @@ int run_file(const char *path) {
 /* Compile full T program from lines array */
 /* Compile a T function body into a TFunc */
 void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int body_count) {
+    /* Detect Gate filter: body[0] = "Gate now (op val) >> target" */
+    int is_gate_filter = 0;
+    char gate_tgt[64] = {0};
+    char gate_op[8] = {0};
+    double gate_val = 0;
+    const char *_bg=body[0]; while(*_bg==' '||*_bg=='\t')_bg++;
+    if(body_count==1 && strncmp(_bg,"Gate ",5)==0) {
+        const char *p=_bg;
+        char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=strstr(p,">>");
+        if(lp&&rp&&arr) {
+            char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
+            char val_str[64];
+            sscanf(inside,"%s %s",gate_op,val_str);
+            gate_val=atof(val_str);
+            char *tgt=arr+2; while(*tgt==' ')tgt++;
+            strncpy(gate_tgt,tgt,63);
+            /* trim trailing spaces */
+            int gl=strlen(gate_tgt);
+            while(gl>0&&(gate_tgt[gl-1]==' '||gate_tgt[gl-1]=='\n'||gate_tgt[gl-1]=='\r'))gate_tgt[--gl]=0;
+            is_gate_filter=1;
+        }
+    }
+    if(is_gate_filter) {
+        /* Initialize target as empty array */
+        int itgt=chunk_add_str(chunk,gate_tgt);
+        chunk_write(chunk,OP_PUSH_ARR); chunk_write(chunk,0); /* empty array */
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,itgt);
+        /* Load array and start iter */
+        int iarr=chunk_add_str(chunk,arr_var);
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);
+        int inow=chunk_add_str(chunk,"now");
+        chunk_write(chunk,OP_ITER_START); chunk_write(chunk,inow);
+        int body_start=chunk->count;
+        /* Compile condition */
+        int inow2=chunk_add_str(chunk,"now");
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,inow2);
+        int iv2=chunk_add_num(chunk,gate_val);
+        chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+        if(strcmp(gate_op,">")==0)  chunk_write(chunk,OP_GT);
+        else if(strcmp(gate_op,"<")==0)  chunk_write(chunk,OP_LT);
+        else if(strcmp(gate_op,"==")==0) chunk_write(chunk,OP_EQ);
+        else if(strcmp(gate_op,">=")==0) chunk_write(chunk,OP_GE);
+        else if(strcmp(gate_op,"<=")==0) chunk_write(chunk,OP_LE);
+        /* Jump over push if false */
+        chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,9);
+        /* push(arr=target, val=now) */
+        int ipush=chunk_add_str(chunk,"push");
+        int itgt2=chunk_add_str(chunk,gate_tgt);
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,itgt2); /* arr */
+        int inow3=chunk_add_str(chunk,"now");
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,inow3); /* val */
+        chunk_write(chunk,OP_CALL); chunk_write(chunk,ipush); chunk_write(chunk,2);
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,itgt2);
+        /* ITER_NEXT */
+        chunk_write(chunk,OP_ITER_NEXT);
+        chunk_write(chunk,inow);
+        chunk_write(chunk,(uint8_t)body_start);
+        return;
+    }
     int iarr = chunk_add_str(chunk, arr_var);
     chunk_write(chunk, OP_LOAD); chunk_write(chunk, iarr);
     int inow = chunk_add_str(chunk, "now");
