@@ -312,6 +312,21 @@ void nat_sort_val(BVal *stack, int argc, BVal *out){
         }
     out->type=VT_ARR; out->arr=arr2; out->arr_len=n;
 }
+
+void nat_reverse_arr_val(BVal *stack, int argc, BVal *out);
+void nat_reverse_unified(BVal *stack, int argc, BVal *out){
+    if(argc<1){out->type=VT_NUM;out->num=0;return;}
+    if(stack[0].type==VT_ARR){
+        nat_reverse_arr_val(stack,argc,out);
+    } else {
+        /* string reverse */
+        const char *s=stack[0].str?stack[0].str:"";
+        int l=strlen(s);
+        char *r=(char*)malloc(l+1); r[l]=0;
+        for(int i=0;i<l;i++) r[i]=s[l-1-i];
+        out->type=VT_STR; out->str=r;
+    }
+}
 void nat_reverse_arr_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -383,7 +398,7 @@ void register_all_natives(VM *vm) {
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
     f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
-    REG_S1("reverse", nat_reverse, "str")
+    {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_unified;f->param_count=1;strcpy(f->params[0],"arr");}
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
