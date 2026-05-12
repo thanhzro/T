@@ -401,6 +401,53 @@ double nat_max2_mix(BVal *stack, int argc){
     if(argc<2) return 0;
     return stack[0].num > stack[1].num ? stack[0].num : stack[1].num;
 }
+
+
+void nat_concat_val(BVal *stack, int argc, BVal *out){
+    if(argc<2){if(argc==1)*out=stack[0];return;}
+    int n1=stack[0].type==VT_ARR?stack[0].arr_len:0;
+    int n2=stack[1].type==VT_ARR?stack[1].arr_len:0;
+    BVal *arr=(BVal*)calloc(n1+n2,sizeof(BVal));
+    if(n1>0) memcpy(arr,(BVal*)stack[0].arr,n1*sizeof(BVal));
+    if(n2>0) memcpy(arr+n1,(BVal*)stack[1].arr,n2*sizeof(BVal));
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n1+n2;
+}
+void nat_flatten_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
+    /* Count total elements */
+    int total=0;
+    BVal *src=(BVal*)stack[0].arr;
+    for(int i=0;i<stack[0].arr_len;i++){
+        if(src[i].type==VT_ARR) total+=src[i].arr_len;
+        else total++;
+    }
+    BVal *arr=(BVal*)calloc(total,sizeof(BVal));
+    int cnt=0;
+    for(int i=0;i<stack[0].arr_len;i++){
+        if(src[i].type==VT_ARR){
+            BVal *sub=(BVal*)src[i].arr;
+            for(int j=0;j<src[i].arr_len;j++) arr[cnt++]=sub[j];
+        } else arr[cnt++]=src[i];
+    }
+    out->type=VT_ARR; out->arr=arr; out->arr_len=cnt;
+}
+
+double nat_gcd_mix(BVal *stack, int argc){
+    if(argc<2) return 0;
+    long long a=(long long)stack[0].num;
+    long long b=(long long)stack[1].num;
+    while(b){long long t=b;b=a%b;a=t;}
+    return (double)(a<0?-a:a);
+}
+double nat_lcm_mix(BVal *stack, int argc){
+    if(argc<2) return 0;
+    long long a=(long long)stack[0].num;
+    long long b=(long long)stack[1].num;
+    if(!a||!b) return 0;
+    long long g=a; long long tb=b;
+    while(tb){long long t=tb;tb=g%tb;g=t;}
+    return (double)(a/g*b);
+}
 void nat_sort_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -521,6 +568,10 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"gcd");f2->is_native=3;f2->native_m=nat_gcd_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lcm");f2->is_native=3;f2->native_m=nat_lcm_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"concat");f2->is_native=4;f2->native_v=nat_concat_val;f2->param_count=2;strcpy(f2->params[0],"arr1");strcpy(f2->params[1],"arr2");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"flatten");f2->is_native=4;f2->native_v=nat_flatten_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
@@ -531,6 +582,10 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"gcd");f2->is_native=3;f2->native_m=nat_gcd_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lcm");f2->is_native=3;f2->native_m=nat_lcm_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"concat");f2->is_native=4;f2->native_v=nat_concat_val;f2->param_count=2;strcpy(f2->params[0],"arr1");strcpy(f2->params[1],"arr2");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"flatten");f2->is_native=4;f2->native_v=nat_flatten_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}

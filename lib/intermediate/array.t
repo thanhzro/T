@@ -6,9 +6,10 @@ func chunk(arr, n) {
     len(val=A1) ~> L
     range_step(from=0, to=L, step=N) ~> starts
     F(starts) {
-        now + N >> end
+        now >> idx
+        idx + N >> end
         min(a=end, b=L) ~> real_end
-        slice_arr(arr=A1, from=now, to=real_end) ~> now
+        slice_arr(arr=A1, from=idx, to=real_end) ~> now
     }
     starts >> out
 }
@@ -65,8 +66,9 @@ func sliding_window(arr, n) {
     count + 1 >> total
     range(n=total) ~> IDX
     F(IDX) {
-        now + N >> end
-        slice_arr(arr=A1, from=now, to=end) ~> now
+        now >> idx
+        idx + N >> end
+        slice_arr(arr=A1, from=idx, to=end) ~> now
     }
     IDX >> out
 }
@@ -78,7 +80,14 @@ func rotate(arr, n) {
     N % L >> r
     drop(arr=A1, n=r) ~> tail
     take(arr=A1, n=r) ~> head
-    flatten(arr=[tail, head]) ~> out
+    [] >> result
+    F(tail) {
+        push(arr=result, val=now) ~> result
+    }
+    F(head) {
+        push(arr=result, val=now) ~> result
+    }
+    result >> out
 }
 
 func partition(arr, val) {

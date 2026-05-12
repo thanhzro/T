@@ -3,11 +3,11 @@
 func gcd(a, b) {
     past(a) ~> A
     past(b) ~> B
-    loop {
+    range(n=50) ~> iters
+    F(iters) {
         A % B >> r
         B >> A
         r >> B
-        Gate B (== 0) >> done
     }
     A >> out
 }

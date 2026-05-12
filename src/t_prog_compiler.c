@@ -60,6 +60,7 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
         case '-': chunk_write(c,OP_SUB); break;
         case '*': chunk_write(c,OP_MUL); break;
         case '/': chunk_write(c,OP_DIV); break;
+        case '%': chunk_write(c,OP_MOD); break;
     }
     int idx=chunk_add_str(c,target);
     chunk_write(c,OP_STORE); chunk_write(c,idx);
@@ -253,6 +254,7 @@ void compile_line(Chunk *chunk, const char *line) {
                 case '-': chunk_write(chunk,OP_SUB); break;
                 case '*': chunk_write(chunk,OP_MUL); break;
                 case '/': chunk_write(chunk,OP_DIV); break;
+            case '%': chunk_write(chunk,OP_MOD); break;
             }
         } else {
             compile_expr(chunk,expr);

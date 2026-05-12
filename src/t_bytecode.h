@@ -181,6 +181,7 @@ void run(VM*vm){
             case OP_SUB:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a-b));break;}
             case OP_MUL:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a*b));break;}
             case OP_DIV:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?a/b:0));break;}
+            case OP_MOD:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?(long long)a%(long long)b:0));break;}
             case OP_GT:{
     double b=vm->stack[--vm->top].num;
     double a=vm->stack[--vm->top].num;
@@ -359,6 +360,12 @@ case OP_GE:{
                 int inow=vm->chunk->code[vm->ip++];
                 int body=vm->chunk->code[vm->ip++];
                 int top=vm->iter_top-1;
+                /* Write now back to array (F() mutate pattern) */
+                if(_g_iter_is_arr[top] && _g_iter_arr[top]){
+                    BVal _now_val={0};
+                    frame_get(&vm->frame,vm->chunk->str_consts[inow],&_now_val);
+                    ((BVal*)_g_iter_arr[top])[vm->iter_idx[top]]=_now_val;
+                }
                 vm->iter_idx[top]++;
                 if(vm->iter_idx[top]>=vm->iter_count[top]){
                     vm->iter_top--;
@@ -403,6 +410,15 @@ case OP_GE:{
                     for(int i=0;i<v->arr_len;i++){
                         if(i>0)printf(", ");
                         if(v->arr[i].type==VT_STR) printf("%s",v->arr[i].str?v->arr[i].str:"");
+                        else if(v->arr[i].type==VT_ARR){
+                            printf("[");
+                            for(int j=0;j<v->arr[i].arr_len;j++){
+                                if(j>0)printf(", ");
+                                if(v->arr[i].arr[j].type==VT_STR)printf("%s",v->arr[i].arr[j].str?v->arr[i].arr[j].str:"");
+                                else printf("%g",v->arr[i].arr[j].num);
+                            }
+                            printf("]");
+                        }
                         else printf("%g",v->arr[i].num);
                     }
                     printf("]\n");
