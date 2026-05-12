@@ -327,6 +327,58 @@ void nat_range_step_val(BVal *stack, int argc, BVal *out){
     }
     out->type=VT_ARR; out->arr=arr; out->arr_len=count;
 }
+
+void nat_split_val(BVal *stack, int argc, BVal *out){
+    if(argc<2||!stack[0].str||!stack[1].str){out->type=VT_ARR;out->arr_len=0;return;}
+    const char *str=stack[0].str, *sep=stack[1].str;
+    int seplen=strlen(sep);
+    BVal *arr=(BVal*)calloc(strlen(str)+2,sizeof(BVal));
+    int cnt=0;
+    if(seplen==0){arr[cnt].type=VT_STR;arr[cnt].str=strdup(str);cnt++;}
+    else{
+        const char *start=str, *found;
+        while((found=strstr(start,sep))!=NULL){
+            int pl=found-start;
+            char *part=(char*)malloc(pl+1); strncpy(part,start,pl); part[pl]=0;
+            arr[cnt].type=VT_STR; arr[cnt].str=part; cnt++;
+            start=found+seplen;
+        }
+        arr[cnt].type=VT_STR; arr[cnt].str=strdup(start); cnt++;
+    }
+    out->type=VT_ARR; out->arr=arr; out->arr_len=cnt;
+}
+
+void nat_join_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){out->type=VT_STR;out->str=strdup("");return;}
+    const char *sep=argc>1&&stack[1].str?stack[1].str:"";
+    char buf[4096]; buf[0]=0;
+    BVal *arr=(BVal*)stack[0].arr;
+    for(int i=0;i<stack[0].arr_len;i++){
+        if(i) strncat(buf,sep,4095-strlen(buf));
+        if(arr[i].type==VT_NUM){char tmp[64];snprintf(tmp,63,"%.15g",arr[i].num);strncat(buf,tmp,4095-strlen(buf));}
+        else if(arr[i].str) strncat(buf,arr[i].str,4095-strlen(buf));
+    }
+    out->type=VT_STR; out->str=strdup(buf);
+}
+
+void nat_unique_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
+    int n=stack[0].arr_len;
+    BVal *src=(BVal*)stack[0].arr;
+    BVal *arr2=(BVal*)calloc(n,sizeof(BVal));
+    int cnt=0;
+    /* Sort first */
+    for(int i=0;i<n-1;i++) for(int j=0;j<n-1-i;j++) if(src[j].num>src[j+1].num){BVal t=src[j];src[j]=src[j+1];src[j+1]=t;}
+    for(int i=0;i<n;i++){
+        int found=0;
+        for(int j=0;j<cnt;j++){
+            if(src[i].type==VT_STR&&arr2[j].type==VT_STR&&src[i].str&&arr2[j].str&&strcmp(src[i].str,arr2[j].str)==0){found=1;break;}
+            if(src[i].type==VT_NUM&&arr2[j].type==VT_NUM&&src[i].num==arr2[j].num){found=1;break;}
+        }
+        if(!found) arr2[cnt++]=src[i];
+    }
+    out->type=VT_ARR; out->arr=arr2; out->arr_len=cnt;
+}
 void nat_sort_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -444,10 +496,16 @@ void register_all_natives(VM *vm) {
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"reverse_arr");f2->is_native=4;f2->native_v=nat_reverse_arr_val;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
