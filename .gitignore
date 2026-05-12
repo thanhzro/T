@@ -47,4 +47,3 @@ t_bc_asan
 t_bc
 t
 _*.txt
-_*.sh
