@@ -407,13 +407,15 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
     int bi=0;
     while(bi<body_count){
         const char *bl=body[bi];
-        if(strncmp(bl,"F(",2)==0 && strchr(bl,'{')){
+        const char *_bl=bl; while(*_bl==' '||*_bl=='\t')_bl++;
+        if(strncmp(_bl,"F(",2)==0 && strchr(_bl,'{')){
             char fv[64]={0};
-            char *lp2=strchr(bl,'('),*rp2=strchr(bl,')');
+            char *lp2=strchr(_bl,'('),*rp2=strchr(_bl,')');
             if(lp2&&rp2){strncpy(fv,lp2+1,rp2-lp2-1);}
             bi++;
             const char **fb=calloc(128,sizeof(char*)); int fc=0;
-            while(bi<body_count && body[bi][0]!='}'){
+            while(bi<body_count){
+            const char*_bt=body[bi]; while(*_bt==' '||*_bt=='\t')_bt++; if(_bt[0]=='}') break;
                 if(body[bi][0]!=0) fb[fc++]=body[bi];
                 bi++;
             }
@@ -454,8 +456,11 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             i++;
             const char **body=calloc(512,sizeof(char*)); int bc=0; int bdepth=1;
             while(i<n&&bdepth>0){
-                if(strchr(lines[i],'{'))bdepth++;
-                if(lines[i][0]=='}')bdepth--;
+                const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
+                int _ll=(int)strlen(lines[i]);
+                while(_ll>0&&(lines[i][_ll-1]==' '||lines[i][_ll-1]=='\t'))_ll--;
+                if(_ll>0&&lines[i][_ll-1]=='{')bdepth++;
+                if(_tp[0]=='}')bdepth--;
                 if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
             }
@@ -470,8 +475,11 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             i++;
             const char **body=calloc(256,sizeof(char*)); int bc=0; int bdepth=1;
             while(i<n&&bdepth>0){
-                if(strchr(lines[i],'{'))bdepth++;
-                if(lines[i][0]=='}')bdepth--;
+                const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
+                int _ll=(int)strlen(lines[i]);
+                while(_ll>0&&(lines[i][_ll-1]==' '||lines[i][_ll-1]=='\t'))_ll--;
+                if(_ll>0&&lines[i][_ll-1]=='{')bdepth++;
+                if(_tp[0]=='}')bdepth--;
                 if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
             }
