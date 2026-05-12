@@ -241,8 +241,8 @@ case OP_GE:{
                 TFunc*fn=NULL;
                 for(int fi=0;fi<vm->func_count;fi++)
                     if(strcmp(vm->funcs[fi].name,fname)==0){fn=&vm->funcs[fi];break;}
-                if(fn==NULL){
-break;}
+                if(fn==NULL){break;}
+                strcpy(_g_current_func,fn->name); _g_current_ip=vm->ip;
                 if(fn->is_native==1){
                     int base=vm->top-argc;
                     double dargs[8];

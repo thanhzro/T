@@ -370,6 +370,7 @@ int run_file(const char *path) {
     VM *vm = calloc(1, sizeof(VM));
     vm->funcs=calloc(256,sizeof(TFunc)); vm->func_capacity=256;
     vm->chunk = &chunk;
+    /* _g_vm=vm; */ _g_current_file=path;
     register_all_natives(vm);
  for(int _i=0;_i<count;_i++)
     compile_program(vm, &chunk, (const char**)lines, count);
