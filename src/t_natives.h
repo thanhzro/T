@@ -299,6 +299,27 @@ double nat_get_line(BVal *stack, int argc){
 }
 
 /* ===== REGISTER ALL NATIVES ===== */
+void nat_sort_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
+    int n=stack[0].arr_len;
+    BVal *src=(BVal*)stack[0].arr;
+    BVal *arr2=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++) arr2[i]=src[i];
+    for(int i=0;i<n-1;i++)
+        for(int j=0;j<n-1-i;j++){
+            int sw=arr2[j].type==VT_STR?strcmp(arr2[j].str,arr2[j+1].str)>0:arr2[j].num>arr2[j+1].num;
+            if(sw){BVal t=arr2[j];arr2[j]=arr2[j+1];arr2[j+1]=t;}
+        }
+    out->type=VT_ARR; out->arr=arr2; out->arr_len=n;
+}
+void nat_reverse_arr_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
+    int n=stack[0].arr_len;
+    BVal *src=(BVal*)stack[0].arr;
+    BVal *arr2=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++) arr2[i]=src[n-1-i];
+    out->type=VT_ARR; out->arr=arr2; out->arr_len=n;
+}
 void register_all_natives(VM *vm) {
     TFunc *f;
     #define REG_S1(nm, fn, p0) \
@@ -380,6 +401,9 @@ void register_all_natives(VM *vm) {
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"reverse_arr");f2->is_native=4;f2->native_v=nat_reverse_arr_val;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"arr_len"); f->is_native=3; f->native_m=nat_arr_len_mix;

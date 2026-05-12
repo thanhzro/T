@@ -14,14 +14,7 @@ func last(arr) {
 }
 
 func reverse(arr) {
-    past(arr) ~> A1
-    len(val=A1) ~> L1
-    range(n=L1) ~> O1
-    F(O1) {
-        L1 - 1 - idx >> O4
-        get(arr=A1, idx=O4) ~> now
-    }
-    O1 >> out
+    reverse_arr(arr=arr) ~> out
 }
 
 func count(arr, val) {
@@ -139,7 +132,7 @@ func sort_asc(arr) {
 func sort_desc(arr) {
     past(arr) ~> A
     sort(arr=A) ~> s
-    reverse(arr=s) ~> out
+    reverse_arr(arr=s) ~> out
 }
 
 func arr_is_empty(arr) {
@@ -259,7 +252,7 @@ func arr_flatten(arr) {
 
 func arr_reverse(arr) {
     past(arr) ~> A
-    reverse(arr=A) ~> out
+    reverse_arr(arr=A) ~> out
 }
 
 func arr_sort(arr) {
