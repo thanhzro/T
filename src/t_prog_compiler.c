@@ -18,6 +18,11 @@ static char* find_arrow(char *s) {
 }
 
 void compile_expr(Chunk *c, const char *expr) {
+    /* Empty array literal [] */
+    if(expr[0]=='[' && expr[1]==']'){
+        chunk_write(c, OP_PUSH_ARR); chunk_write(c, 0);
+        return;
+    }
     if(expr[0] == 34) {
         char buf[256]; strncpy(buf, expr+1, 255);
         int l=strlen(buf); if(l>0&&buf[l-1]==34) buf[l-1]=0;

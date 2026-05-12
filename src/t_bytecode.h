@@ -99,6 +99,8 @@ void frame_get(Frame*f,const char*k,BVal*out){
 typedef double (*NativeFn)(double *args, int argc);
 typedef char* (*NativeStrFn)(char **sargs, int argc);
 typedef double (*NativeMixFn)(BVal *stack, int argc);
+/* Type 4: writes result directly to out BVal */
+typedef void (*NativeValFn)(BVal *stack, int argc, BVal *out);
 typedef struct TFunc {
     char name[64];
     char params[8][64];
@@ -107,6 +109,7 @@ typedef struct TFunc {
     NativeFn native;
     NativeStrFn native_s;
     NativeMixFn native_m;
+    NativeValFn native_v;
     Chunk chunk;
 } TFunc;
 
@@ -202,6 +205,19 @@ break;}
                     vm->stack[vm->top].type=VT_NUM;
                     vm->stack[vm->top].num=r;
                     vm->stack[vm->top].str=NULL;
+                    vm->top++;
+                    break;
+                }
+                if(fn->is_native==4){
+                    int base=vm->top-argc;
+                    BVal out; memset(&out,0,sizeof(BVal));
+                    fn->native_v(&vm->stack[base],argc,&out);
+                    vm->top-=argc;
+                    vm->stack[vm->top].type=out.type;
+                    vm->stack[vm->top].num=out.num;
+                    vm->stack[vm->top].str=out.str;
+                    vm->stack[vm->top].arr=out.arr;
+                    vm->stack[vm->top].arr_len=out.arr_len;
                     vm->top++;
                     break;
                 }

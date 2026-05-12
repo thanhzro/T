@@ -74,6 +74,44 @@ double nat_pi(double*a,int n){return 3.14159265358979323846;}
 /* Mixed native: access full BVal stack */
 
 
+
+void nat_push_val(BVal *stack, int argc, BVal *out){
+    /* stack[0]=arr, stack[1]=val */
+    out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
+    if(argc<2||stack[0].type!=VT_ARR) return;
+    int n=stack[0].arr_len;
+    BVal *newarr=(BVal*)calloc(n+1,sizeof(BVal));
+    for(int i=0;i<n;i++){
+        newarr[i].type=stack[0].arr[i].type;
+        newarr[i].num=stack[0].arr[i].num;
+        newarr[i].str=stack[0].arr[i].str?strdup(stack[0].arr[i].str):NULL;
+        newarr[i].arr=stack[0].arr[i].arr;
+        newarr[i].arr_len=stack[0].arr[i].arr_len;
+    }
+    newarr[n].type=stack[1].type;
+    newarr[n].num=stack[1].num;
+    newarr[n].str=stack[1].str?strdup(stack[1].str):NULL;
+    newarr[n].arr=stack[1].arr;
+    newarr[n].arr_len=stack[1].arr_len;
+    out->arr=newarr;
+    out->arr_len=n+1;
+    out->num=n+1;
+}
+
+void nat_get_val(BVal *stack, int argc, BVal *out){
+    out->type=VT_NUM; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
+    if(argc<2) return;
+    if(stack[0].type==VT_ARR){
+        int idx=(int)stack[1].num;
+        if(idx<0||idx>=stack[0].arr_len) return;
+        out->type=stack[0].arr[idx].type;
+        out->num=stack[0].arr[idx].num;
+        out->str=stack[0].arr[idx].str?strdup(stack[0].arr[idx].str):NULL;
+        out->arr=stack[0].arr[idx].arr;
+        out->arr_len=stack[0].arr[idx].arr_len;
+    }
+}
+
 double nat_get_mix(BVal *stack, int argc){
     if(argc<2) return 0;
     if(stack[0].type==VT_ARR){
@@ -338,7 +376,10 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"str_starts"); f->is_native=3; f->native_m=nat_starts_mix;
     f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"get"); f->is_native=3; f->native_m=nat_get_mix;
+    strcpy(f->name,"push"); f->is_native=4; f->native_v=nat_push_val;
+    f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
+    f=&vm->funcs[vm->func_count++];
+    strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"arr_len"); f->is_native=3; f->native_m=nat_arr_len_mix;
