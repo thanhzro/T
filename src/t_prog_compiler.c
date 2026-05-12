@@ -330,6 +330,7 @@ int run_file(const char *path) {
     VM *vm = calloc(1, sizeof(VM));
     vm->chunk = &chunk;
     register_all_natives(vm);
+ for(int _i=0;_i<count;_i++)
     compile_program(vm, &chunk, (const char**)lines, count);
     run(vm);
     free(vm);
