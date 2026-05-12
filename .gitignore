@@ -43,3 +43,8 @@ test_out.txt
 chunk_dbg.txt
 debug_write.txt
 ret_dbg.txt
+t_bc_asan
+t_bc
+t
+_*.txt
+_*.sh
