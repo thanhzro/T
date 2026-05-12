@@ -150,7 +150,7 @@ TFunc* vm_find_func(VM*vm,const char*name){
 
 void run(VM*vm){
     for(;;){
-        uint8_t op=vm->chunk->code[vm->ip++];
+        _g_current_ip=vm->ip; uint8_t op=vm->chunk->code[vm->ip++];
         switch(op){
             case OP_PUSH_NUM:{int i=vm->chunk->code[vm->ip++];push(vm,make_num(vm->chunk->num_consts[i]));break;}
             case OP_PUSH_STR:{int i=vm->chunk->code[vm->ip++];push(vm,make_str(vm->chunk->str_consts[i]));break;}

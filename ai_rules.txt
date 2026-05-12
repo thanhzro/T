@@ -8,3 +8,9 @@ body collection: track brace depth - simple } check misses nested F() blocks
 bug layer mismatch: verify bytecode dump before debugging runtime
 duplicate function definition: C silently uses first - second is dead code
 OP_LE OP_GE: must have explicit case handlers - missing causes fall-through
+compile_program F() handler: must have continue after compile_f_block - missing causes infinite loop
+len native: must handle VT_ARR type - default returns 0 for arrays
+range_step: not in t_bc natives - must port from t_vm.c when array funcs fail
+split/join: not in t_bc natives - port needed for string replace to work
+unique: Gate filter not supported in t_bc F() loop - implement as native instead
+inline array literal in func args: strtok splits on comma inside [] - use variable instead
