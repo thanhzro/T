@@ -19,8 +19,19 @@ static char* find_arrow(char *s) {
 
 void compile_expr(Chunk *c, const char *expr) {
     /* Empty array literal [] */
-    if(expr[0]=='[' && expr[1]==']'){
-        chunk_write(c, OP_PUSH_ARR); chunk_write(c, 0);
+    if(expr[0]=='['){
+        char _inner[256]={0};
+        char *_rb=strchr(expr,']');
+        if(_rb) strncpy(_inner,expr+1,_rb-expr-1);
+        int _cnt=0;
+        char _tmp[256]; strcpy(_tmp,_inner);
+        char *_tok=strtok(_tmp,",");
+        while(_tok){
+            while(*_tok==' ')_tok++;
+            if(*_tok){compile_expr(c,_tok);_cnt++;}
+            _tok=strtok(NULL,",");
+        }
+        chunk_write(c,OP_PUSH_ARR); chunk_write(c,_cnt);
         return;
     }
     if(expr[0] == 34) {
@@ -228,7 +239,12 @@ void compile_line(Chunk *chunk, const char *line) {
             chunk_write(chunk,OP_STORE); chunk_write(chunk,it4);
             return;
         }
-        if(sscanf(expr,"%s %c %s",a,&op,b)==3) {
+        if(expr[0]=='['){
+            compile_expr(chunk,expr);
+            int _ia=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE);chunk_write(chunk,_ia);
+            return;
+        } else if(sscanf(expr,"%s %c %s",a,&op,b)==3) {
             compile_expr(chunk,a);
             compile_expr(chunk,b);
             switch(op){
@@ -248,6 +264,27 @@ void compile_line(Chunk *chunk, const char *line) {
 void compile_program(VM *vm, Chunk *c, const char *lines[], int n);
 
 /* Read and compile a .t file */
+
+static void load_lines(const char *path, char **lines, int *count){
+    FILE *f=fopen(path,"r");
+    if(!f) return;
+    char buf[256];
+    while(fgets(buf,sizeof(buf),f) && *count<1024){
+        int l=strlen(buf); if(l>0&&buf[l-1]==10)buf[l-1]=0;
+        if(strncmp(buf,"[T-]",4)==0||strncmp(buf,"[T0]",4)==0||strncmp(buf,"[T+]",4)==0) continue;
+        if(buf[0]==0) continue;
+        if(strncmp(buf,"import",6)==0){
+            char ip[256]={0};
+            char *q1=strchr(buf,'"'),*q2=q1?strchr(q1+1,'"'):NULL;
+            if(q1&&q2){strncpy(ip,q1+1,q2-q1-1);}
+            if(ip[0]) load_lines(ip,lines,count);
+            continue;
+        }
+        lines[(*count)++]=strdup(buf);
+    }
+    fclose(f);
+}
+
 int run_file(const char *path) {
     FILE *f = fopen(path, "r");
     if(!f){
@@ -265,27 +302,10 @@ int run_file(const char *path) {
         if(strncmp(buf,"[T0]",4)==0){section=1;continue;}
         if(strncmp(buf,"[T+]",4)==0){section=2;continue;}
         if(strncmp(buf,"import",6)==0){
-            /* Load imported file's functions */
             char ipath[256]={0};
             char *q1=strchr(buf,'"'), *q2=q1?strchr(q1+1,'"'):NULL;
             if(q1&&q2){ strncpy(ipath,q1+1,q2-q1-1); }
-            if(ipath[0]){
-                FILE *imp=fopen(ipath,"r");
-                if(imp){
-                    char ibuf[256]; int isec=0;
-                    while(fgets(ibuf,sizeof(ibuf),imp)){
-                        int il=strlen(ibuf);
-                        if(il>0&&ibuf[il-1]==10) ibuf[il-1]=0;
-                        if(strncmp(ibuf,"[T-]",4)==0){isec=0;continue;}
-                        if(strncmp(ibuf,"[T0]",4)==0){isec=1;continue;}
-                        if(strncmp(ibuf,"[T+]",4)==0){isec=2;continue;}
-                        if(strncmp(ibuf,"import",6)==0) continue;
-                        if(ibuf[0]==0) continue;
-                        if(count<1024) lines[count++]=strdup(ibuf);
-                    }
-                    fclose(imp);
-                }
-            }
+            if(ipath[0]) load_lines(ipath, lines, &count);
             continue;
         }
         if(buf[0]==0||buf[0]=='#') continue;
@@ -327,11 +347,19 @@ int run_file(const char *path) {
             if(in_func || buf[0]=='}'){
                 lines[count++]=strdup(buf); continue;
             }
-            /* Outside func: only literal >> var */
+            /* Outside func: only literal >> var OR var=value */
             char *arr2=strstr(buf,">>");
             char *tilde2=strstr(buf,"~>");
             if(arr2 && !tilde2 && !strchr(buf,'(')){
                 lines[count++]=strdup(buf);
+            } else if(!arr2&&!tilde2&&strchr(buf,'=')&&!strchr(buf,'(')){
+                char *eq2=strchr(buf,'=');
+                char vname[64]={0}; strncpy(vname,buf,eq2-buf);
+                char *vt=vname+strlen(vname)-1; while(vt>vname&&*vt==' ')*vt--=0;
+                char val2[256]={0}; strcpy(val2,eq2+1);
+                char *vp=val2; while(*vp==' ')vp++;
+                char nl2[320]; snprintf(nl2,319,"%s >> %s",vp,vname);
+                lines[count++]=strdup(nl2);
             }
         }
     }
