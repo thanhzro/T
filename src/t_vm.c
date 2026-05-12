@@ -799,6 +799,16 @@ ExecResult exec_node(Frame *f, void *node){
 
         BUILTIN("sqrt"){ARG0(v);RETVAL(make_number(sqrt(v.num)));}
 
+
+        if(!strcmp(fc->name,"reverse_arr")||(!strcmp(fc->name,"reverse")&&fc->arg_values[0]&&eval_expr(f,fc->arg_values[0]).type==TV_ARRAY)){
+            TValue arr=eval_expr(f,fc->arg_values[0]);
+            TValue out; out.type=TV_ARRAY;
+            out.arr.count=arr.arr.count;
+            out.arr.items=t_malloc(sizeof(TValue)*arr.arr.count);
+            for(int i=0;i<arr.arr.count;i++) out.arr.items[i]=arr.arr.items[arr.arr.count-1-i];
+            frame_set(f,fc->target,out);
+            return res;
+        }
         if(!strcmp(fc->name,"sort")){
             TValue arr=eval_expr(f,fc->arg_values[0]);
             TValue out; out.type=TV_ARRAY;
