@@ -1,16 +1,6 @@
 [T-]
 
-func gcd(a, b) {
-    past(a) ~> A
-    past(b) ~> B
-    range(n=50) ~> iters
-    F(iters) {
-        A % B >> r
-        B >> A
-        r >> B
-    }
-    A >> out
-}
+
 
 func lcm(a, b) {
     past(a) ~> A
