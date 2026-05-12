@@ -3,19 +3,18 @@ import "lib/generated/math_gen.t"
 import "lib/basic/std.t"
 
 func run_test(result, expected, fname) {
-    past(result) ~> R
-    past(expected) ~> E
-    past(fname) ~> N
-    R - E >> diff
-    abs(val=diff) ~> err
-    Gate err (== 0) >> ok
-    isNumber(val=ok) ~> passed
-    "PASS: " + N >> pass_msg
-    "FAIL: " + N >> fail_msg
-    [] >> msgs
-    push(arr=msgs, val=fail_msg) ~> msgs
-    push(arr=msgs, val=pass_msg) ~> msgs
-    get(arr=msgs, idx=passed) ~> out
+past(result) ~> R
+past(expected) ~> E
+past(fname) ~> N
+R - E >> diff
+abs(val=diff) ~> err
+Gate err (== 0) >> ok
+"PASS: " + N >> pass_msg
+"FAIL: " + N >> fail_msg
+[] >> msgs
+push(arr=msgs, val=fail_msg) ~> msgs
+push(arr=msgs, val=pass_msg) ~> msgs
+get(arr=msgs, idx=ok) ~> out
 }
 
 [T0]

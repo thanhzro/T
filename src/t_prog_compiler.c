@@ -318,13 +318,19 @@ int run_file(const char *path) {
         }
         /* T0: processing only */
         if(section==1) lines[count++]=strdup(buf);
-        /* T-: static literals only */
+        /* T-: static data + func definitions */
         if(section==0){
-            /* allow: literal >> var (no function calls, no ~>) */
-            char *arr=strstr(buf,">>");
-            char *tilde=strstr(buf,"~>");
-            if(arr && !tilde && !strchr(buf,'(')){
-                /* no function calls, just literals */
+            /* Track if inside func block */
+            static int in_func=0;
+            if(strncmp(buf,"func ",5)==0) in_func=1;
+            if(buf[0]=='}') in_func=0;
+            if(in_func || buf[0]=='}'){
+                lines[count++]=strdup(buf); continue;
+            }
+            /* Outside func: only literal >> var */
+            char *arr2=strstr(buf,">>");
+            char *tilde2=strstr(buf,"~>");
+            if(arr2 && !tilde2 && !strchr(buf,'(')){
                 lines[count++]=strdup(buf);
             }
         }
