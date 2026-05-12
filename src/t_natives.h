@@ -154,6 +154,7 @@ typedef double (*NativeMixFn)(BVal *stack, int argc);
 
 double nat_len_mix(BVal *stack, int argc){
     if(argc<1) return 0;
+    if(stack[0].type==VT_ARR) return stack[0].arr_len;
     if(stack[0].type==VT_STR) return stack[0].str?strlen(stack[0].str):0;
     return stack[0].num;
 }
@@ -311,6 +312,21 @@ void nat_exec_val(BVal *stack, int argc, BVal *out){
     int l=strlen(buf); if(l>0&&buf[l-1]=='\n') buf[l-1]=0;
     out->type=VT_STR; out->str=strdup(buf);
 }
+
+void nat_range_step_val(BVal *stack, int argc, BVal *out){
+    double from=argc>0?stack[0].num:0;
+    double to=argc>1?stack[1].num:0;
+    double step=argc>2?stack[2].num:1;
+    if(step==0) step=1;
+    int count=0;
+    for(double v=from;v<to;v+=step) count++;
+    BVal *arr=(BVal*)calloc(count,sizeof(BVal));
+    int i=0;
+    for(double v=from;v<to;v+=step){
+        arr[i].type=VT_NUM; arr[i].num=v; i++;
+    }
+    out->type=VT_ARR; out->arr=arr; out->arr_len=count;
+}
 void nat_sort_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -428,9 +444,11 @@ void register_all_natives(VM *vm) {
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"reverse_arr");f2->is_native=4;f2->native_v=nat_reverse_arr_val;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
