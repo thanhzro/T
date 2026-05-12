@@ -270,7 +270,7 @@ static void load_lines(const char *path, char **lines, int *count){
     FILE *f=fopen(path,"r");
     if(!f) return;
     char buf[256];
-    while(fgets(buf,sizeof(buf),f) && *count<1024){
+    while(fgets(buf,sizeof(buf),f) && *count<4096){
         int l=strlen(buf); if(l>0&&buf[l-1]==10)buf[l-1]=0;
         if(strncmp(buf,"[T-]",4)==0||strncmp(buf,"[T0]",4)==0||strncmp(buf,"[T+]",4)==0) continue;
         if(buf[0]==0) continue;
@@ -291,12 +291,12 @@ int run_file(const char *path) {
     if(!f){
  return 1; }
     
-    char *lines[1024];
+    char **lines = calloc(4096, sizeof(char*));
     int count = 0;
     char buf[256];
     
     int section=0; /* 0=T-, 1=T0, 2=T+ */
-    while(fgets(buf, sizeof(buf), f) && count < 1024) {
+    while(fgets(buf, sizeof(buf), f) && count < 4096) {
         int len = strlen(buf);
         if(len > 0 && buf[len-1] == '\n') buf[len-1] = 0;
         if(strncmp(buf,"[T-]",4)==0){section=0;continue;}
@@ -368,6 +368,7 @@ int run_file(const char *path) {
     
     Chunk chunk = {0};
     VM *vm = calloc(1, sizeof(VM));
+    vm->funcs=calloc(256,sizeof(TFunc)); vm->func_capacity=256;
     vm->chunk = &chunk;
     register_all_natives(vm);
  for(int _i=0;_i<count;_i++)
@@ -395,6 +396,7 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
 
 void compile_func(VM *vm, const char *name, const char **params, int nparams,
                   const char **body, int body_count) {
+    if(vm->func_count>=vm->func_capacity){vm->func_capacity*=2;vm->funcs=realloc(vm->funcs,vm->func_capacity*sizeof(TFunc));memset(&vm->funcs[vm->func_count],0,(vm->func_capacity/2)*sizeof(TFunc));}
     TFunc *f = &vm->funcs[vm->func_count++];
     strcpy(f->name, name);
     f->param_count = nparams;
@@ -410,7 +412,7 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
             char *lp2=strchr(bl,'('),*rp2=strchr(bl,')');
             if(lp2&&rp2){strncpy(fv,lp2+1,rp2-lp2-1);}
             bi++;
-            const char *fb[64]; int fc=0;
+            const char **fb=calloc(128,sizeof(char*)); int fc=0;
             while(bi<body_count && body[bi][0]!='}'){
                 if(body[bi][0]!=0) fb[fc++]=body[bi];
                 bi++;
@@ -450,11 +452,11 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 pt=strtok(NULL,",");
             }
             i++;
-            const char *body[128]; int bc=0; int bdepth=1;
+            const char **body=calloc(512,sizeof(char*)); int bc=0; int bdepth=1;
             while(i<n&&bdepth>0){
                 if(strchr(lines[i],'{'))bdepth++;
                 if(lines[i][0]=='}')bdepth--;
-                if(bdepth>0&&lines[i][0]!=0)body[bc++]=lines[i];
+                if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
             }
             /* i now past closing } */
@@ -466,11 +468,11 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             char *lp=strchr(line,'('); char *rp=strchr(line,')');
             if(lp&&rp){strncpy(arr_var,lp+1,rp-lp-1);arr_var[rp-lp-1]=0;}
             i++;
-            const char *body[64]; int bc=0; int bdepth=1;
+            const char **body=calloc(256,sizeof(char*)); int bc=0; int bdepth=1;
             while(i<n&&bdepth>0){
                 if(strchr(lines[i],'{'))bdepth++;
                 if(lines[i][0]=='}')bdepth--;
-                if(bdepth>0&&lines[i][0]!=0)body[bc++]=lines[i];
+                if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
             }
             /* i now past closing } */
@@ -513,7 +515,7 @@ int main(int argc, char *argv[]) {
         "show sq",
         "show result"
     };
-    Chunk c2={0}; VM *vm2=calloc(1,sizeof(VM)); vm2->chunk=&c2;
+    Chunk c2={0}; VM *vm2=calloc(1,sizeof(VM)); vm2->funcs=calloc(256,sizeof(TFunc)); vm2->func_capacity=256; vm2->chunk=&c2;
     compile_program(vm2, &c2, (const char**)prog2, 4);
     printf("Multi-show test (expect 25, 26):\n");
     run(vm2); free(vm2);

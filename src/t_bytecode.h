@@ -95,7 +95,7 @@ void frame_get(Frame*f,const char*k,BVal*out){
 }
 
 /* ===== FUNC REGISTRY ===== */
-#define FUNC_MAX 256
+#define FUNC_MAX 1024
 typedef double (*NativeFn)(double *args, int argc);
 typedef char* (*NativeStrFn)(char **sargs, int argc);
 typedef double (*NativeMixFn)(BVal *stack, int argc);
@@ -124,7 +124,7 @@ typedef struct {
     Chunk *chunk; int ip;
     Frame frame;
     CallFrame calls[CALL_MAX]; int call_depth;
-    TFunc funcs[FUNC_MAX]; int func_count;
+    TFunc *funcs; int func_count; int func_capacity;
     /* ITER stack */
     int iter_count[16];
     int iter_idx[16];
