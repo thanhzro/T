@@ -318,16 +318,24 @@ int run_file(const char *path) {
                 /* parse multi-arg: show shall(O1, O2, O3) */
                 char inner[512]; strncpy(inner,buf+11,511);
                 int l=strlen(inner); if(l>0&&inner[l-1]==')')inner[l-1]=0;
-                /* split by comma and emit show for each */
-                char *tok=strtok(inner,",");
-                while(tok){
-                    while(*tok==' ')tok++;
-                    int tl=strlen(tok);
-                    while(tl>0&&tok[tl-1]==' ')tok[--tl]=0;
-                    char line[256]; snprintf(line,255,"show %s",tok);
-                    lines[count++]=strdup(line);
-                    tok=strtok(NULL,",");
+                /* split by comma - respect quoted strings */
+                char *p2=inner; int in_q=0;
+                char tok2[256]; int ti=0;
+                while(*p2){
+                    if(*p2=='"') in_q=!in_q;
+                    if(*p2==','&&!in_q){
+                        tok2[ti]=0;
+                        char *t2=tok2; while(*t2==' ')t2++;
+                        int tl2=strlen(t2); while(tl2>0&&t2[tl2-1]==' ')t2[--tl2]=0;
+                        if(tl2>0){char line[256];snprintf(line,255,"show %s",t2);lines[count++]=strdup(line);}
+                        ti=0; p2++; continue;
+                    }
+                    tok2[ti++]=*p2++; if(ti>254)ti=254;
                 }
+                tok2[ti]=0;
+                char *t2=tok2; while(*t2==' ')t2++;
+                int tl2=strlen(t2); while(tl2>0&&t2[tl2-1]==' ')t2[--tl2]=0;
+                if(tl2>0){char line[256];snprintf(line,255,"show %s",t2);lines[count++]=strdup(line);}
             } else if(strncmp(buf,"show ",5)==0){
                 lines[count++]=strdup(buf);
             } else {
