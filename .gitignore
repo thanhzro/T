@@ -50,3 +50,9 @@ _*.txt
 _test*.t
 _s.t
 *.log
+iter_end.txt
+load_dbg.txt
+push_dbg.txt
+write_count.txt
+call_dbg.txt
+*_dbg.txt

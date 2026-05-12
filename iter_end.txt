@@ -1,4 +1,0 @@
-ITER done. frame count=3
-  [x]=num3 type2
-  [acc]=num60 type0
-  [now]=num30 type0
