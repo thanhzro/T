@@ -1,8 +1,10 @@
-BVal by value: output pointer
-iter in VM struct: use global
-
-arm64: struct return
-make_num/make_str return BVal: low risk if immediately used
-AI scan should include line numbers in output
-BVal by value: output pointer
-iter in VM struct: use global
+BVal by value: use output pointer not return by value
+iter in VM struct: use global _g_iter_arr[] not VM struct field
+arm64: struct return causes silent bugs - always use pointer pattern
+make_num/make_str: low risk if immediately used in same expression
+AI scan: include line numbers in output
+compile_func: use bi loop not simple for - F() needs multi-line context
+body collection: track brace depth - simple } check misses nested F() blocks
+bug layer mismatch: verify bytecode dump before debugging runtime
+duplicate function definition: C silently uses first - second is dead code
+OP_LE OP_GE: must have explicit case handlers - missing causes fall-through
