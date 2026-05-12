@@ -379,6 +379,28 @@ void nat_unique_val(BVal *stack, int argc, BVal *out){
     }
     out->type=VT_ARR; out->arr=arr2; out->arr_len=cnt;
 }
+
+void nat_slice_arr_val(BVal *stack, int argc, BVal *out){
+    if(argc<3||stack[0].type!=VT_ARR){out->type=VT_ARR;out->arr_len=0;return;}
+    int a=(int)stack[1].num, b=(int)stack[2].num;
+    int n=stack[0].arr_len;
+    BVal *src=(BVal*)stack[0].arr;
+    if(a<0)a=0; if(b>n)b=n;
+    int cnt=b-a; if(cnt<0)cnt=0;
+    BVal *arr=(BVal*)calloc(cnt,sizeof(BVal));
+    for(int i=0;i<cnt;i++) arr[i]=src[a+i];
+    out->type=VT_ARR; out->arr=arr; out->arr_len=cnt;
+}
+
+double nat_min2_mix(BVal *stack, int argc){
+    if(argc<2) return 0;
+    return stack[0].num < stack[1].num ? stack[0].num : stack[1].num;
+}
+
+double nat_max2_mix(BVal *stack, int argc){
+    if(argc<2) return 0;
+    return stack[0].num > stack[1].num ? stack[0].num : stack[1].num;
+}
 void nat_sort_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -499,6 +521,9 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
@@ -506,6 +531,9 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
