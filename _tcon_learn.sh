@@ -1,6 +1,6 @@
 #!/bin/bash
 # T con self-learning: detect mismatch bugs and log to ai_rules.txt
-FAILS=$(bash _run_tests.sh 2>/dev/null | grep "FAIL.*mismatch")
+FAILS=${FAILS:-$(bash _run_tests.sh 2>/dev/null | grep "FAIL.*mismatch")}
 while IFS= read -r line; do
     if [ -n "$line" ]; then
         FUNC=$(echo "$line" | grep -o 'FAIL [a-z_]*' | cut -d' ' -f2)
