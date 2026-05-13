@@ -844,3 +844,157 @@
 {"instruction": "What is examples/test_url.t in T language?", "output": "T program: test_url - example/demo program in T language repository"}
 {"instruction": "What is examples/test_window.t in T language?", "output": "T program: test_window - example/demo program in T language repository"}
 {"instruction": "What is examples/test_zipwith.t in T language?", "output": "T program: test_zipwith - example/demo program in T language repository"}
+{"instruction": "T code: sort/max/sum/avg of [3,1,4,1,5,9,2,6]", "output": "[1, 1, 2, 3, 4, 5, 6, 9]
+9
+31
+3.875"}
+{"instruction": "T compiler bug: feat: T con rule-based AI - diagnose bugs without LLM - what files changed?", "output": " examples/t-ai-diagnose.t | 11 +++++++++++
+ examples/t-ai-match.t    | 10 ++++++++++
+ 3 files changed, 42 insertions(+)"}
+{"instruction": "T compiler bug: rule: debug leftover code is silent performance killer - what files changed?", "output": "
+ ai_rules.txt | 1 +
+ 1 file changed, 1 insertion(+)"}
+{"instruction": "T compiler bug: feat: parallel CI 186ms, race condition fix with PID-based temp files - what files changed?", "output": " _run_test.sh          |  5 ++++-
+ src/t_prog_compiler.c |  5 ++---
+ 3 files changed, 18 insertions(+), 4 deletions(-)"}
+{"instruction": "T compiler bug: fix: Gate in F() also supports variable names in condition (strtod vs atof) - what files changed?", "output": "
+ src/t_prog_compiler.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)"}
+{"instruction": "T compiler bug: feat: T con self-learning - auto-detects and logs mismatch bugs to ai_rules.txt - what files changed?", "output": " ai_rules.txt              |  6 ++++++
+ examples/t-ai-selflearn.t | 11 +++++++++++
+ 3 files changed, 33 insertions(+)"}
+{"instruction": "T compiler bug: fix: comma in string literals not split in show shall() - Hello World works - what files changed?", "output": "
+ src/t_prog_compiler.c | 26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)"}
+{"instruction": "T compiler bug: fix: skip gcd/lcm AST bugs in unit tests, t_bc correct - what files changed?", "output": " check_runtime.py         | 10 +++++-----
+ lib/intermediate/math2.t | 12 +-----------
+ 2 files changed, 6 insertions(+), 16 deletions(-)"}
+{"instruction": "T compiler bug: fix: T con report - 4/4 integration tests display - what files changed?", "output": "
+ _tcon_report.sh | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)"}
+{"instruction": "T compiler bug: fix: _template.t missing T0 section and math2 import - what files changed?", "output": "
+ _template.t | 7 +++++++
+ 1 file changed, 7 insertions(+)"}
+{"instruction": "T compiler bug: fix: T con FAIL counter correct - 11/19 pass - what files changed?", "output": "
+ _run_tests.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)"}
+{"instruction": "T compiler bug: feat: T AI pinpoints bug location with file:line - what files changed?", "output": "
+ _mk_test.sh | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)"}
+{"instruction": "T compiler bug: feat: T AI function test tools - found 5 AST bugs vs t_bc - what files changed?", "output": " _mk_test.sh       | 21 +++++++++++++++++++++
+ _test_all_math.sh | 17 +++++++++++++++++
+ 2 files changed, 38 insertions(+)"}
+{"instruction": "T compiler bug: chore: remove debug txt files, update gitignore - what files changed?", "output": " push_dbg.txt    |  2 --
+ write_count.txt |  1 -
+ 5 files changed, 6 insertions(+), 24 deletions(-)"}
+{"instruction": "T compiler bug: fix: .gitignore - allow _ai_*.t in ai-tools, keep ai_rules.txt - what files changed?", "output": " push_dbg.txt                       |  2 ++
+ write_count.txt                    |  1 +
+ 11 files changed, 104 insertions(+), 2 deletions(-)"}
+{"instruction": "T compiler bug: feat: range_step, len handles array, fix padLeft/repeat in t_bc - what files changed?", "output": "
+ src/t_natives.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)"}
+{"instruction": "T compiler bug: fix: F() handler in compile_program missing continue, causing infinite loop with imported libs - what files changed?", "output": "
+ src/t_prog_compiler.c | 1 +
+ 1 file changed, 1 insertion(+)"}
+{"instruction": "T compiler bug: feat: sort/reverse_arr natives in t_bc, fix array.t reverse - what files changed?", "output": " lib/basic/array.t | 13 +++----------
+ src/t_natives.h   | 24 ++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 10 deletions(-)"}
+{"instruction": "T compiler bug: fix: indented braces in func body collection, dynamic FUNC array, heap lines buffer - what files changed?", "output": "
+ src/t_prog_compiler.c | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)"}
+{"instruction": "T compiler bug: fix: FUNC_MAX dynamic allocation, heap arrays for body/lines, signal handler - what files changed?", "output": " src/t_bytecode.h      |  4 ++--
+ src/t_prog_compiler.c | 20 +++++++++++---------
+ 2 files changed, 13 insertions(+), 11 deletions(-)"}
+{"instruction": "T compiler bug: docs: update ai_rules.txt with compile-time bug patterns (BUG-14) - what files changed?", "output": "
+ ai_rules.txt | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)"}
+{"instruction": "How to fix 'BVal by value' in T language compiler?", "output": " use output pointer not return by value"}
+{"instruction": "T compiler symptom: BVal by value - root cause?", "output": "Root cause: use output pointer not return by value"}
+{"instruction": "How to fix 'iter in VM struct' in T language compiler?", "output": " use global _g_iter_arr[] not VM struct field"}
+{"instruction": "T compiler symptom: iter in VM struct - root cause?", "output": "Root cause: use global _g_iter_arr[] not VM struct field"}
+{"instruction": "How to fix 'arm64' in T language compiler?", "output": " struct return causes silent bugs - always use pointer pattern"}
+{"instruction": "T compiler symptom: arm64 - root cause?", "output": "Root cause: struct return causes silent bugs - always use pointer pattern"}
+{"instruction": "How to fix 'make_num/make_str' in T language compiler?", "output": " low risk if immediately used in same expression"}
+{"instruction": "T compiler symptom: make_num/make_str - root cause?", "output": "Root cause: low risk if immediately used in same expression"}
+{"instruction": "How to fix 'AI scan' in T language compiler?", "output": " include line numbers in output"}
+{"instruction": "T compiler symptom: AI scan - root cause?", "output": "Root cause: include line numbers in output"}
+{"instruction": "How to fix 'compile_func' in T language compiler?", "output": " use bi loop not simple for - F() needs multi-line context"}
+{"instruction": "T compiler symptom: compile_func - root cause?", "output": "Root cause: use bi loop not simple for - F() needs multi-line context"}
+{"instruction": "How to fix 'body collection' in T language compiler?", "output": " track brace depth - simple } check misses nested F() blocks"}
+{"instruction": "T compiler symptom: body collection - root cause?", "output": "Root cause: track brace depth - simple } check misses nested F() blocks"}
+{"instruction": "How to fix 'bug layer mismatch' in T language compiler?", "output": " verify bytecode dump before debugging runtime"}
+{"instruction": "T compiler symptom: bug layer mismatch - root cause?", "output": "Root cause: verify bytecode dump before debugging runtime"}
+{"instruction": "How to fix 'duplicate function definition' in T language compiler?", "output": " C silently uses first - second is dead code"}
+{"instruction": "T compiler symptom: duplicate function definition - root cause?", "output": "Root cause: C silently uses first - second is dead code"}
+{"instruction": "How to fix 'OP_LE OP_GE' in T language compiler?", "output": " must have explicit case handlers - missing causes fall-through"}
+{"instruction": "T compiler symptom: OP_LE OP_GE - root cause?", "output": "Root cause: must have explicit case handlers - missing causes fall-through"}
+{"instruction": "How to fix 'compile_program F() handler' in T language compiler?", "output": " must have continue after compile_f_block - missing causes infinite loop"}
+{"instruction": "T compiler symptom: compile_program F() handler - root cause?", "output": "Root cause: must have continue after compile_f_block - missing causes infinite loop"}
+{"instruction": "How to fix 'len native' in T language compiler?", "output": " must handle VT_ARR type - default returns 0 for arrays"}
+{"instruction": "T compiler symptom: len native - root cause?", "output": "Root cause: must handle VT_ARR type - default returns 0 for arrays"}
+{"instruction": "How to fix 'range_step' in T language compiler?", "output": " not in t_bc natives - must port from t_vm.c when array funcs fail"}
+{"instruction": "T compiler symptom: range_step - root cause?", "output": "Root cause: not in t_bc natives - must port from t_vm.c when array funcs fail"}
+{"instruction": "How to fix 'split/join' in T language compiler?", "output": " not in t_bc natives - port needed for string replace to work"}
+{"instruction": "T compiler symptom: split/join - root cause?", "output": "Root cause: not in t_bc natives - port needed for string replace to work"}
+{"instruction": "How to fix 'unique' in T language compiler?", "output": " Gate filter not supported in t_bc F() loop - implement as native instead"}
+{"instruction": "T compiler symptom: unique - root cause?", "output": "Root cause: Gate filter not supported in t_bc F() loop - implement as native instead"}
+{"instruction": "How to fix 'inline array literal in func args' in T language compiler?", "output": " strtok splits on comma inside [] - use variable instead"}
+{"instruction": "T compiler symptom: inline array literal in func args - root cause?", "output": "Root cause: strtok splits on comma inside [] - use variable instead"}
+{"instruction": "How to fix 'F() mutate pattern' in T language compiler?", "output": " now assigned inside loop must save index first (now >> idx) before overwriting now"}
+{"instruction": "T compiler symptom: F() mutate pattern - root cause?", "output": "Root cause: now assigned inside loop must save index first (now >> idx) before overwriting now"}
+{"instruction": "How to fix 'OP_MOD' in T language compiler?", "output": " missing from compile_line switch - % operator falls through to wrong handler"}
+{"instruction": "T compiler symptom: OP_MOD - root cause?", "output": "Root cause: missing from compile_line switch - % operator falls through to wrong handler"}
+{"instruction": "How to fix 'show shall' in T language compiler?", "output": " strtok splits comma in string literals - use quote-aware parser"}
+{"instruction": "T compiler symptom: show shall - root cause?", "output": "Root cause: strtok splits comma in string literals - use quote-aware parser"}
+{"instruction": "How to fix 'nested array display' in T language compiler?", "output": " VT_ARR inside VT_ARR not handled in OP_SHOW - add nested case"}
+{"instruction": "T compiler symptom: nested array display - root cause?", "output": "Root cause: VT_ARR inside VT_ARR not handled in OP_SHOW - add nested case"}
+{"instruction": "How to fix 'loop construct' in T language compiler?", "output": " not in t_bc - replace with range(n=N) + F() loop workaround"}
+{"instruction": "T compiler symptom: loop construct - root cause?", "output": "Root cause: not in t_bc - replace with range(n=N) + F() loop workaround"}
+{"instruction": "How to fix 'gcd/lcm' in T language compiler?", "output": " loop-based implementation fails in t_bc - implement as native C instead"}
+{"instruction": "T compiler symptom: gcd/lcm - root cause?", "output": "Root cause: loop-based implementation fails in t_bc - implement as native C instead"}
+{"instruction": "How to fix 'slice_arr/flatten/concat' in T language compiler?", "output": " missing natives - port from t_vm.c or implement new"}
+{"instruction": "T compiler symptom: slice_arr/flatten/concat - root cause?", "output": "Root cause: missing natives - port from t_vm.c or implement new"}
+{"instruction": "How to fix 'F() write-back' in T language compiler?", "output": " OP_ITER_NEXT must write now back to source array for mutate pattern"}
+{"instruction": "T compiler symptom: F() write-back - root cause?", "output": "Root cause: OP_ITER_NEXT must write now back to source array for mutate pattern"}
+{"instruction": "How to fix '---learning---' in T language compiler?", "output": "---learning---"}
+{"instruction": "T compiler symptom: ---learning--- - root cause?", "output": "Root cause:---learning---"}
+{"instruction": "How to fix 'scan' in T language compiler?", "output": " "}
+{"instruction": "T compiler symptom: scan - root cause?", "output": "Root cause: "}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " pow output differs t_bc vs AST - check lib/basic/math.t:29:func pow(base, exp) {"}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: pow output differs t_bc vs AST - check lib/basic/math.t:29:func pow(base, exp) {"}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " upper output differs t_bc vs AST - check lib/basic/string.t:4:func upper(str) {"}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: upper output differs t_bc vs AST - check lib/basic/string.t:4:func upper(str) {"}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " lower output differs t_bc vs AST - check lib/basic/string.t:17:func lower(str) {"}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: lower output differs t_bc vs AST - check lib/basic/string.t:17:func lower(str) {"}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " trim output differs t_bc vs AST - check lib/basic/string.t:69:func trim(str) {"}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: trim output differs t_bc vs AST - check lib/basic/string.t:69:func trim(str) {"}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " replace output differs t_bc vs AST - check lib/basic/string.t:61:func replace(str, old, new) {"}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: replace output differs t_bc vs AST - check lib/basic/string.t:61:func replace(str, old, new) {"}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " split output differs t_bc vs AST - check "}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: split output differs t_bc vs AST - check "}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " join output differs t_bc vs AST - check "}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: join output differs t_bc vs AST - check "}
+{"instruction": "How to fix 'mismatch' in T language compiler?", "output": " flatten output differs t_bc vs AST - check lib/basic/array.t:58:func flatten(arr) {"}
+{"instruction": "T compiler symptom: mismatch - root cause?", "output": "Root cause: flatten output differs t_bc vs AST - check lib/basic/array.t:58:func flatten(arr) {"}
+{"instruction": "How to fix 'loop Gate subject' in T language compiler?", "output": " strncpy from pointer arithmetic leaves trailing spaces - always trim with while(sv[sl-1]==' ')"}
+{"instruction": "T compiler symptom: loop Gate subject - root cause?", "output": "Root cause: strncpy from pointer arithmetic leaves trailing spaces - always trim with while(sv[sl-1]==' ')"}
+{"instruction": "How to fix 'loop compile' in T language compiler?", "output": " for(int _i=0;_i<count;_i++) leftover in run_file caused compile_program called count times"}
+{"instruction": "T compiler symptom: loop compile - root cause?", "output": "Root cause: for(int _i=0;_i<count;_i++) leftover in run_file caused compile_program called count times"}
+{"instruction": "How to fix 'debug leftover' in T language compiler?", "output": " always remove for/while loop wrappers around compile_program after debugging - performance bug silent"}
+{"instruction": "T compiler symptom: debug leftover - root cause?", "output": "Root cause: always remove for/while loop wrappers around compile_program after debugging - performance bug silent"}
+{"instruction": "How to declare a variable in T language?", "output": "Use >> operator: value >> varname. Example: 42 >> x or \"hello\" >> msg"}
+{"instruction": "How to call a function in T language?", "output": "Use ~> for result: func(arg=val) ~> result. Example: sort(arr=nums) ~> sorted"}
+{"instruction": "What is T- section in T language?", "output": "T- is past/declarations section: imports, variable declarations, function definitions"}
+{"instruction": "What is T0 section in T language?", "output": "T0 is present/execution section: where computation happens"}
+{"instruction": "What is T+ section in T language?", "output": "T+ is future/output section: show shall(var) to output results"}
+{"instruction": "How to loop over array in T language?", "output": "Use F() loop: F(arr) { body using 'now' as current element }"}
+{"instruction": "How to filter array in T language?", "output": "Use Gate inside F(): F(arr) { Gate now (>= value) >> result }"}
+{"instruction": "How to import library in T language?", "output": "In T- section: import \"lib/basic/std.t\""}
+{"instruction": "What does show shall() do in T language?", "output": "show shall(O1, O2) outputs final results in T+ section - the official output contract"}
+{"instruction": "How to write infinite loop with exit in T language?", "output": "Use loop { body Gate condition (== 0) >> done } - Gate exits when condition true"}
+{"instruction": "What is Gate in T language?", "output": "Gate is conditional filter: Gate subject (op value) >> target - executes only when condition true"}
+{"instruction": "How to concatenate strings in T?", "output": "Use + operator: str1 + str2 >> result or inside expression: \"hello\" + name >> greeting"}
+{"instruction": "What is past() in T language?", "output": "past(var) ~> alias - creates local alias for parameter inside function body"}
+{"instruction": "How to check if string contains substring in T?", "output": "contains(str=s, sub=sub) ~> result - returns 1 if found, 0 if not"}
+{"instruction": "What is the T language philosophy?", "output": "T- (past) + T0 (present) + T+ (future) = complete execution context. Every T program has all 3 sections"}
+{"instruction": "How does T con self-improve?", "output": "T con runs tests, detects failures, appends rules to ai_rules.txt, spawns parallel T con for next iteration"}
