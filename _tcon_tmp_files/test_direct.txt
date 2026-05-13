@@ -1,2 +1,0 @@
-Testing ... FAIL  → no output at: lib/basic/array.t:4:func first(arr) {
-     ./t_bc=
