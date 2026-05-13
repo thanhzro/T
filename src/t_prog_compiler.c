@@ -160,9 +160,14 @@ void compile_line(Chunk *chunk, const char *line) {
             char *tgt=arr+2; while(*tgt==' ')tgt++;
             int iv=chunk_add_str(chunk,v);
             chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv);
-            double dval=atof(val_str);
-            int iv2=chunk_add_num(chunk,dval);
-            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+            char *_end2; double dval=strtod(val_str,&_end2);
+            if(_end2==val_str||*_end2!=0){
+                int iv3=chunk_add_str(chunk,val_str);
+                chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv3);
+            } else {
+                int iv2=chunk_add_num(chunk,dval);
+                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+            }
             if(strcmp(op_str,">")==0)  chunk_write(chunk,OP_GT);
             else if(strcmp(op_str,"<")==0)  chunk_write(chunk,OP_LT);
             else if(strcmp(op_str,"==")==0) chunk_write(chunk,OP_EQ);
