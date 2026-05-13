@@ -32,3 +32,4 @@ capitalize:str
 is_palindrome:str
 capitalize:str
 is_error:val
+replace:str,old,new

@@ -5,9 +5,9 @@ mkdir -p _tcon_tmp_files
 
 while [ $(date +%s) -lt $END ]; do
     ITER=$((ITER+1))
-    FAILS=$(bash _run_tests_fast.sh 2>/dev/null | grep "^FAIL" | grep -oP 'Testing (\w+)' | awk '{print $2}' | sort -u)
+    FAILS=$(bash _run_tests_fast.sh 2>/dev/null | grep "^FAIL" | awk '{print $2}' | sort -u)
     [ -z "$FAILS" ] && echo "ALL PASS! Iter=$ITER" && break
-    echo "Iter $ITER: $(echo $FAILS | wc -w) fails"
+    echo "Iter $ITER: $(echo $FAILS | wc -w) fails: $FAILS"
     
     for func in $FAILS; do
         (
@@ -22,4 +22,4 @@ while [ $(date +%s) -lt $END ]; do
     bash _tcon_learn.sh 2>/dev/null | tail -1
 done
 echo "Done: $ITER iter, Rules: $(wc -l < ai_rules.txt)"
-cat _train_log.txt | sort -u | head -10
+cat _train_log.txt | sort -u

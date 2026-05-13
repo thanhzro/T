@@ -100,3 +100,5 @@ tcon_learned: str_count_words → Gate: when condition false, target var stays u
 array-in-func-sort: sort/first/last inside func body receives num=1 instead of arr - need C native that handles both arr and num params
 parallel-timing: steps appear slow in parallel due to process scheduling overhead - measure standalone not parallel
 performance: use awk single-pass instead of grep in loop - 200x speedup for rule checking
+native-str-transform: upper/lower/trim need C implementation with toupper/tolower/isspace - TODO stub returns input unchanged
+string-literal-arg: inline string literals in func call args may not parse correctly - use variable assignment instead

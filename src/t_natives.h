@@ -237,6 +237,13 @@ double nat_is_error_c(BVal *stack, int argc){
     if(stack[0].type!=VT_STR||!stack[0].str) return 0;
     return stack[0].str[0]=='!'?1:0;
 }
+
+char* nat_lower_auto(char**a,int n){
+    if(n<1||!a[0]) return strdup("");
+    char *r=strdup(a[0]);
+    for(int i=0;r[i];i++) r[i]=tolower((unsigned char)r[i]);
+    return r;
+}
 void nat_push_val(BVal *stack, int argc, BVal *out){
     /* stack[0]=arr, stack[1]=val */
     out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
@@ -508,6 +515,7 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max_arr");f2->is_native=3;f2->native_m=nat_max_arr_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"all_arr");f2->is_native=3;f2->native_m=nat_all_arr_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_error");f2->is_native=3;f2->native_m=nat_is_error_c;f2->param_count=1;strcpy(f2->params[0],"val");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lower");f2->is_native=2;f2->native_s=nat_lower_auto;f2->param_count=1;;strcpy(f2->params[0],"str");}
     {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_c;f->param_count=1;strcpy(f->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"floor");f2->is_native=3;f2->native_m=nat_floor_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"round");f2->is_native=3;f2->native_m=nat_round_c;f2->param_count=1;strcpy(f2->params[0],"val");}
