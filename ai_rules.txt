@@ -42,3 +42,7 @@ mismatch: sqrt output differs t_bc vs AST - check lib/basic/math.t:204:func sqrt
 mismatch: sort output differs t_bc vs AST - check lib/basic/array.t:127:func sort_asc(arr) {
 mismatch: reverse output differs t_bc vs AST - check lib/basic/array.t:16:func reverse(arr) {
 nested T func call: func calling func with F() loop corrupts call stack - use native C instead
+upper/lower in t_bc: returns empty - native implementation missing or wrong
+sort in t_bc: returns unsorted - sort_asc native not working correctly  
+reverse in t_bc: returns 0 - reverse_arr T lib uses loop+get_idx which fails in nested func
+profile each func: 100-150ms per test is normal Termux overhead not a bug

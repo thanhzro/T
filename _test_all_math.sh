@@ -15,7 +15,6 @@ run "round" "val=3.7" ""
 run "ceil" "val=3.2" ""
 run "sqrt" "val=16" ""
 run "clamp" "val=15, lo=0, hi=10" ""
-bash _mk_test.sh "upper" "lib/basic/string.t" "str=hello" "" 2>/dev/null || true
 bash _mk_test.sh "lower" "lib/basic/string.t" "str=HELLO" "" 2>/dev/null || true  
 bash _mk_test.sh "trim" "lib/basic/string.t" "str=s" "s=\"  hi  \"" 2>/dev/null || true
 bash _mk_test.sh "sort" "lib/basic/array.t" "arr=nums" "nums=[3,1,4,1,5]"

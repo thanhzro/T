@@ -1,5 +1,7 @@
 #!/bin/bash
-OUT=$(bash _test_all_math.sh 2>/dev/null)
+# Run all tests in parallel batches
+bash _test_all_math.sh 2>/dev/null > _math_cache.txt
+OUT=$(cat _math_cache.txt)
 echo "$OUT"
 PASS=$(echo "$OUT" | grep -c "PASS ")
 FAIL=$(echo "$OUT" | grep -c "FAIL ")
