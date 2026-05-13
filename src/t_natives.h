@@ -566,18 +566,8 @@ void register_all_natives(VM *vm) {
         strcpy(f->name,nm); f->is_native=1; f->native=fn; \
         f->param_count=2; strcpy(f->params[0],p0); strcpy(f->params[1],p1);
 
-    REG1("floor",  nat_floor,  "val")
-    REG1("ceil",   nat_ceil,   "val")
-    REG1("sqrt",   nat_sqrt,   "val")
-    REG1("abs",    nat_abs,    "val")
-    REG1("log",    nat_log,    "val")
-    REG1("ln",     nat_log,    "val")
-    REG1("sin",    nat_sin,    "val")
-    REG1("cos",    nat_cos,    "val")
     REG1("exp_e",  nat_exp,    "val")
-    REG1("atan",   nat_atan,   "val")
     REG2("atan2",  nat_atan2,  "y","x")
-    REG1("round",  nat_round,  "val")
     REG2("pow",    nat_pow,    "base","exp")
     REG2("max2",   nat_max2,   "a","b")
     REG2("min2",   nat_min2,   "a","b")
