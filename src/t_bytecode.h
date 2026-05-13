@@ -305,6 +305,11 @@ case OP_GE:{
                 break;
             }
             case OP_RETURN:{
+        extern int _g_trace; if(_g_trace){
+            fprintf(stderr,"[FRAME DUMP]\n");
+            for(int _fi=0;_fi<vm->frame.count;_fi++)
+                fprintf(stderr,"  %s = %g\n",vm->frame.keys[_fi],vm->frame.vals[_fi].num);
+        }
                 FILE*_rd=fopen("ret_dbg.txt","w");if(_rd){fprintf(_rd,"top=%d stack[top-1].num=%g\n",vm->top,vm->stack[vm->top-1].num);fclose(_rd);}
                 vm->top--;
                 int ret_top=vm->top;
