@@ -1,78 +1,51 @@
-import "lib/basic/std.t"|abs(val=-5) ~> O1|5
-import "lib/basic/std.t"|pow(base=2, exp=8) ~> O1|256
-import "lib/basic/std.t"|ceil(val=3.2) ~> O1|4
-import "lib/basic/std.t"|floor(val=3.9) ~> O1|3
-import "lib/basic/std.t"|round(val=3.5) ~> O1|4
-import "lib/basic/std.t"|max2(a=3, b=7) ~> O1|7
-import "lib/basic/std.t"|min2(a=3, b=7) ~> O1|3
-import "lib/basic/std.t"|is_even(n=4) ~> O1|1
-import "lib/basic/std.t"|is_odd(n=7) ~> O1|1
-import "lib/basic/std.t"|safe_div(a=10, b=2) ~> O1|5
-import "lib/basic/std.t"|safe_div(a=10, b=0) ~> O1|0
-import "lib/basic/std.t"|cube(n=3) ~> O1|27
-import "lib/basic/std.t"|len(val="hello") ~> O1|5
-import "lib/basic/std.t"|upper(str="hello") ~> O1|HELLO
-import "lib/basic/std.t"|lower(str="HELLO") ~> O1|hello
-import "lib/basic/std.t"|trim(str="  hi  ") ~> O1|hi
-import "lib/basic/std.t"|contains(str="hello", sub="ell") ~> O1|1
-import "lib/basic/std.t"|str_reverse(str="hello") ~> O1|olleh
-import "lib/basic/std.t"|str_count(str="hello", sub="l") ~> O1|2
-import "lib/basic/std.t"|str_starts(str="hello", sub="hel") ~> O1|1
-import "lib/basic/std.t"|str_ends(str="hello", sub="llo") ~> O1|1
-import "lib/basic/std.t"|is_blank(str="  ") ~> O1|1
-import "lib/basic/std.t"|is_blank(str="hi") ~> O1|0
-import "lib/basic/std.t"|sum(arr=[1,2,3,4,5]) ~> O1|15
-import "lib/basic/std.t"|avg(arr=[1,2,3,4,5]) ~> O1|3
-import "lib/basic/std.t"|max_arr(arr=[3,1,4,1,5,9]) ~> O1|9
-import "lib/basic/std.t"|min_arr(arr=[3,1,4,1,5,9]) ~> O1|1
-import "lib/basic/std.t"|len(val=[1,2,3]) ~> O1|3
-import "lib/basic/std.t"|arr_first(arr=[10,20,30]) ~> O1|10
-import "lib/basic/std.t"|arr_last(arr=[10,20,30]) ~> O1|30
-import "lib/basic/std.t"|any_arr(arr=[0,0,1]) ~> O1|1
-import "lib/basic/std.t"|all_arr(arr=[1,1,1]) ~> O1|1
-import "lib/basic/std.t"|all_arr(arr=[1,0,1]) ~> O1|0
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|gcd(a=48, b=18) ~> O1|6
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|lcm(a=12, b=8) ~> O1|24
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|factorial(n=5) ~> O1|120
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|fibonacci(n=10) ~> O1|55
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|is_prime(n=17) ~> O1|1
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|is_prime(n=15) ~> O1|0
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|median(arr=[1,2,3,4,5]) ~> O1|3
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|capitalize(str="hello") ~> O1|Hello
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|is_palindrome(str="racecar") ~> O1|1
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|is_palindrome(str="hello") ~> O1|0
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|str_count_words(str="hello world foo") ~> O1|3
-import "lib/basic/std.t"|is_error(val="!ERROR") ~> O1|1
-import "lib/basic/std.t"|is_error(val="hello") ~> O1|0
-import "lib/basic/std.t"|is_error(val=42) ~> O1|0
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|gcd(a=48, b=18) ~> O1|6
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|fibonacci(n=10) ~> O1|55
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|upper(str="hello") ~> O1|HELLO
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|avg(arr=[1,2,3]) ~> O1|2
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|str_count(str="hello", sub="l") ~> O1|2
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|factorial(n=5) ~> O1|120
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|lcm(a=12, b=8) ~> O1|24
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|cube(n=3) ~> O1|27
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|max3(a=5, b=3, c=9) ~> O1|9
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"|str_reverse(str="hello") ~> O1|olleh
+B	abs(val=-5) ~> O1	5
+B	pow(base=2, exp=8) ~> O1	256
+B	ceil(val=3.2) ~> O1	4
+B	floor(val=3.9) ~> O1	3
+B	round(val=3.5) ~> O1	4
+B	max2(a=3, b=7) ~> O1	7
+B	min2(a=3, b=7) ~> O1	3
+B	is_even(n=4) ~> O1	1
+B	is_odd(n=7) ~> O1	1
+B	safe_div(a=10, b=2) ~> O1	5
+B	safe_div(a=10, b=0) ~> O1	0
+B	cube(n=3) ~> O1	27
+B	len(val="hello") ~> O1	5
+B	upper(str="hello") ~> O1	HELLO
+B	lower(str="HELLO") ~> O1	hello
+B	trim(str="  hi  ") ~> O1	hi
+B	contains(str="hello", sub="ell") ~> O1	1
+B	str_reverse(str="hello") ~> O1	olleh
+B	str_count(str="hello", sub="l") ~> O1	2
+B	str_starts(str="hello", sub="hel") ~> O1	1
+B	str_ends(str="hello", sub="llo") ~> O1	1
+B	is_blank(str="  ") ~> O1	1
+B	is_blank(str="hi") ~> O1	0
+B	sum(arr=[1,2,3,4,5]) ~> O1	15
+B	avg(arr=[1,2,3,4,5]) ~> O1	3
+B	max_arr(arr=[3,1,4,1,5,9]) ~> O1	9
+B	min_arr(arr=[3,1,4,1,5,9]) ~> O1	1
+B	len(val=[1,2,3]) ~> O1	3
+B	arr_first(arr=[10,20,30]) ~> O1	10
+B	arr_last(arr=[10,20,30]) ~> O1	30
+B	any_arr(arr=[0,0,1]) ~> O1	1
+B	all_arr(arr=[1,1,1]) ~> O1	1
+B	all_arr(arr=[1,0,1]) ~> O1	0
+I	gcd(a=48, b=18) ~> O1	6
+I	lcm(a=12, b=8) ~> O1	24
+I	median(arr=[1,2,3,4,5]) ~> O1	3
+I	capitalize(str="hello") ~> O1	Hello
+I	is_palindrome(str="racecar") ~> O1	1
+I	is_palindrome(str="hello") ~> O1	0
+I	str_count_words(str="hello world foo") ~> O1	3
+B	is_error(val="!ERROR") ~> O1	1
+B	is_error(val="hello") ~> O1	0
+B	is_error(val=42) ~> O1	0
+I	gcd(a=48, b=18) ~> O1	6
+I	upper(str="hello") ~> O1	HELLO
+I	avg(arr=[1,2,3]) ~> O1	2
+I	str_count(str="hello", sub="l") ~> O1	2
+I	lcm(a=12, b=8) ~> O1	24
+I	cube(n=3) ~> O1	27
+I	max3(a=5, b=3, c=9) ~> O1	9
+I	str_reverse(str="hello") ~> O1	olleh

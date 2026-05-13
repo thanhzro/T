@@ -18,7 +18,7 @@ bash _run_tests.sh 2>/dev/null > _tests_cache.txt &
 wait
 
 echo "[2/6] Unit tests..."
-UPASS=$(grep -c "^PASS" _unit_cache.txt 2>/dev/null); UFAIL=$(grep -c "^FAIL" _unit_cache.txt 2>/dev/null); echo "     PASS=$UPASS FAIL=$UFAIL Total=$((UPASS+UFAIL))"
+UPASS=$(grep -c "^PASS" _unit_cache.txt 2>/dev/null); UFAIL=$(grep -c "^FAIL" _unit_cache.txt 2>/dev/null); UTOT=$((UPASS+UFAIL)); echo "     PASS=$UPASS FAIL=$UFAIL Total=$UTOT"
 echo "[3/6] Integration tests..."
 echo "     accumulator: $(cat _p1.txt | tr '\n' ' ')"
 echo "     sumavg:      $(cat _p2.txt | tr '\n' ' ')"
