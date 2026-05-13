@@ -448,6 +448,69 @@ double nat_lcm_mix(BVal *stack, int argc){
     while(tb){long long t=tb;tb=g%tb;g=t;}
     return (double)(a/g*b);
 }
+
+double nat_sign_mix(BVal *stack, int argc){
+    if(argc<1) return 0;
+    double v=stack[0].num;
+    return v>0?1:(v<0?-1:0);
+}
+char* nat_md5_s(char**a,int n){
+    /* Simple MD5 stub - use exec md5sum */
+    char cmd[512]; snprintf(cmd,511,"echo -n '%s' | md5sum | cut -d' ' -f1",a[0]?a[0]:"");
+    FILE*fp=popen(cmd,"r"); if(!fp) return strdup("");
+    char buf[64]; buf[0]=0; fgets(buf,63,fp); pclose(fp);
+    int l=strlen(buf); while(l>0&&(buf[l-1]=='\n'||buf[l-1]==' '))buf[--l]=0;
+    return strdup(buf);
+}
+char* nat_sha256_s(char**a,int n){
+    char cmd[512]; snprintf(cmd,511,"echo -n '%s' | sha256sum | cut -d' ' -f1",a[0]?a[0]:"");
+    FILE*fp=popen(cmd,"r"); if(!fp) return strdup("");
+    char buf[128]; buf[0]=0; fgets(buf,127,fp); pclose(fp);
+    int l=strlen(buf); while(l>0&&(buf[l-1]=='\n'||buf[l-1]==' '))buf[--l]=0;
+    return strdup(buf);
+}
+double nat_is_email_mix(BVal *stack, int argc){
+    if(argc<1||!stack[0].str) return 0;
+    char *s=stack[0].str;
+    char *at=strchr(s,'@');
+    if(!at) return 0;
+    char *dot=strchr(at,'.');
+    return dot&&dot>at+1?1:0;
+}
+double nat_is_url_mix(BVal *stack, int argc){
+    if(argc<1||!stack[0].str) return 0;
+    char *s=stack[0].str;
+    return (strncmp(s,"http://",7)==0||strncmp(s,"https://",8)==0)?1:0;
+}
+
+
+char* nat_slice_str(char**a,int n){
+    /* from/to passed as strings of numbers */
+    /* from/to passed as strings of numbers */
+    if(n<1||!a[0]) return strdup("");
+    char *s=a[0];
+    int len=strlen(s);
+    int from=n>1?(int)strtod(a[1],NULL):0;
+    int to=n>2?(int)strtod(a[2],NULL):len;
+    if(from<0)from=0; if(to>len)to=len; if(from>to)from=to;
+    char *r=malloc(to-from+1);
+    strncpy(r,s+from,to-from); r[to-from]=0;
+    return r;
+}
+
+void nat_slice_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||!stack[0].str){out->type=VT_STR;out->str=strdup("");return;}
+    char *s=stack[0].str;
+    int len=strlen(s);
+    int from=argc>1?(int)stack[1].num:0;
+    int to=argc>2?(int)stack[2].num:len;
+    if(from<0)from=0; if(to>len)to=len; if(from>to)from=to;
+    char *r=malloc(to-from+1);
+    strncpy(r,s+from,to-from); r[to-from]=0;
+    out->type=VT_STR; out->str=r;
+}
+
+
 void nat_sort_val(BVal *stack, int argc, BVal *out){
     if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
     int n=stack[0].arr_len;
@@ -462,7 +525,15 @@ void nat_sort_val(BVal *stack, int argc, BVal *out){
     out->type=VT_ARR; out->arr=arr2; out->arr_len=n;
 }
 
-void nat_reverse_arr_val(BVal *stack, int argc, BVal *out);
+
+void nat_reverse_arr_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){if(argc>0)*out=stack[0];return;}
+    int n=stack[0].arr_len;
+    BVal *src=(BVal*)stack[0].arr;
+    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++) arr[i]=src[n-1-i];
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
 void nat_reverse_unified(BVal *stack, int argc, BVal *out){
     if(argc<1){out->type=VT_NUM;out->num=0;return;}
     if(stack[0].type==VT_ARR){
@@ -475,14 +546,6 @@ void nat_reverse_unified(BVal *stack, int argc, BVal *out){
         for(int i=0;i<l;i++) r[i]=s[l-1-i];
         out->type=VT_STR; out->str=r;
     }
-}
-void nat_reverse_arr_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
-    int n=stack[0].arr_len;
-    BVal *src=(BVal*)stack[0].arr;
-    BVal *arr2=(BVal*)calloc(n,sizeof(BVal));
-    for(int i=0;i<n;i++) arr2[i]=src[n-1-i];
-    out->type=VT_ARR; out->arr=arr2; out->arr_len=n;
 }
 void register_all_natives(VM *vm) {
     TFunc *f;
@@ -568,6 +631,16 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice");f2->is_native=4;f2->native_v=nat_slice_val;f2->param_count=3;strcpy(f2->params[0],"str");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sign");f2->is_native=3;f2->native_m=nat_sign_mix;f2->param_count=1;strcpy(f2->params[0],"val");}
+    REG_S1("md5",nat_md5_s,"str")
+    REG_S1("sha256",nat_sha256_s,"str")
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_email");f2->is_native=3;f2->native_m=nat_is_email_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_url");f2->is_native=3;f2->native_m=nat_is_url_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"validate_email");f2->is_native=3;f2->native_m=nat_is_email_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"validate_url");f2->is_native=3;f2->native_m=nat_is_url_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
+    REG_S1("md5",nat_md5_s,"str")
+    REG_S1("sha256",nat_sha256_s,"str")
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"gcd");f2->is_native=3;f2->native_m=nat_gcd_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lcm");f2->is_native=3;f2->native_m=nat_lcm_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"concat");f2->is_native=4;f2->native_v=nat_concat_val;f2->param_count=2;strcpy(f2->params[0],"arr1");strcpy(f2->params[1],"arr2");}
@@ -579,19 +652,10 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"reverse_arr");f2->is_native=4;f2->native_v=nat_reverse_arr_val;}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"gcd");f2->is_native=3;f2->native_m=nat_gcd_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lcm");f2->is_native=3;f2->native_m=nat_lcm_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"concat");f2->is_native=4;f2->native_v=nat_concat_val;f2->param_count=2;strcpy(f2->params[0],"arr1");strcpy(f2->params[1],"arr2");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"flatten");f2->is_native=4;f2->native_v=nat_flatten_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
+    REG_S1("md5",nat_md5_s,"str")
+    REG_S1("sha256",nat_sha256_s,"str")
+    REG_S1("md5",nat_md5_s,"str")
+    REG_S1("sha256",nat_sha256_s,"str")
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"arr_len"); f->is_native=3; f->native_m=nat_arr_len_mix;
