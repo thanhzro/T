@@ -628,9 +628,11 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
     chunk_write(c,OP_HALT);
 }
 
+int _g_trace=0;
 int main(int argc, char *argv[]) {
     register_signals();
     if(argc > 1) {
+        if(argc > 2 && strcmp(argv[2],"--trace")==0) _g_trace=1;
         run_file(argv[1]);
         return 0;
     }
