@@ -35,3 +35,4 @@ mismatch: join output differs t_bc vs AST - check
 mismatch: flatten output differs t_bc vs AST - check lib/basic/array.t:58:func flatten(arr) {
 loop Gate subject: strncpy from pointer arithmetic leaves trailing spaces - always trim with while(sv[sl-1]==' ')
 loop compile: for(int _i=0;_i<count;_i++) leftover in run_file caused compile_program called count times
+debug leftover: always remove for/while loop wrappers around compile_program after debugging - performance bug silent
