@@ -3,11 +3,13 @@ echo "========== T con Daily Report =========="
 echo ""
 
 # Step 1: Build
-gcc src/t_prog_compiler.c -lm -o t_bc 2>/dev/null &
+gcc src/t_prog_compiler.c -lm -lpthread -o t_bc 2>/dev/null &
 GCC_PID=$!
 
 # Run all slow steps in parallel
 wait $GCC_PID && echo "[1/6] Build: OK" || echo "[1/6] Build: FAIL"
+# Start server if not running
+pgrep -f "t_bc --server" > /dev/null || (./t_bc --server > /dev/null 2>&1 & sleep 0.3)
 bash _run_units_fast.sh 2>/dev/null > _unit_cache.txt &
 bash _run_test.sh tests/accumulator.t > _p1.txt &
 bash _run_test.sh tests/sumavg.t > _p2.txt &
