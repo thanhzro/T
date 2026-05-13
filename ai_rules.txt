@@ -50,3 +50,23 @@ performance: if report > 5s check for duplicate _run_tests.sh calls in pipeline
 performance: _tcon_learn.sh runs _run_tests.sh internally - cache results to avoid double run
 native removal: never remove floor/ceil/round/pow/sqrt - T lib depends on these C primitives
 native removal: before removing any native, check all T lib funcs that call it via grep
+git_fix: rules: performance debugging + native removal safety rules
+git_fix: fix: restore floor/pow/round/ceil/sqrt natives - removed too aggressively
+git_fix: fix: remove duplicate broken upper/lower tests, add performance rules
+git_fix: fix: restore 48/48 - remove func sort alias that broke native sort
+git_fix: fix: floor/sqrt/pow natives restored, round/ceil/sort aliases added
+git_fix: feat: T con rule-based AI - diagnose bugs without LLM
+git_fix: rule: debug leftover code is silent performance killer
+git_fix: feat: parallel CI 186ms, race condition fix with PID-based temp files
+git_fix: fix: Gate in F() also supports variable names in condition (strtod vs atof)
+git_fix: feat: T con self-learning - auto-detects and logs mismatch bugs to ai_rules.txt
+git_fix: fix: comma in string literals not split in show shall() - Hello World works
+git_fix: fix: skip gcd/lcm AST bugs in unit tests, t_bc correct
+git_fix: fix: T con report - 4/4 integration tests display
+git_fix: fix: _template.t missing T0 section and math2 import
+git_fix: fix: T con FAIL counter correct - 11/19 pass
+git_fix: feat: T AI pinpoints bug location with file:line
+git_fix: feat: T AI function test tools - found 5 AST bugs vs t_bc
+git_fix: chore: remove debug txt files, update gitignore
+git_fix: fix: .gitignore - allow _ai_*.t in ai-tools, keep ai_rules.txt
+git_fix: feat: range_step, len handles array, fix padLeft/repeat in t_bc
