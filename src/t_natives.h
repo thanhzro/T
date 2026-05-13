@@ -77,6 +77,99 @@ double nat_min2_c(BVal *stack, int argc){
     if(argc<2) return 0;
     return stack[0].num < stack[1].num ? stack[0].num : stack[1].num;
 }
+
+void nat_slice_val(BVal *stack, int argc, BVal *out){
+    if(argc<1){out->type=VT_STR;out->str=strdup("");return;}
+    if(stack[0].type==VT_ARR){
+        int from=argc>1?(int)stack[1].num:0;
+        int to=argc>2?(int)stack[2].num:stack[0].arr_len;
+        if(from<0)from=0; if(to>stack[0].arr_len)to=stack[0].arr_len;
+        int n=to-from; if(n<0)n=0;
+        BVal*arr=(BVal*)calloc(n,sizeof(BVal));
+        for(int i=0;i<n;i++) arr[i]=stack[0].arr[from+i];
+        out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+        return;
+    }
+    char *s=stack[0].str?stack[0].str:"";
+    int len=strlen(s);
+    int from=argc>1?(int)stack[1].num:0;
+    int to=argc>2?(int)stack[2].num:len;
+    if(from<0)from=0; if(to>len)to=len; if(from>to)from=to;
+    char *r=malloc(to-from+1);
+    strncpy(r,s+from,to-from); r[to-from]=0;
+    out->type=VT_STR; out->str=r;
+}
+
+void nat_chars_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||!stack[0].str){out->type=VT_ARR;out->arr_len=0;return;}
+    char *s=stack[0].str;
+    int n=strlen(s);
+    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++){
+        arr[i].type=VT_STR;
+        char *ch=malloc(2); ch[0]=s[i]; ch[1]=0;
+        arr[i].str=ch;
+    }
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
+
+void nat_reverse_c(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){if(argc>0)*out=stack[0];return;}
+    int n=stack[0].arr_len;
+    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++) arr[i]=stack[0].arr[n-1-i];
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
+
+char* nat_join_s(char**a,int n){
+    /* a[0]=arr_as_str is not right - need BVal version */
+    return strdup("");
+}
+void nat_join_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR){out->type=VT_STR;out->str=strdup("");return;}
+    char *sep=argc>1&&stack[1].str?stack[1].str:"";
+    int seplen=strlen(sep);
+    int total=0;
+    for(int i=0;i<stack[0].arr_len;i++){
+        if(stack[0].arr[i].str) total+=strlen(stack[0].arr[i].str);
+        if(i<stack[0].arr_len-1) total+=seplen;
+    }
+    char *r=calloc(total+1,1); int pos=0;
+    for(int i=0;i<stack[0].arr_len;i++){
+        if(stack[0].arr[i].str){int l=strlen(stack[0].arr[i].str);memcpy(r+pos,stack[0].arr[i].str,l);pos+=l;}
+        if(i<stack[0].arr_len-1){memcpy(r+pos,sep,seplen);pos+=seplen;}
+    }
+    out->type=VT_STR; out->str=r;
+}
+
+double nat_safe_div_auto(BVal *stack, int argc){
+    if(argc<1) return 0;
+    if(argc<2||stack[1].num==0) return 0;
+    return stack[0].num/stack[1].num;
+}
+
+char* nat_tcon_query(char**a,int n){
+    if(n<1||!a[0]) return strdup("");
+    FILE*f=fopen("ai_rules.txt","r");
+    if(!f) return strdup("no rules");
+    char line[512]; char best[512]={0}; int best_score=0;
+    char *query=a[0];
+    while(fgets(line,511,f)){
+        int score=0; char *p=line;
+        // count matching words
+        char qtmp[512]; strcpy(qtmp,query);
+        char *tok=strtok(qtmp," ");
+        while(tok){
+            if(strlen(tok)>2 && strcasestr(line,tok)) score++;
+            tok=strtok(NULL," ");
+        }
+        if(score>best_score){best_score=score;strncpy(best,line,511);}
+    }
+    fclose(f);
+    if(best_score==0) return strdup("no match");
+    int l=strlen(best); while(l>0&&(best[l-1]=='\n'||best[l-1]==' '))best[--l]=0;
+    return strdup(best);
+}
 void nat_push_val(BVal *stack, int argc, BVal *out){
     /* stack[0]=arr, stack[1]=val */
     out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
@@ -334,7 +427,12 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max2");f2->is_native=3;f2->native_m=nat_max2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min2");f2->is_native=3;f2->native_m=nat_min2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_unified;f->param_count=1;strcpy(f->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice");f2->is_native=4;f2->native_v=nat_slice_val;f2->param_count=3;strcpy(f2->params[0],"str");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"chars");f2->is_native=4;f2->native_v=nat_chars_val;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"safe_div");f2->is_native=3;f2->native_m=nat_safe_div_auto;f2->param_count=2;;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
+    REG_S1("tcon_query",nat_tcon_query,"query")
+    {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_c;f->param_count=1;strcpy(f->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"floor");f2->is_native=3;f2->native_m=nat_floor_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"round");f2->is_native=3;f2->native_m=nat_round_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"ceil");f2->is_native=3;f2->native_m=nat_ceil_c;f2->param_count=1;strcpy(f2->params[0],"val");}
