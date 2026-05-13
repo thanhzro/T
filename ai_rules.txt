@@ -46,3 +46,7 @@ upper/lower in t_bc: returns empty - native implementation missing or wrong
 sort in t_bc: returns unsorted - sort_asc native not working correctly  
 reverse in t_bc: returns 0 - reverse_arr T lib uses loop+get_idx which fails in nested func
 profile each func: 100-150ms per test is normal Termux overhead not a bug
+performance: if report > 5s check for duplicate _run_tests.sh calls in pipeline
+performance: _tcon_learn.sh runs _run_tests.sh internally - cache results to avoid double run
+native removal: never remove floor/ceil/round/pow/sqrt - T lib depends on these C primitives
+native removal: before removing any native, check all T lib funcs that call it via grep
