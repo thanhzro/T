@@ -14,10 +14,12 @@ R1=$(bash _run_test.sh tests/accumulator.t | tr '\n' ' ')
 R2=$(bash _run_test.sh tests/sumavg.t | tr '\n' ' ')
 R3=$(bash _run_test.sh tests/basic.t | tr '\n' ' ')
 R4=$(bash _run_test.sh tests/filter.t | tr '\n' ' ')
+R5=$(bash _run_test.sh tests/advanced.t | tr '\n' ' ')
 echo "     accumulator: $R1"
 echo "     sumavg:      $R2"
 echo "     basic:       $R3"
 echo "     filter:      $R4"
+echo "     advanced:    $R5"
 
 echo "[4/6] Function tests..."
 FOUT=$(bash _run_tests.sh 2>/dev/null | tail -1)
