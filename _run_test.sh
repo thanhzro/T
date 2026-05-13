@@ -1,3 +1,6 @@
 #!/bin/bash
 TEST=$1
-{ time bash -c "./t $TEST 2>/dev/null | sed 's/[[:space:]]*\$//' > _ref.txt && ./t_bc $TEST 2>/dev/null | sed 's/[[:space:]]*\$//' > _bc.txt && diff _ref.txt _bc.txt >/dev/null && echo PASS || echo FAIL"; } 2>&1 | grep -E "PASS|FAIL|real"
+TMPID=$$
+TIMEOUT=${2:-15}
+{ time bash -c "timeout $TIMEOUT ./t $TEST 2>/dev/null | sed 's/[[:space:]]*\$//' > _ref_${TMPID}.txt && timeout $TIMEOUT ./t_bc $TEST 2>/dev/null | sed 's/[[:space:]]*\$//' > _bc_${TMPID}.txt && diff _ref_${TMPID}.txt _bc_${TMPID}.txt >/dev/null && echo PASS || echo FAIL"; } 2>&1 | grep -E "PASS|FAIL|real"
+rm -f _ref_${TMPID}.txt _bc_${TMPID}.txt

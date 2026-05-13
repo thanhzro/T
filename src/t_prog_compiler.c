@@ -293,8 +293,7 @@ static void load_lines(const char *path, char **lines, int *count){
     fclose(f);
 }
 
-static int _rf_cnt=0; int run_file(const char *path) {
-    fprintf(stderr,"run_file#%d: %s\n",++_rf_cnt,path);fflush(stderr);
+int run_file(const char *path) {
     FILE *f = fopen(path, "r");
     if(!f){
  return 1; }
@@ -508,7 +507,7 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
             }
             if(bi<body_count) bi++; /* skip } */
             int patch_addrs[16]; int patch_count=0;
-            static int _loop_cnt=0; fprintf(stderr,"LOOP#%d: func=%s body=%d bi=%d\n",++_loop_cnt,f->name,lc,bi); fflush(stderr);
+            fflush(stderr);
             /* Compile loop: record start, compile body with Gate as exit */
             int loop_start=f->chunk.count;
             for(int li=0;li<lc;li++){
