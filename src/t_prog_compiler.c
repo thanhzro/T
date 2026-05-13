@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/wait.h>
+#include <pthread.h>
 #include <unistd.h>
 
 #define TCON_SOCKET "/data/data/com.termux/files/home/t-lang/tbc_server.sock"
@@ -32,7 +33,21 @@ static void cache_set(const char *path, const char *content, int len) {
     _file_cache[_cache_count].len=len;
     _cache_count++;
 }
+
 int run_file(const char *path);
+void* handle_client(void *arg){
+    int cli = *(int*)arg; free(arg);
+    char path[512] = {0};
+    read(cli, path, 511);
+    int old_stdout = dup(1);
+    dup2(cli, 1);
+    run_file(path);
+    fflush(stdout);
+    dup2(old_stdout, 1);
+    close(old_stdout);
+    close(cli);
+    return NULL;
+}
 void run_server() {
     int srv = socket(AF_UNIX, SOCK_STREAM, 0);
     struct sockaddr_un addr = {0};
@@ -58,23 +73,12 @@ void run_server() {
     while(1) {
         int cli = accept(srv, NULL, NULL);
         if(cli < 0) continue;
-        pid_t pid = fork();
-        if(pid == 0) {
-            /* Child: handle request */
-            char path[512] = {0};
-            read(cli, path, 511);
-            int old_stdout = dup(1);
-            dup2(cli, 1);
-            run_file(path);
-            fflush(stdout);
-            dup2(old_stdout, 1);
-            close(old_stdout);
-            close(cli);
-            exit(0);
-        }
-        close(cli);
-        /* Reap zombies */
-        while(waitpid(-1, NULL, WNOHANG) > 0);
+        /* Handle in new thread - no fork overhead */
+        int *cli_ptr = malloc(sizeof(int));
+        *cli_ptr = cli;
+        pthread_t tid;
+        pthread_create(&tid, NULL, handle_client, cli_ptr);
+        pthread_detach(tid);
     }
 }
 
