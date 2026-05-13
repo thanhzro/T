@@ -1,6 +1,7 @@
 [T-]
-import "lib/advanced/crypto.t"
 [T0]
-checksum(str="hello") ~> r
+tcon_query(query="Gate undefined variable returns wrong") ~> r1
+tcon_query(query="native missing func not found") ~> r2
+tcon_query(query="array in func body loses type") ~> r3
 [T+]
-show shall(r)
+show shall(r1, r2, r3)

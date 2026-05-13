@@ -7,7 +7,7 @@ def run_t(imports, t0_code, expected):
     global PASS, FAIL
     test = f'[T-]\n{imports}\n\n[T0]\n{t0_code}\n\n[T+]\nshow shall(O1)\n'
     open('_rt_test.t','w').write(test)
-    r = subprocess.run(['./t','_rt_test.t'], capture_output=True, text=True, timeout=5)
+    r = subprocess.run(['./t_bc','_rt_test.t'], capture_output=True, text=True, timeout=5)
     out = r.stdout.strip()
     if out == str(expected):
         PASS += 1

@@ -1,7 +1,10 @@
 [T-]
-import "lib/basic/array.t"
+import "lib/basic/std.t"
 nums=[1,2,3]
 [T0]
-flatten(arr=nums) ~> r
+len(val=nums) ~> r
 [T+]
 show shall(r)
+shall(r)
+
+all(r)

@@ -22,3 +22,13 @@ join:arr,sep
 max2:a,b
 min2:a,b
 clamp:val,lo,hi
+safe_div:a,b
+str_reverse:str
+str_count:str,sub
+is_blank:str
+min_arr:arr
+all_arr:arr
+capitalize:str
+is_palindrome:str
+capitalize:str
+is_error:val

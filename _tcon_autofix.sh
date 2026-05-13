@@ -25,8 +25,12 @@ import re,sys
 with open('$FUNC_FILE') as f: c=f.read()
 # Find func and add 0>>out before Gate>>out
 c=re.sub(r'(func $FUNC[^{]*\{[^}]*?)Gate (\w+) \(== 0\) >> out', r'\g<1>0 >> out\n    Gate \2 (== 0) >> out', c, flags=re.DOTALL)
-open('$FUNC_FILE','w').write(c)
-print('Fixed')
+new_c=re.sub(r'(func $FUNC[^{]*\{[^}]*?)Gate (\w+) \(== 0\) >> out', r'\g<1>0 >> out\n    Gate \2 (== 0) >> out', c, flags=re.DOTALL)
+if new_c!=c:
+    open('$FUNC_FILE','w').write(new_c)
+    print('Fixed')
+else:
+    print('No match - different pattern')
 "
         # Step 4: Verify
         bash _tcon_verify.sh 2>/dev/null | grep "Unit:"
