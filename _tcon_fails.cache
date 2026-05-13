@@ -1,0 +1,20 @@
+Testing max_arr... FAIL max_arr → AST bug at: lib/basic/math.t:46:func max_arr(arr) {
+Testing min_arr... FAIL min_arr → AST bug at: lib/basic/math.t:52:func min_arr(arr) {
+Testing pow... FAIL pow → mismatch at: lib/basic/math.t:29:func pow(base, exp) {
+Testing abs... FAIL abs → AST bug at: lib/basic/math.t:40:func abs(val) {
+Testing round... FAIL round → mismatch at: lib/basic/math.t:62:func round(val) {
+Testing ceil... FAIL ceil → mismatch at: lib/basic/math.t:68:func ceil(val) {
+Testing sqrt... FAIL sqrt → mismatch at: lib/basic/math.t:204:func sqrt_n(val) {
+Testing clamp... FAIL clamp → AST bug at: lib/basic/math.t:20:func clamp(val, lo, hi) {
+Testing upper... FAIL upper → mismatch at: lib/basic/string.t:4:func upper(str) {
+Testing lower... FAIL lower → mismatch at: lib/basic/string.t:17:func lower(str) {
+Testing trim... FAIL trim → mismatch at: lib/basic/string.t:69:func trim(str) {
+Testing sort... FAIL sort → mismatch at: lib/basic/array.t:127:func sort_asc(arr) {
+Testing reverse... FAIL reverse → mismatch at: lib/basic/array.t:16:func reverse(arr) {
+Testing trim... FAIL trim → mismatch at: lib/basic/string.t:69:func trim(str) {
+Testing replace... FAIL replace → mismatch at: lib/basic/string.t:61:func replace(str, old, new) {
+Testing contains... FAIL contains → AST bug at: lib/basic/string.t:35:func contains(str, sub) {
+Testing split... FAIL split → mismatch at: 
+Testing join... FAIL join → mismatch at: 
+Testing flatten... FAIL flatten → mismatch at: lib/basic/array.t:58:func flatten(arr) {
+T con report: PASS=8 | FAIL=19 | TOTAL=27
