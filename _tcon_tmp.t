@@ -1,6 +1,6 @@
 [T-]
-import "lib/basic/std.t"
 [T0]
-replace(str="hello world", old=" ", new="_") ~> r
+3 != 4 >> r1
+3 != 3 >> r2
 [T+]
-show shall(r)
+show shall(r1, r2)

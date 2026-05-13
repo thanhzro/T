@@ -1,7 +1,5 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/intermediate/string2.t"
 [T0]
-capitalize(str="hello") ~> r
+tcon_query(query="!= operator always returns 0 not working bytecode") ~> r
 [T+]
 show shall(r)
