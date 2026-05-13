@@ -1,0 +1,846 @@
+
+{"instruction": "T language compiler bug: BVal by value", "output": "Fix: use output pointer not return by value"}
+{"instruction": "T language compiler bug: iter in VM struct", "output": "Fix: use global _g_iter_arr[] not VM struct field"}
+{"instruction": "T language compiler bug: arm64", "output": "Fix: struct return causes silent bugs - always use pointer pattern"}
+{"instruction": "T language compiler bug: make_num/make_str", "output": "Fix: low risk if immediately used in same expression"}
+{"instruction": "T language compiler bug: AI scan", "output": "Fix: include line numbers in output"}
+{"instruction": "T language compiler bug: compile_func", "output": "Fix: use bi loop not simple for - F() needs multi-line context"}
+{"instruction": "T language compiler bug: body collection", "output": "Fix: track brace depth - simple } check misses nested F() blocks"}
+{"instruction": "T language compiler bug: bug layer mismatch", "output": "Fix: verify bytecode dump before debugging runtime"}
+{"instruction": "T language compiler bug: duplicate function definition", "output": "Fix: C silently uses first - second is dead code"}
+{"instruction": "T language compiler bug: OP_LE OP_GE", "output": "Fix: must have explicit case handlers - missing causes fall-through"}
+{"instruction": "T language compiler bug: compile_program F() handler", "output": "Fix: must have continue after compile_f_block - missing causes infinite loop"}
+{"instruction": "T language compiler bug: len native", "output": "Fix: must handle VT_ARR type - default returns 0 for arrays"}
+{"instruction": "T language compiler bug: range_step", "output": "Fix: not in t_bc natives - must port from t_vm.c when array funcs fail"}
+{"instruction": "T language compiler bug: split/join", "output": "Fix: not in t_bc natives - port needed for string replace to work"}
+{"instruction": "T language compiler bug: unique", "output": "Fix: Gate filter not supported in t_bc F() loop - implement as native instead"}
+{"instruction": "T language compiler bug: inline array literal in func args", "output": "Fix: strtok splits on comma inside [] - use variable instead"}
+{"instruction": "T language compiler bug: F() mutate pattern", "output": "Fix: now assigned inside loop must save index first (now >> idx) before overwriting now"}
+{"instruction": "T language compiler bug: OP_MOD", "output": "Fix: missing from compile_line switch - % operator falls through to wrong handler"}
+{"instruction": "T language compiler bug: show shall", "output": "Fix: strtok splits comma in string literals - use quote-aware parser"}
+{"instruction": "T language compiler bug: nested array display", "output": "Fix: VT_ARR inside VT_ARR not handled in OP_SHOW - add nested case"}
+{"instruction": "T language compiler bug: loop construct", "output": "Fix: not in t_bc - replace with range(n=N) + F() loop workaround"}
+{"instruction": "T language compiler bug: gcd/lcm", "output": "Fix: loop-based implementation fails in t_bc - implement as native C instead"}
+{"instruction": "T language compiler bug: slice_arr/flatten/concat", "output": "Fix: missing natives - port from t_vm.c or implement new"}
+{"instruction": "T language compiler bug: F() write-back", "output": "Fix: OP_ITER_NEXT must write now back to source array for mutate pattern"}
+{"instruction": "T language compiler bug: ---learning---", "output": "Fix:---learning---"}
+{"instruction": "T language compiler bug: scan", "output": "Fix: "}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: pow output differs t_bc vs AST - check lib/basic/math.t:29:func pow(base, exp) {"}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: upper output differs t_bc vs AST - check lib/basic/string.t:4:func upper(str) {"}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: lower output differs t_bc vs AST - check lib/basic/string.t:17:func lower(str) {"}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: trim output differs t_bc vs AST - check lib/basic/string.t:69:func trim(str) {"}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: replace output differs t_bc vs AST - check lib/basic/string.t:61:func replace(str, old, new) {"}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: split output differs t_bc vs AST - check "}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: join output differs t_bc vs AST - check "}
+{"instruction": "T language compiler bug: mismatch", "output": "Fix: flatten output differs t_bc vs AST - check lib/basic/array.t:58:func flatten(arr) {"}
+{"instruction": "T language compiler bug: loop Gate subject", "output": "Fix: strncpy from pointer arithmetic leaves trailing spaces - always trim with while(sv[sl-1]==' ')"}
+{"instruction": "T language compiler bug: loop compile", "output": "Fix: for(int _i=0;_i<count;_i++) leftover in run_file caused compile_program called count times"}
+{"instruction": "T language compiler bug: debug leftover", "output": "Fix: always remove for/while loop wrappers around compile_program after debugging - performance bug silent"}
+{"instruction": "T language: feat: stress test - 500 parallel T con PASS=500, T con army proven", "output": "commit: 9e1b0b4"}
+{"instruction": "T language: rule: debug leftover code is silent performance killer", "output": "commit: 2d93a22"}
+{"instruction": "T language: feat: parallel CI 186ms, race condition fix with PID-based temp files", "output": "commit: f328ffa"}
+{"instruction": "T language: fix: Gate in F() also supports variable names in condition (strtod vs atof)", "output": "commit: fcdc39a"}
+{"instruction": "T language: feat: T con source scanner - detects strncpy/atof risk patterns", "output": "commit: f7a0be4"}
+{"instruction": "T language: feat: v4.8 - loop, trace mode, 37 ai_rules", "output": "commit: 3b2b4ad"}
+{"instruction": "T language: feat: loop construct in t_bc - factorial/fibonacci/gcd all working", "output": "commit: dd86785"}
+{"instruction": "T language: feat: T con daily report v2 - 5 steps including self-learning", "output": "commit: 1521166"}
+{"instruction": "T language: feat: T con self-learning - auto-detects and logs mismatch bugs to ai_rules.txt", "output": "commit: 5501743"}
+{"instruction": "T language: feat: T con auto-learn report - 25 rules, daily status", "output": "commit: 3aababd"}
+{"instruction": "T language: feat: ai_rules.txt updated with 8 new rules from day 3-4 battles", "output": "commit: e5875a5"}
+{"instruction": "T language: fix: comma in string literals not split in show shall() - Hello World works", "output": "commit: 041c338"}
+{"instruction": "T language: fix: skip gcd/lcm AST bugs in unit tests, t_bc correct", "output": "commit: 001ed9f"}
+{"instruction": "T language: feat: intermediate.t PASS - chunk/take/drop/sliding_window/rotate/gcd/lcm/mod all working", "output": "commit: 6d5d63b"}
+{"instruction": "T language: feat: slice_arr, min, max natives - intermediate.t partial progress", "output": "commit: e1158bc"}
+{"instruction": "T language: fix: T con report - 4/4 integration tests display", "output": "commit: 74e80d2"}
+{"instruction": "T language: feat: Gate filter in F() loop - filter.t PASS - 4/4 integration tests", "output": "commit: fbc3e75"}
+{"instruction": "T language: feat: T con daily report + Gemini voice (experimental)", "output": "commit: 10ecbe8"}
+{"instruction": "T language: fix: _template.t missing T0 section and math2 import", "output": "commit: 1edb7d4"}
+{"instruction": "T language: fix: T con FAIL counter correct - 11/19 pass", "output": "commit: 85c818c"}
+{"instruction": "T language: feat: T con _run_tests.sh with PASS/FAIL summary", "output": "commit: f58b393"}
+{"instruction": "T language: feat: T con progress output + array tests", "output": "commit: 3c50a5b"}
+{"instruction": "T language: feat: T con progress output + array tests", "output": "commit: 1f44bc9"}
+{"instruction": "T language: feat: T AI named 'T con' - born today", "output": "commit: e73b9d8"}
+{"instruction": "T language: feat: T AI func test and rule scanner tools", "output": "commit: 89f14e3"}
+{"instruction": "T language: feat: T AI test suite v2 - PASS/FAIL/SKIP with location", "output": "commit: 6eea881"}
+{"instruction": "T language: feat: T AI pinpoints bug location with file:line", "output": "commit: 4b89983"}
+{"instruction": "T language: feat: T AI function test tools - found 5 AST bugs vs t_bc", "output": "commit: 259ac1b"}
+{"instruction": "T language: feat: IP tracking in crash, 6 new ai_rules, T AI rule scanner", "output": "commit: 8f10b20"}
+{"instruction": "T language: feat: Gemini API integration (experimental)", "output": "commit: 7036808"}
+{"instruction": "T language: chore: remove debug txt files, update gitignore", "output": "commit: 2159a05"}
+{"instruction": "T language: fix: .gitignore - allow _ai_*.t in ai-tools, keep ai_rules.txt", "output": "commit: eef53a5"}
+{"instruction": "T language: feat: _run_test.sh with timing", "output": "commit: e82e28a"}
+{"instruction": "T language: feat: 3/3 integration tests pass - basic, accumulator, sumavg", "output": "commit: 7810407"}
+{"instruction": "T language: feat: split, join, unique, range_step natives - basic.t nearly passing", "output": "commit: c9849ef"}
+{"instruction": "T language: feat: range_step, len handles array, fix padLeft/repeat in t_bc", "output": "commit: f5554ed"}
+{"instruction": "T language: feat: parallel T test runner - concept proven", "output": "commit: e50c1e4"}
+{"instruction": "T language: feat: t-ai-master4 CI pipeline with timing per step", "output": "commit: 293bda8"}
+{"instruction": "T language: feat: T AI pipeline - scan/analyze/compare, exec native for shell commands", "output": "commit: a093bf7"}
+{"instruction": "T language: fix: F() handler in compile_program missing continue, causing infinite loop with imported libs", "output": "commit: 213cd67"}
+{"instruction": "T language: feat: unified reverse native handles both array and string", "output": "commit: 3f08be1"}
+{"instruction": "T language: feat: reverse_arr in AST interpreter t_vm.c", "output": "commit: 4b1a177"}
+{"instruction": "T language: feat: sort/reverse_arr natives in t_bc, fix array.t reverse", "output": "commit: c7e2807"}
+{"instruction": "T language: feat: improved crash display - file, func name, IP", "output": "commit: 4868f42"}
+{"instruction": "T language: fix: indented braces in func body collection, dynamic FUNC array, heap lines buffer", "output": "commit: 59bb825"}
+{"instruction": "T language: fix: FUNC_MAX dynamic allocation, heap arrays for body/lines, signal handler", "output": "commit: 2ec33f3"}
+{"instruction": "T language: feat: segfault signal handler - show crash info instead of silent die", "output": "commit: 1b0ce29"}
+{"instruction": "T language: docs: update ai_rules.txt with compile-time bug patterns (BUG-14)", "output": "commit: 9c9c99a"}
+{"instruction": "T language: fix: F() inside func body - compile_func uses bi loop instead of simple for loop", "output": "commit: 32812b5"}
+{"instruction": "T language: feat: recursive import, array literals, T- var=value syntax", "output": "commit: 0eabc27"}
+{"instruction": "T language: chore: remove test/debug files, keep core source only", "output": "commit: 5d733aa"}
+{"instruction": "T language: fix: OP_LE, OP_GE missing handlers, comparison ops avoid push(make_num) ARM64", "output": "commit: 314cb53"}
+{"instruction": "T language: feat: AI master scanner, scan_risk working in t_bc", "output": "commit: 0a4085e"}
+{"instruction": "T language: feat: T- section supports func definitions, AI autotest PASS/FAIL working", "output": "commit: 1a5d3c1"}
+{"instruction": "T language: fix: AI autotest PASS/FAIL using Gate directly as array index", "output": "commit: 98f7f3c"}
+{"instruction": "T language: fix: [] array literal, push/get native type 4, string array support", "output": "commit: 63dcdf9"}
+{"instruction": "T language: feat: AI auto-testing - generate, execute, verify T functions", "output": "commit: 2d26ab7"}
+{"instruction": "T language: feat: AI libgen - generate T functions to file, 6 writes correct", "output": "commit: 575d346"}
+{"instruction": "T language: feat: full AI codegen pipeline - generate, write, import, execute T functions", "output": "commit: fe486c1"}
+{"instruction": "T language: fix: find_arrow skips >> inside string literals", "output": "commit: 471388a"}
+{"instruction": "T language: fix: string literal + var concat, AI codegen working", "output": "commit: 04efaeb"}
+{"instruction": "T language: feat: OP_ADD runtime string concat, import lib, return syntax in t_bc", "output": "commit: 180bc9c"}
+{"instruction": "T language: feat: import lib in t_bc, return syntax - 500 T functions now available in bytecode VM", "output": "commit: f412441"}
+{"instruction": "T language: feat: t-ai-full-scan with line numbers, AI confirms codebase clean", "output": "commit: fe41668"}
+{"instruction": "T language: fix: ARM64 bugs in t_bytecode.c found by AI scanner - JUMP_IF_0 and OP_EQ pop(vm)", "output": "commit: db7b8a1"}
+{"instruction": "T language: feat: AI risk scoring 0-9 scale, weighted by severity", "output": "commit: bd286ad"}
+{"instruction": "T language: feat: AI scans real C source, detects BVal return-by-value risk", "output": "commit: fff28e7"}
+{"instruction": "T language: feat: context-aware line analysis, scan real C source", "output": "commit: 46d8524"}
+{"instruction": "T language: feat: line-level C code analysis - context-aware ARM64 bug detection", "output": "commit: 83c7c5a"}
+{"instruction": "T language: feat: func definitions in t_bc - compile T functions to bytecode, OP_RETURN fix", "output": "commit: 7bc1800"}
+{"instruction": "T language: feat: t-ai-fix-suggest.t - AI suggests fixes based on learned patterns", "output": "commit: 1a19367"}
+{"instruction": "T language: feat: t-ai-scan-all.t - AI scans actual C source files for bug patterns", "output": "commit: fef02f7"}
+{"instruction": "T language: feat: t-ai-scan.t - AI scans C code against learned bug patterns", "output": "commit: 716cabf"}
+{"instruction": "T language: feat: AI self-learning - detect unknown patterns, write new rules to memory", "output": "commit: c8b1f0a"}
+{"instruction": "T language: feat: AI self-improvement loop - read memory, analyze patterns, count known bugs", "output": "commit: b0610df"}
+{"instruction": "T language: feat: exec_bc native - run shell commands in bytecode VM, AI memory read", "output": "commit: e6ee702"}
+{"instruction": "T language: feat: AI memory - write to file, string concat, write_file_t native", "output": "commit: 0ef18dd"}
+{"instruction": "T language: fix: string literal assignment, var + string concat in bytecode compiler", "output": "commit: 134a539"}
+{"instruction": "T language: feat: t-ai-memory.t - AI learns and recalls bug patterns", "output": "commit: b0ed550"}
+{"instruction": "T language: feat: t_bc binary - bytecode VM accepts .t file argument", "output": "commit: f2affab"}
+{"instruction": "T language: feat: t-ai-integrate.t - ARM64 risk detector for bytecode integration", "output": "commit: cca848b"}
+{"instruction": "T language: feat: t-ai-bytecode.t - analyze T code for bytecode complexity and opcodes", "output": "commit: 8972de5"}
+{"instruction": "T language: fix: F() array iteration - use _g_iter_arr globals, fix else branch value lookup", "output": "commit: fc4baab"}
+{"instruction": "T language: feat: Ma tran coordinate system running in bytecode VM", "output": "commit: c57b39a"}
+{"instruction": "T language: feat: T chain - T+ output feeds T- input, fractal execution", "output": "commit: ccc6b48"}
+{"instruction": "T language: feat: strict T- literals only, T0 processing, T+ output", "output": "commit: ffff05b"}
+{"instruction": "T language: feat: T- section handles static assignments", "output": "commit: 3ada8e7"}
+{"instruction": "T language: feat: enforce T-/T0/T+ sections, show shall() multi-arg in T+", "output": "commit: 67c8230"}
+{"instruction": "T language: fix: frame_get copy arr fields, push direct stack write, OP_LOAD direct - array support working", "output": "commit: 008b505"}
+{"instruction": "T language: feat: VT_ARR in BVal, OP_PUSH_ARR, make_arr - array support in bytecode VM", "output": "commit: d005f09"}
+{"instruction": "T language: feat: 37 natives - range_bc, arr encoding", "output": "commit: 4fb8f40"}
+{"instruction": "T language: feat: 36 native functions in bytecode VM", "output": "commit: fb3720c"}
+{"instruction": "T language: feat: safe_div, is_even, is_odd, between, lerp, sign natives", "output": "commit: a4491ed"}
+{"instruction": "T language: feat: toNumber, isNumber, isString mix natives", "output": "commit: 37719e7"}
+{"instruction": "T language: feat: NativeMixFn type, len/contains/str_starts/str_ends natives", "output": "commit: 9800182"}
+{"instruction": "T language: feat: reverse, replace_first, split_first string natives", "output": "commit: ed3c310"}
+{"instruction": "T language: feat: string natives upper/lower/trim, NativeStrFn type, string literal in compile_expr", "output": "commit: 12de9f2"}
+{"instruction": "T language: feat: multi-arg function calls, 17 native math functions, run_file working", "output": "commit: 2377fba"}
+{"instruction": "T language: feat: 17 native math functions - floor/ceil/sqrt/abs/log/sin/cos/exp/atan/round/pow/max2/min2/pi", "output": "commit: c8e4fd5"}
+{"instruction": "T language: feat: t_natives.h - register 13 math native functions", "output": "commit: d568b7c"}
+{"instruction": "T language: feat: native abs/sqrt/floor working in bytecode VM", "output": "commit: ff1a592"}
+{"instruction": "T language: fix: ARM64 pop/struct bug - inline OP_CALL, native double return, direct stack access", "output": "commit: 23bd723"}
+{"instruction": "T language: feat: ~> operator, function call compiler", "output": "commit: 6b90182"}
+{"instruction": "T language: fix: Gate compiler - correct JUMP_IF_0 offset=4, push 1 not comparison value", "output": "commit: e5621c1"}
+{"instruction": "T language: feat: run_file - read and compile .t file from disk", "output": "commit: 369b962"}
+{"instruction": "T language: feat: multi-show, comments support in program compiler", "output": "commit: dff4af4"}
+{"instruction": "T language: feat: compile_program - full T program compiler", "output": "commit: 030c090"}
+{"instruction": "T language: feat: ITER working, ignore test binaries", "output": "commit: 4c46239"}
+{"instruction": "T language: feat: ITER test in compiler - F() iteration working end-to-end", "output": "commit: 562727a"}
+{"instruction": "T language: feat: ITER_START/NEXT merged into main run() in t_bytecode.h", "output": "commit: 88d6b33"}
+{"instruction": "T language: feat: ITER_START/NEXT working, fix frame_set update bug", "output": "commit: 962a312"}
+{"instruction": "T language: feat: t-ai-typecheck.t, t-ai-optimize.t - complete AI toolkit", "output": "commit: 4be7a3d"}
+{"instruction": "T language: feat: t-ai-pattern.t - detect T code patterns and map to bytecode", "output": "commit: d05a30a"}
+{"instruction": "T language: feat: t-ai-debug.t - AI C error detector and fix suggester", "output": "commit: ffa5631"}
+{"instruction": "T language: feat: CALL/RETURN working - function calls in bytecode VM", "output": "commit: 8388def"}
+{"instruction": "T language: fix: frame_get ARM64 struct return bug - use output pointer", "output": "commit: eeb57b6"}
+{"instruction": "T language: feat: heap strings - BVal.str malloc, OP_PUSH_STR, OP_CONCAT, OP_TOSTR", "output": "commit: 40cac44"}
+{"instruction": "T language: feat: compile_block - multi-line T source → bytecode", "output": "commit: 46041f1"}
+{"instruction": "T language: feat: compile_line - parse T source string → bytecode", "output": "commit: a56d323"}
+{"instruction": "T language: feat: t_bytecode.h header, t_compiler.c mini compiler", "output": "commit: 58454a9"}
+{"instruction": "T language: feat: bytecode VM - LOAD/STORE variables, Frame, str_consts", "output": "commit: 9510526"}
+{"instruction": "T language: feat: bytecode VM prototype - stack, arithmetic, GT/LT/EQ, JUMP_IF_0", "output": "commit: 7e948aa"}
+{"instruction": "T language: feat: t-ai-master.t - unified AI review: complexity + issues", "output": "commit: 390087d"}
+{"instruction": "T language: feat: t-ai-deps.t - detect C builtin dependencies", "output": "commit: f120976"}
+{"instruction": "T language: feat: t-ai-complexity.t - score LOW/MED/HIGH", "output": "commit: 3563b40"}
+{"instruction": "T language: feat: t-ai-lint.t - full analyze+suggest pipeline, t-ai-suggest.t", "output": "commit: 1fff82a"}
+{"instruction": "T language: feat: t-ai-analyze.t - detect loop/return/exec issues", "output": "commit: 5eabefb"}
+{"instruction": "T language: feat: geometric_mean, harmonic_mean, weighted_avg, interpolate, str_wrap_word, str_repeat_sep, deg_to_rad, rad_to_deg", "output": "commit: 3ac3ee7"}
+{"instruction": "T language: feat: queue_size/peek, between, to_rad, to_deg, event_count/last/search; fix duplicates", "output": "commit: dac1b44"}
+{"instruction": "T language: feat: file_ext/basename/dir, arr_remove_at, arr_insert_at, url_domain, http_get_json, nth_root, log_base", "output": "commit: b9c8e04"}
+{"instruction": "T language: feat: validate_not_empty/max_len/num_range/is_int, format_table/size/duration, nth_root, log_base", "output": "commit: 3826d7c"}
+{"instruction": "T language: feat: str_to_num/from_num/hash/contains_num/only_spaces, csv_max/min/sum_col", "output": "commit: ef09201"}
+{"instruction": "T language: feat: mse, accuracy, one_hot; fix moving_avg/normalize duplicates", "output": "commit: d1af6d1"}
+{"instruction": "T language: feat: type_of, is_null, coerce_num, graph_node_count, json_build", "output": "commit: 2ec3a70"}
+{"instruction": "T language: feat: 62 unit tests including runner tests via template", "output": "commit: 918a6d0"}
+{"instruction": "T language: feat: t-ai-eval.t - AI evaluator PASS/FAIL + batch score", "output": "commit: 63736df"}
+{"instruction": "T language: feat: str_join/split/eq/to_arr, arr_fill, arr_step; fix log duplicates", "output": "commit: 40bbef4"}
+{"instruction": "T language: feat: cache_size, cache_keys, sys_ram_free, sys_uptime, sys_hostname, sys_os, sys_arch, proc_count, env_list", "output": "commit: e7d1841"}
+{"instruction": "T language: feat: 57 unit tests, auto-generated expected values", "output": "commit: 8798e8a"}
+{"instruction": "T language: feat: t-ai-testgen improved - auto classify bool/num/str return types", "output": "commit: e16a7dc"}
+{"instruction": "T language: feat: t-ai-testgen.t - AI test generator viết bằng T", "output": "commit: f71be69"}
+{"instruction": "T language: feat: check_runtime.py - 47 unit tests, add to t-test", "output": "commit: 8ef6637"}
+{"instruction": "T language: fix: rand_choice max=n-1, rand_float use rand_int, rand_int param names", "output": "commit: d2764ce"}
+{"instruction": "T language: feat: rand_float, rand_choice, rand_sample, elapsed, seconds_to_hms", "output": "commit: 8d7ceff"}
+{"instruction": "T language: feat: lcm, pow_mod, digits_of, str_count_words; fix lcm duplicate", "output": "commit: b3f6b6d"}
+{"instruction": "T language: feat: arr_first/last/min/max/avg/count, max3/min3/cube; fix sign duplicate", "output": "commit: 102f50f"}
+{"instruction": "T language: fix: remove fibonacci/is_prime/gcd duplicates from math3.t", "output": "commit: b5a9b7c"}
+{"instruction": "T language: feat: str_repeat, str_chunk in string5.t", "output": "commit: d05805b"}
+{"instruction": "T language: fix: t-doc count std_dev correctly, remove grep -v std filter", "output": "commit: dacc92f"}
+{"instruction": "T language: feat: examples/t-doc.t - T language function stats tool", "output": "commit: f35c3d9"}
+{"instruction": "T language: feat: csv_to_arr, csv_col_names, csv_row_count, csv_get_val in csv.t", "output": "commit: b40fb95"}
+{"instruction": "T language: feat: str_wrap, str_center; fix duplicates", "output": "commit: 110fc4e"}
+{"instruction": "T language: feat: z_score, percentile, range_of, sum_sq; fix duplicate", "output": "commit: 1d3bf26"}
+{"instruction": "T language: feat: is_email, is_url, is_ip aliases in validate.t", "output": "commit: 4c4c265"}
+{"instruction": "T language: feat: validate.t - email, url, ip, phone, date, range, min_len", "output": "commit: 4f81dc1"}
+{"instruction": "T language: feat: ui.t - table_print, progress_bar", "output": "commit: f6e46e0"}
+{"instruction": "T language: feat: parse error shows filename, line, source context", "output": "commit: 008576e"}
+{"instruction": "T language: feat: parser error shows source line context", "output": "commit: c63c158"}
+{"instruction": "T language: feat: json_has, json_str, json_num, json_arr in intermediate/json.t", "output": "commit: ed394e8"}
+{"instruction": "T language: feat: crypto3.t - gen_password, str_rot13, xor_hash", "output": "commit: 91c713c"}
+{"instruction": "T language: feat: str_insert, str_is_alpha, str_is_numeric, str_is_alnum, str_lpad", "output": "commit: b916083"}
+{"instruction": "T language: feat: pipeline.t - tee, count_by, pipeline_map", "output": "commit: dc0e48d"}
+{"instruction": "T language: fix: ml2.t orphaned code, add softmax, cosine_sim to ml.t", "output": "commit: c7d1899"}
+{"instruction": "T language: feat: days_in_month, is_leap_year, unix_to_date in datetime.t", "output": "commit: 1b5bb5d"}
+{"instruction": "T language: fix: safe_div duplicate removed, correct implementation; is_even, is_odd, map_range", "output": "commit: fe8e497"}
+{"instruction": "T language: feat: str_starts, str_ends, str_first, str_last, str_drop_first, str_drop_last", "output": "commit: 8a6e7cd"}
+{"instruction": "T language: feat: arr_head, arr_tail, arr_sum_range, arr_swap in intermediate/array.t", "output": "commit: 2c75775"}
+{"instruction": "T language: fix: revert buffer changes, accept 256 string limit for AST interpreter", "output": "commit: e9c9cf1"}
+{"instruction": "T language: fix: str_normalize use tr -s for multiple spaces", "output": "commit: 5032e50"}
+{"instruction": "T language: feat: regex_split, str_remove, str_normalize, str_title_case in string2.t", "output": "commit: 369f8fe"}
+{"instruction": "T language: feat: any_arr, all_arr, enumerate_arr, zip_arrays in basic/array.t", "output": "commit: b4c9844"}
+{"instruction": "T language: fix: log_to_file duplicate removed, correct level format", "output": "commit: b34a909"}
+{"instruction": "T language: feat: lerp_range, sum_digits, is_divisor, clamp_num in math2.t", "output": "commit: cb32628"}
+{"instruction": "T language: fix: remove duplicate functions file_append, str_split_words, is_palindrome, str_pad_center", "output": "commit: 9623a89"}
+{"instruction": "T language: feat: is_error, unwrap error handling functions in type.t", "output": "commit: 93a0f6f"}
+{"instruction": "T language: fix: TValue str 256->4096 bytes, fix truncated http/file responses", "output": "commit: 9b8376a"}
+{"instruction": "T language: feat: ping, dns_lookup, url_encode_str, curl_post_json; fix ping duplicate", "output": "commit: a34dc73"}
+{"instruction": "T language: feat: hash_sha1, hash_crc32, random_token, hmac_sha256 in crypto.t", "output": "commit: 245f302"}
+{"instruction": "T language: feat: percent, average_arr, clamp_arr, moving_avg in math3.t", "output": "commit: 8bec26e"}
+{"instruction": "T language: feat: arr_sum_col, arr_max_col, arr_count_if, arr_index_of; fix Gate variable comparison", "output": "commit: fa5b16f"}
+{"instruction": "T language: feat: str_mask, str_truncate, str_between in string4.t", "output": "commit: 6706fe0"}
+{"instruction": "T language: fix: file_lines duplicate, trailing empty", "output": "commit: b10921e"}
+{"instruction": "T language: feat: file_append, file_lines, file_copy, file_move in file2.t", "output": "commit: 6ef9cf5"}
+{"instruction": "T language: feat: str_split_words, is_palindrome, str_pad_center in inter/string2.t", "output": "commit: 88b3d0d"}
+{"instruction": "T language: feat: str_reverse, str_count, is_blank, product; fix median duplicate", "output": "commit: f651803"}
+{"instruction": "T language: fix: remove all duplicate functions, no conflicts, no duplicates", "output": "commit: c791217"}
+{"instruction": "T language: fix: remove duplicates ceil/clamp/pi/pow/round/repeat/groupBy/mat_add, fix string3.t lerp T keyword", "output": "commit: 4d09e78"}
+{"instruction": "T language: fix: json_set conflict, add check_conflicts.py, rename network.t funcs", "output": "commit: 40d6a9f"}
+{"instruction": "T language: fix: network.t rename get/post conflict with C builtin get(arr,idx)", "output": "commit: dae0fab"}
+{"instruction": "T language: fix: funcs[] limit 64->1024, arena 131072->262144, advanced/std.t, inter/std.t", "output": "commit: ba1e635"}
+{"instruction": "T language: feat: wrap push_arr, range_step into T array lib", "output": "commit: 3e78c41"}
+{"instruction": "T language: feat: wrap atan, atan2, exp, log, sqrt, floor into T math lib", "output": "commit: 95ae0ee"}
+{"instruction": "T language: fix: base64_encode no trailing newline", "output": "commit: c5f6eff"}
+{"instruction": "T language: fix: base64_decode trim input", "output": "commit: ac912c5"}
+{"instruction": "T language: fix: ls trim trailing empty, toString %.15g precision", "output": "commit: 8451e04"}
+{"instruction": "T language: fix: toString use %.15g for precision, format_bytes correct", "output": "commit: 9f78115"}
+{"instruction": "T language: fix: T is reserved keyword, rename to Hi/Lo", "output": "commit: 3c8b285"}
+{"instruction": "T language: feat: wrap sort, toNumber, isArray into T lib functions", "output": "commit: 180ede9"}
+{"instruction": "T language: feat: wrap sort, toNumber, isArray into T lib functions", "output": "commit: 9f7f6be"}
+{"instruction": "T language: feat: wrap env, regex builtins into T lib functions", "output": "commit: 93067a5"}
+{"instruction": "T language: feat: socket.t - tcp_send, tcp_check, http_download, ftp_list", "output": "commit: e8df92f"}
+{"instruction": "T language: feat: pdf.t - pdf_to_text, pdf_pages, pdf_info, pdf_images", "output": "commit: 99d951b"}
+{"instruction": "T language: feat: image.t - img_info, img_resize, img_convert, img_grayscale, img_rotate, img_crop", "output": "commit: 55b35e9"}
+{"instruction": "T language: feat: string5.t, ml3.t, ui.t", "output": "commit: c0a4379"}
+{"instruction": "T language: feat: ml3.t - linear_regression, predict", "output": "commit: 76ddb9c"}
+{"instruction": "T language: feat: ui.t - progress_bar, spinner, clear_line", "output": "commit: 184d32e"}
+{"instruction": "T language: feat: string4.t - str_split_lines, str_join_lines, str_wrap, str_center, str_lines_count", "output": "commit: 996c740"}
+{"instruction": "T language: feat: csv2.t - csv_read, csv_get_col, csv_col_count, csv_filter_col", "output": "commit: 29d12ef"}
+{"instruction": "T language: feat: dotenv.t - env_load, dotenv_read, env_get_key, env_get_val", "output": "commit: cc5dfa5"}
+{"instruction": "T language: feat: table.t random2.t time2.t regex2.t", "output": "commit: d6fddab"}
+{"instruction": "T language: feat: random2.t - uuid, random_str, random_hex, coin_flip, dice", "output": "commit: 63cec0a"}
+{"instruction": "T language: feat: time2.t - time_now, time_diff, time_add_days, time_to_date, time_elapsed, sleep_sec", "output": "commit: 00ce76c"}
+{"instruction": "T language: feat: regex2.t - regex_replace, regex_count, regex_extract_all", "output": "commit: ac017a5"}
+{"instruction": "T language: feat: color.t - red, green, yellow, blue, bold ANSI colors", "output": "commit: 2f45efa"}
+{"instruction": "T language: feat: parser2.t - tokenize, token_count, token_get, token_filter", "output": "commit: 36eaaf0"}
+{"instruction": "T language: feat: net3.t - download, wget, http_status, http_headers; crypto2.t", "output": "commit: 7b5de1a"}
+{"instruction": "T language: feat: crypto2.t - aes_encrypt, aes_decrypt, base64_encode, base64_decode", "output": "commit: 0995051"}
+{"instruction": "T language: fix: format_bytes use format_number for integer display", "output": "commit: 1f9b197"}
+{"instruction": "T language: feat: format.t - format_number, format_currency, format_percent, format_bytes", "output": "commit: 7de49f5"}
+{"instruction": "T language: feat: graph.t, cache.t, event.t, log.t", "output": "commit: 83b0bd8"}
+{"instruction": "T language: feat: event.t - event_emit, event_log, event_clear, event_count", "output": "commit: a91d3a8"}
+{"instruction": "T language: feat: cache.t - cache_set, cache_get, cache_del, cache_has", "output": "commit: b968e91"}
+{"instruction": "T language: feat: log.t - log_info, log_warn, log_error, log_debug, log_to_file", "output": "commit: 2105456"}
+{"instruction": "T language: feat: stats.t - mean, correlation, percentile, zscore", "output": "commit: 324bcb4"}
+{"instruction": "T language: feat: queue.t - queue, stack data structures", "output": "commit: ad91317"}
+{"instruction": "T language: feat: ml2.t - dot_product, sigmoid, relu, normalize, mat_add", "output": "commit: 0f29d76"}
+{"instruction": "T language: feat: t-test script - run tests and auto copy to clipboard", "output": "commit: c7c8aad"}
+{"instruction": "T language: feat: advanced test suite, fix duplicate imports in advanced libs", "output": "commit: b0fab21"}
+{"instruction": "T language: feat: md5, sha256 moved to T via md5sum/sha256sum exec", "output": "commit: 66d9565"}
+{"instruction": "T language: feat: http_get, http_post moved to T via curl exec", "output": "commit: 031d0ad"}
+{"instruction": "T language: feat: file_delete, file_exists, file_size moved to T via exec", "output": "commit: 98492ae"}
+{"instruction": "T language: feat: timestamp, random moved to T via exec+date+shuf", "output": "commit: 4553f8c"}
+{"instruction": "T language: feat: json2.t add jq_set", "output": "commit: 3dc0443"}
+{"instruction": "T language: feat: shell_escape builtin, json2.t rewritten clean", "output": "commit: a33b480"}
+{"instruction": "T language: feat: json2.t via jq, write_file C builtin, system.t", "output": "commit: 29f92d1"}
+{"instruction": "T language: feat: system.t - os_name, os_arch, cpu_count, mem_total_mb, disk_free_mb, hostname, uptime_sec", "output": "commit: 1a3150e"}
+{"instruction": "T language: feat: db.t - SQLite wrapper via exec; template.t fix placeholder; split fix strstr", "output": "commit: 18005fc"}
+{"instruction": "T language: feat: template.t, compress.t, validate.t; fix: split uses strstr for multi-char separator", "output": "commit: e17fd48"}
+{"instruction": "T language: feat: compress.t - gzip, gunzip, gzip_str, file_size_kb, zip_files, unzip_file", "output": "commit: c05aaff"}
+{"instruction": "T language: feat: validate.t - is_email, is_url, is_ip, is_phone, is_date, is_hex, is_alpha, is_alnum", "output": "commit: 2c1ce50"}
+{"instruction": "T language: feat: format_date/time/datetime moved to T via exec+date shell", "output": "commit: 2280532"}
+{"instruction": "T language: fix: F() watermark all 4 modes, deep_copy_tvalue helper, no arena spam", "output": "commit: 16c2ab2"}
+{"instruction": "T language: fix: F() watermark all 4 modes, arena_free_since helper, 10k elements in 0.064s", "output": "commit: 053d4b8"}
+{"instruction": "T language: feat: net2.t - get_json, post_json, fetch, api_get, api_post, ping", "output": "commit: 618eea5"}
+{"instruction": "T language: feat: crypto.t - hash_md5, hash_sha256, checksum, verify_md5, to_hex_str, from_hex_str", "output": "commit: 159ddbe"}
+{"instruction": "T language: fix: floor() use math.h floor() not cast; feat: math3.t advanced math lib", "output": "commit: cd4cb15"}
+{"instruction": "T language: feat: arena watermark in F() iterations — fractal RAM pattern complete", "output": "commit: aef9de7"}
+{"instruction": "T language: feat: arena watermark in loop — fractal RAM pattern, fixed factorial/fibonacci", "output": "commit: 105bd26"}
+{"instruction": "T language: feat: file2.t, string3.t, exec loop early exit, file_count_lines via wc -l", "output": "commit: 0f58ecc"}
+{"instruction": "T language: feat: string3.t - repeat, starts_with, ends_with, char_at, insert, remove_at, count_char, is_empty", "output": "commit: c11181d"}
+{"instruction": "T language: feat: process.t advanced lib - shell, ls, cat, which, pwd", "output": "commit: 9eddcc5"}
+{"instruction": "T language: feat: loop early exit via exec_loop_block, groupBy moved to T", "output": "commit: 4b9b5bc"}
+{"instruction": "T language: feat: min2, max2 moved to T via sort", "output": "commit: bf7c566"}
+{"instruction": "T language: feat: env, env_set builtins", "output": "commit: 6cd4826"}
+{"instruction": "T language: feat: exec builtin - run shell commands from T", "output": "commit: be45e3b"}
+{"instruction": "T language: feat: mat_mul C builtin, ml.t advanced lib started", "output": "commit: 3fd9367"}
+{"instruction": "T language: chore: add gitattributes to fix language detection", "output": "commit: a407d22"}
+{"instruction": "T language: feat: range moved to T via range_step", "output": "commit: efbe5b2"}
+{"instruction": "T language: feat: pop, rand_int, isNumber, isString moved to T", "output": "commit: 674c5c1"}
+{"instruction": "T language: feat: isNumber, isString moved to T; isArray kept in C", "output": "commit: 67a19b6"}
+{"instruction": "T language: feat: to_base64 moved to T via bit math", "output": "commit: ed2e82e"}
+{"instruction": "T language: feat: from_hex moved to T", "output": "commit: aad6acd"}
+{"instruction": "T language: feat: T-first architecture, to_hex/url_encode moved to T via num_to_hex", "output": "commit: 153ea78"}
+{"instruction": "T language: feat: line tracking for all node types", "output": "commit: da7111c"}
+{"instruction": "T language: feat: line tracking for GateNode, FNode, LoopNode", "output": "commit: 5fdcbf1"}
+{"instruction": "T language: feat: arena 131k, intermediate test suite, runtime line tracking", "output": "commit: 6ccf6ba"}
+{"instruction": "T language: feat: runtime line tracking in FuncCallNode crash report", "output": "commit: 0707c37"}
+{"instruction": "T language: fix: max2/min2 back to C, max_arr/min_arr use sort, remove broken T wrappers", "output": "commit: 3c67851"}
+{"instruction": "T language: feat: md5, sha256, path_join, path_basename, path_dirname, path_ext", "output": "commit: b27731d"}
+{"instruction": "T language: feat: date_add, day_of_week, json_set wrap, csv_header/body, variance, std_dev", "output": "commit: 9049766"}
+{"instruction": "T language: feat: mode, partition, zip_longest, slugify, is_numeric, fibonacci, median", "output": "commit: a504772"}
+{"instruction": "T language: feat: slugify, is_numeric, fibonacci, median in inter lib", "output": "commit: e40a532"}
+{"instruction": "T language: feat: warn when loop has no Gate termination", "output": "commit: b66237a"}
+{"instruction": "T language: feat: runtime crash tracking — last operation and stmt count", "output": "commit: 31d2c18"}
+{"instruction": "T language: feat: crash handler with helpful error messages", "output": "commit: 2bd7469"}
+{"instruction": "T language: feat: rotate, lstrip, rstrip, center, json_keys in inter lib", "output": "commit: 2ddfe87"}
+{"instruction": "T language: feat: date_diff, json_set builtins", "output": "commit: 6109a23"}
+{"instruction": "T language: feat: sliding_window, network.t wrapper lib", "output": "commit: ae83e42"}
+{"instruction": "T language: test: full intermediate lib test, fix datetime.t comment", "output": "commit: 9a31296"}
+{"instruction": "T language: feat: flatten_deep, json_array, snake_case, camel_case, word_wrap", "output": "commit: 5efb25e"}
+{"instruction": "T language: feat: snake_case, camel_case, word_wrap in string2.t", "output": "commit: 0cc2fa8"}
+{"instruction": "T language: feat: math2.t — gcd, lcm, is_prime, factorial in T", "output": "commit: e8d0972"}
+{"instruction": "T language: feat: take, drop, zip_with in array.t", "output": "commit: 5223d00"}
+{"instruction": "T language: feat: json.t — json_get via regex, regex_find capture group support", "output": "commit: 7811aad"}
+{"instruction": "T language: feat: url_encode, http_post builtins", "output": "commit: 1e6c3b2"}
+{"instruction": "T language: feat: http_get builtin via libcurl — T can now fetch from internet", "output": "commit: 73fcb1e"}
+{"instruction": "T language: feat: regex_match, regex_find builtins via POSIX regex.h", "output": "commit: af8f4fb"}
+{"instruction": "T language: feat: file_exists, file_size, file_delete builtins", "output": "commit: 9c8f147"}
+{"instruction": "T language: feat: to_hex, from_hex, to_base64 encode builtins", "output": "commit: e6c763e"}
+{"instruction": "T language: feat: escape sequences in strings, JSON generate via interpolation", "output": "commit: 974dc78"}
+{"instruction": "T language: feat: exp, atan, atan2, hypot math builtins", "output": "commit: 5056fdd"}
+{"instruction": "T language: feat: title function in string2.t", "output": "commit: f64e82f"}
+{"instruction": "T language: feat: string2 intermediate lib — capitalize, count_words, truncate, reverse_str", "output": "commit: 79c3f9a"}
+{"instruction": "T language: feat: csv.t intermediate lib, groupBy C builtin", "output": "commit: 41029f8"}
+{"instruction": "T language: feat: arena allocator (mat 0) — zero double-free, clean memory", "output": "commit: 5557e5c"}
+{"instruction": "T language: feat: groupBy builtin C, datetime intermediate lib", "output": "commit: 33537e9"}
+{"instruction": "T language: feat: datetime builtins + lib/intermediate/datetime.t", "output": "commit: aa879e0"}
+{"instruction": "T language: fix: trim boundary detection, update basic.t tests", "output": "commit: 4b6b8a5"}
+{"instruction": "T language: fix: restore trim to C (T version removes all spaces, not trim)", "output": "commit: 922e865"}
+{"instruction": "T language: fix: frame_free memory leak, add -lm to Makefile", "output": "commit: 6702d08"}
+{"instruction": "T language: feat: range_step builtin, chunk refactored to 10 lines", "output": "commit: 12fbaca"}
+{"instruction": "T language: feat: slice_arr builtin, refactor chunk cleaner", "output": "commit: 4ecfdc3"}
+{"instruction": "T language: feat: chunk in lib/intermediate, push_arr builtin, nested array show", "output": "commit: 2b08e04"}
+{"instruction": "T language: fix: show skips format when coordinate is error, add calculator demo", "output": "commit: ed66cff"}
+{"instruction": "T language: fix: conditional transform preserves now before Gate, add helloworld demo", "output": "commit: 00fe129"}
+{"instruction": "T language: feat: log, log2, log10, sin, cos, tan builtins via C math.h", "output": "commit: 43f2eb5"}
+{"instruction": "T language: feat: pi, sin, cos in std.t via Taylor series", "output": "commit: 055598a"}
+{"instruction": "T language: feat: isNumber, isString, isArray, toNumber builtins", "output": "commit: 1993b4d"}
+{"instruction": "T language: feat: toString, count in std.t", "output": "commit: dbeb3d4"}
+{"instruction": "T language: feat: loop keyword with Gate-based termination", "output": "commit: 2230608"}
+{"instruction": "T language: feat: random, rand_int, timestamp builtins", "output": "commit: c9a9190"}
+{"instruction": "T language: feat: string interpolation in format, lookup demo", "output": "commit: 5a895c7"}
+{"instruction": "T language: feat: string interpolation {varname}", "output": "commit: 8e1e418"}
+{"instruction": "T language: feat: nested function calls, string sort, Gate string ordering", "output": "commit: 0a5ee4b"}
+{"instruction": "T language: feat: string comparison in Gate, sort string support", "output": "commit: fb93c6a"}
+{"instruction": "T language: feat: type checking warnings for arithmetic operators", "output": "commit: 8358053"}
+{"instruction": "T language: feat: warnings for empty F() source and missing function", "output": "commit: 1ad6f54"}
+{"instruction": "T language: feat: show warning when coordinate is error, multi-source Gate", "output": "commit: abd568b"}
+{"instruction": "T language: feat: multi-source Gate, nested F, fix join back to C, caesar demo", "output": "commit: b19d57a"}
+{"instruction": "T language: feat: multi-source Gate, nested F(), sort builtin", "output": "commit: 3f914de"}
+{"instruction": "T language: feat: sort builtin, nested F() support, max_arr/min_arr/first/last fixes", "output": "commit: 0b08f8d"}
+{"instruction": "T language: feat: add max_arr/min_arr, fix first/last to return scalar", "output": "commit: c0527db"}
+{"instruction": "T language: chore: remove debug.c", "output": "commit: c46cd72"}
+{"instruction": "T language: feat: expr >> "file" syntax for write/append in T+", "output": "commit: 989d00c"}
+{"instruction": "T language: feat: >> out as return in func body", "output": "commit: a0be57c"}
+{"instruction": "T language: feat: add flatten, zip, sqrt builtins", "output": "commit: df11c11"}
+{"instruction": "T language: feat: add floor, ceil, round, pow, unique, push, pop builtins", "output": "commit: 56116c2"}
+{"instruction": "T language: fix: string literals type 4, add padLeft/padRight builtins", "output": "commit: b715663"}
+{"instruction": "T language: feat: add slice builtin, repeat to std", "output": "commit: a119e66"}
+{"instruction": "T language: feat: add range, get, reverse builtins", "output": "commit: 96d6369"}
+{"instruction": "T language: feat: add startsWith, endsWith, clamp to std", "output": "commit: 76ba413"}
+{"instruction": "T language: feat: clamp in std, fix TOKEN_COORD func call, fix line counter", "output": "commit: b1a9071"}
+{"instruction": "T language: feat: Gate variable comparison, fix line counter, add first/last to std", "output": "commit: a0df606"}
+{"instruction": "T language: feat: add column number to parse errors", "output": "commit: 2160df7"}
+{"instruction": "T language: fix: auto-set idx in F() loop, fix Makefile deps", "output": "commit: b2c3d34"}
+{"instruction": "T language: fix: dynamic Frame - remove hardcode 256 variable limit", "output": "commit: 6d23878"}
+{"instruction": "T language: fix: dynamic body and section arrays - remove all hardcode 128/256 limits", "output": "commit: 086d8ed"}
+{"instruction": "T language: fix: dynamic token array - realloc when capacity exceeded", "output": "commit: b12527a"}
+{"instruction": "T language: feat: modulo operator, filter mode execution order fix, show as outside parens", "output": "commit: 83a7ba0"}
+{"instruction": "T language: fix: show as format outside parentheses + branch logic", "output": "commit: cb7cedb"}
+{"instruction": "T language: fix: dynamic allocation for split output", "output": "commit: 92e94d4"}
+{"instruction": "T language: fix: dynamic array allocation in F() - replace hardcode 256 with arr.arr.count", "output": "commit: a020c12"}
+{"instruction": "T language: fix: import error recovery - warn and continue instead of exit(1)", "output": "commit: d9fc83a"}
+{"instruction": "T language: fix: F() conditional transform - mode detection + execution order", "output": "commit: 88157fe"}
+{"instruction": "T language: Fix F() to support filter+transform combined mode", "output": "commit: 515c934"}
+{"instruction": "T language: strncpy safety, add missing built-ins, fix diem_hs.t", "output": "commit: 1d9d69c"}
+{"instruction": "T language: Fix as format string in T+", "output": "commit: 715adc0"}
+{"instruction": "T language: Fix string concat and negative numbers", "output": "commit: 144b24e"}
+{"instruction": "T language: Fix negative numbers", "output": "commit: 31761cd"}
+{"instruction": "T language t_bc: max_arr returns wrong value", "output": "Check at: lib/basic/math.t:46:func max_arr(arr) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: min_arr returns wrong value", "output": "Check at: lib/basic/math.t:52:func min_arr(arr) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: pow returns wrong value", "output": "Check at: lib/basic/math.t:29:func pow(base, exp) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: abs returns wrong value", "output": "Check at: lib/basic/math.t:40:func abs(val) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: clamp returns wrong value", "output": "Check at: lib/basic/math.t:20:func clamp(val, lo, hi) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: upper returns wrong value", "output": "Check at: lib/basic/string.t:4:func upper(str) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: lower returns wrong value", "output": "Check at: lib/basic/string.t:17:func lower(str) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: trim returns wrong value", "output": "Check at: lib/basic/string.t:69:func trim(str) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: trim returns wrong value", "output": "Check at: lib/basic/string.t:69:func trim(str) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: replace returns wrong value", "output": "Check at: lib/basic/string.t:61:func replace(str, old, new) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: contains returns wrong value", "output": "Check at: lib/basic/string.t:35:func contains(str, sub) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc: split returns wrong value", "output": "Check at:  - likely missing native or AST bug"}
+{"instruction": "T language t_bc: join returns wrong value", "output": "Check at:  - likely missing native or AST bug"}
+{"instruction": "T language t_bc: flatten returns wrong value", "output": "Check at: lib/basic/array.t:58:func flatten(arr) { - likely missing native or AST bug"}
+{"instruction": "T language t_bc:  returns wrong value", "output": "Check  - likely missing native or AST bug"}
+{"instruction": "What does sum() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does avg() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does clamp() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does pow() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does abs() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does max_arr() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does min_arr() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does pi() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does round() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does ceil() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does log() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does log() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does tan() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does hypot() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sin() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does cos() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does max() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does min() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does max() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does min() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does rand_int() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does random() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does timestamp() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arctan() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arctan() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does exp_e() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does ln() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sqrt_n() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does floor_n() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does product() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_even() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_odd() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does map_range() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does safe_div() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does max() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does min() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does cube() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does between() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does to_rad() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does to_deg() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does deg_to_rad() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does rad_to_deg() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does interpolate() do in T language?", "output": "T function defined in lib/basic/math.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does upper() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does lower() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does to() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does contains() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does pad() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does pad() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does replace() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does trim() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does to_hex() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does url_encode() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does hex_char_to_num() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does from_hex() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does to_base() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does starts() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does ends() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does repeat() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_chars() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does char_code() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does from_char() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_index() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_slice() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_reverse() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_count() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_blank() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_starts() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_ends() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_first() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_last() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_drop_first() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_drop_last() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_insert() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_is_alpha() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_is_numeric() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_is_alnum() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_lpad() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_join() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_split() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_eq() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_to_arr() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_wrap_word() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_repeat_sep() do in T language?", "output": "T function defined in lib/basic/string.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does first() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does last() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does reverse() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does count() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does unique() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does zip() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does flatten() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does pop() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does range() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does group() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sort_asc() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sort_desc() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_is_empty() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_push() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_slice() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_join() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_concat() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_range() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does any_arr() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does all_arr() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does enumerate_arr() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does zip_arrays() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_min() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_max() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_avg() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_count() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_first() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_last() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_flatten() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_reverse() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_sort() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_unique() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_remove_at() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_insert_at() do in T language?", "output": "T function defined in lib/basic/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does to_num() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_arr() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_error() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does unwrap() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does type_of() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_null() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does coerce_num() do in T language?", "output": "T function defined in lib/basic/type.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does file_exists() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does file_size() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does file_delete() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does http_get() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does http_post() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does md() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sha() do in T language?", "output": "T function defined in lib/basic/io.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does chunk() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does take() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does drop() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does zip_with() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does flatten_deep() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sliding_window() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does rotate() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does partition() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does zip_longest() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does path_join() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does path_basename() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does path_dirname() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does path_ext() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_sum_col() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_max_col() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_count_if() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_index_of() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_zip_map() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_union() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_sum_range() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_swap() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_head() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_tail() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_fill() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_step() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does arr_flatten_once() do in T language?", "output": "T function defined in lib/intermediate/array.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does now_date() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does now_time() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does now_datetime() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does date_add() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does day_of_week() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does date_diff() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does days_in_month() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_leap_year() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does unix_to_date() do in T language?", "output": "T function defined in lib/intermediate/datetime.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does parse_csv_rows() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_header() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_body() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_to_arr() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_col_names() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_row_count() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_get_val() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_max_col() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_min_col() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does csv_sum_col() do in T language?", "output": "T function defined in lib/intermediate/csv.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does capitalize() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does count_words() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does reverse_str() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does truncate() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does title() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does snake_case() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does camel_case() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does word_wrap() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does lstrip() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does rstrip() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does center() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does slugify() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_numeric() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_split_words() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_palindrome() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_pad_center() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does regex_split() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_remove() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_normalize() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_title_case() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_count_words() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_longest_word() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does str_common_prefix() do in T language?", "output": "T function defined in lib/intermediate/string2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_get() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_array() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_keys() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_set_key() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_has() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_str() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_num() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_arr() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does json_build() do in T language?", "output": "T function defined in lib/intermediate/json.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does gcd() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does lcm() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_prime() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does factorial() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does fibonacci() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does median() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does mode() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does variance() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does std_dev() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does clamp_num() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does lerp_range() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does sum_digits() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does is_divisor() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does pow_mod() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does digits_of() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does nth_root() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does log_base() do in T language?", "output": "T function defined in lib/intermediate/math2.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does http_fetch() do in T language?", "output": "T function defined in lib/intermediate/network.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does http_send() do in T language?", "output": "T function defined in lib/intermediate/network.t - processes input and returns result via 'out' variable"}
+{"instruction": "What does fetch_json() do in T language?", "output": "T function defined in lib/intermediate/network.t - processes input and returns result via 'out' variable"}
+{"instruction": "Is  a built-in function in T language t_bc?", "output": "Yes,  is registered as a native function in t_natives.h"}
+{"instruction": "Is a a built-in function in T language t_bc?", "output": "Yes, a is registered as a native function in t_natives.h"}
+{"instruction": "Is abs a built-in function in T language t_bc?", "output": "Yes, abs is registered as a native function in t_natives.h"}
+{"instruction": "Is arr a built-in function in T language t_bc?", "output": "Yes, arr is registered as a native function in t_natives.h"}
+{"instruction": "Is arr_len a built-in function in T language t_bc?", "output": "Yes, arr_len is registered as a native function in t_natives.h"}
+{"instruction": "Is atan a built-in function in T language t_bc?", "output": "Yes, atan is registered as a native function in t_natives.h"}
+{"instruction": "Is b a built-in function in T language t_bc?", "output": "Yes, b is registered as a native function in t_natives.h"}
+{"instruction": "Is base a built-in function in T language t_bc?", "output": "Yes, base is registered as a native function in t_natives.h"}
+{"instruction": "Is between a built-in function in T language t_bc?", "output": "Yes, between is registered as a native function in t_natives.h"}
+{"instruction": "Is ceil a built-in function in T language t_bc?", "output": "Yes, ceil is registered as a native function in t_natives.h"}
+{"instruction": "Is cmd a built-in function in T language t_bc?", "output": "Yes, cmd is registered as a native function in t_natives.h"}
+{"instruction": "Is concat a built-in function in T language t_bc?", "output": "Yes, concat is registered as a native function in t_natives.h"}
+{"instruction": "Is contains a built-in function in T language t_bc?", "output": "Yes, contains is registered as a native function in t_natives.h"}
+{"instruction": "Is content a built-in function in T language t_bc?", "output": "Yes, content is registered as a native function in t_natives.h"}
+{"instruction": "Is cos a built-in function in T language t_bc?", "output": "Yes, cos is registered as a native function in t_natives.h"}
+{"instruction": "Is exec a built-in function in T language t_bc?", "output": "Yes, exec is registered as a native function in t_natives.h"}
+{"instruction": "Is exec_bc a built-in function in T language t_bc?", "output": "Yes, exec_bc is registered as a native function in t_natives.h"}
+{"instruction": "Is exp a built-in function in T language t_bc?", "output": "Yes, exp is registered as a native function in t_natives.h"}
+{"instruction": "Is exp_e a built-in function in T language t_bc?", "output": "Yes, exp_e is registered as a native function in t_natives.h"}
+{"instruction": "Is flatten a built-in function in T language t_bc?", "output": "Yes, flatten is registered as a native function in t_natives.h"}
+{"instruction": "Is floor a built-in function in T language t_bc?", "output": "Yes, floor is registered as a native function in t_natives.h"}
+{"instruction": "Is fmod a built-in function in T language t_bc?", "output": "Yes, fmod is registered as a native function in t_natives.h"}
+{"instruction": "Is fname a built-in function in T language t_bc?", "output": "Yes, fname is registered as a native function in t_natives.h"}
+{"instruction": "Is from a built-in function in T language t_bc?", "output": "Yes, from is registered as a native function in t_natives.h"}
+{"instruction": "Is gcd a built-in function in T language t_bc?", "output": "Yes, gcd is registered as a native function in t_natives.h"}
+{"instruction": "Is get a built-in function in T language t_bc?", "output": "Yes, get is registered as a native function in t_natives.h"}
+{"instruction": "Is idx a built-in function in T language t_bc?", "output": "Yes, idx is registered as a native function in t_natives.h"}
+{"instruction": "Is is_even a built-in function in T language t_bc?", "output": "Yes, is_even is registered as a native function in t_natives.h"}
+{"instruction": "Is is_odd a built-in function in T language t_bc?", "output": "Yes, is_odd is registered as a native function in t_natives.h"}
+{"instruction": "Is join a built-in function in T language t_bc?", "output": "Yes, join is registered as a native function in t_natives.h"}
+{"instruction": "Is lcm a built-in function in T language t_bc?", "output": "Yes, lcm is registered as a native function in t_natives.h"}
+{"instruction": "Is len a built-in function in T language t_bc?", "output": "Yes, len is registered as a native function in t_natives.h"}
+{"instruction": "Is lerp a built-in function in T language t_bc?", "output": "Yes, lerp is registered as a native function in t_natives.h"}
+{"instruction": "Is line_count a built-in function in T language t_bc?", "output": "Yes, line_count is registered as a native function in t_natives.h"}
+{"instruction": "Is ln a built-in function in T language t_bc?", "output": "Yes, ln is registered as a native function in t_natives.h"}
+{"instruction": "Is lo a built-in function in T language t_bc?", "output": "Yes, lo is registered as a native function in t_natives.h"}
+{"instruction": "Is log a built-in function in T language t_bc?", "output": "Yes, log is registered as a native function in t_natives.h"}
+{"instruction": "Is lower a built-in function in T language t_bc?", "output": "Yes, lower is registered as a native function in t_natives.h"}
+{"instruction": "Is max a built-in function in T language t_bc?", "output": "Yes, max is registered as a native function in t_natives.h"}
+{"instruction": "Is min a built-in function in T language t_bc?", "output": "Yes, min is registered as a native function in t_natives.h"}
+{"instruction": "Is n a built-in function in T language t_bc?", "output": "Yes, n is registered as a native function in t_natives.h"}
+{"instruction": "Is past a built-in function in T language t_bc?", "output": "Yes, past is registered as a native function in t_natives.h"}
+{"instruction": "Is pi a built-in function in T language t_bc?", "output": "Yes, pi is registered as a native function in t_natives.h"}
+{"instruction": "Is pow a built-in function in T language t_bc?", "output": "Yes, pow is registered as a native function in t_natives.h"}
+{"instruction": "Is push a built-in function in T language t_bc?", "output": "Yes, push is registered as a native function in t_natives.h"}
+{"instruction": "Is r a built-in function in T language t_bc?", "output": "Yes, r is registered as a native function in t_natives.h"}
+{"instruction": "Is range_bc a built-in function in T language t_bc?", "output": "Yes, range_bc is registered as a native function in t_natives.h"}
+{"instruction": "Is range_step a built-in function in T language t_bc?", "output": "Yes, range_step is registered as a native function in t_natives.h"}
+{"instruction": "Is replace_first a built-in function in T language t_bc?", "output": "Yes, replace_first is registered as a native function in t_natives.h"}
+{"instruction": "Is reverse a built-in function in T language t_bc?", "output": "Yes, reverse is registered as a native function in t_natives.h"}
+{"instruction": "Is reverse_arr a built-in function in T language t_bc?", "output": "Yes, reverse_arr is registered as a native function in t_natives.h"}
+{"instruction": "Is round a built-in function in T language t_bc?", "output": "Yes, round is registered as a native function in t_natives.h"}
+{"instruction": "Is safe_div a built-in function in T language t_bc?", "output": "Yes, safe_div is registered as a native function in t_natives.h"}
+{"instruction": "Is sep a built-in function in T language t_bc?", "output": "Yes, sep is registered as a native function in t_natives.h"}
+{"instruction": "Is sin a built-in function in T language t_bc?", "output": "Yes, sin is registered as a native function in t_natives.h"}
+{"instruction": "Is slice_arr a built-in function in T language t_bc?", "output": "Yes, slice_arr is registered as a native function in t_natives.h"}
+{"instruction": "Is sort a built-in function in T language t_bc?", "output": "Yes, sort is registered as a native function in t_natives.h"}
+{"instruction": "Is split a built-in function in T language t_bc?", "output": "Yes, split is registered as a native function in t_natives.h"}
+{"instruction": "Is split_first a built-in function in T language t_bc?", "output": "Yes, split_first is registered as a native function in t_natives.h"}
+{"instruction": "Is sqrt a built-in function in T language t_bc?", "output": "Yes, sqrt is registered as a native function in t_natives.h"}
+{"instruction": "Is step a built-in function in T language t_bc?", "output": "Yes, step is registered as a native function in t_natives.h"}
+{"instruction": "Is str a built-in function in T language t_bc?", "output": "Yes, str is registered as a native function in t_natives.h"}
+{"instruction": "Is str_ends a built-in function in T language t_bc?", "output": "Yes, str_ends is registered as a native function in t_natives.h"}
+{"instruction": "Is str_starts a built-in function in T language t_bc?", "output": "Yes, str_starts is registered as a native function in t_natives.h"}
+{"instruction": "Is sub a built-in function in T language t_bc?", "output": "Yes, sub is registered as a native function in t_natives.h"}
+{"instruction": "Is to a built-in function in T language t_bc?", "output": "Yes, to is registered as a native function in t_natives.h"}
+{"instruction": "Is trim a built-in function in T language t_bc?", "output": "Yes, trim is registered as a native function in t_natives.h"}
+{"instruction": "Is unique a built-in function in T language t_bc?", "output": "Yes, unique is registered as a native function in t_natives.h"}
+{"instruction": "Is upper a built-in function in T language t_bc?", "output": "Yes, upper is registered as a native function in t_natives.h"}
+{"instruction": "Is val a built-in function in T language t_bc?", "output": "Yes, val is registered as a native function in t_natives.h"}
+{"instruction": "Is write_file_t a built-in function in T language t_bc?", "output": "Yes, write_file_t is registered as a native function in t_natives.h"}
+{"instruction": "Is x a built-in function in T language t_bc?", "output": "Yes, x is registered as a native function in t_natives.h"}
+{"instruction": "Is y a built-in function in T language t_bc?", "output": "Yes, y is registered as a native function in t_natives.h"}
+{"instruction": "What does this T code return: abs(val=-5) ~> O1", "output": "Returns: 5"}
+{"instruction": "What does this T code return: pow(base=2, exp=8) ~> O1", "output": "Returns: 256"}
+{"instruction": "What does this T code return: ceil(val=3.2) ~> O1", "output": "Returns: 4"}
+{"instruction": "What does this T code return: floor(val=3.9) ~> O1", "output": "Returns: 3"}
+{"instruction": "What does this T code return: round(val=3.5) ~> O1", "output": "Returns: 4"}
+{"instruction": "What does this T code return: max2(a=3, b=7) ~> O1", "output": "Returns: 7"}
+{"instruction": "What does this T code return: min2(a=3, b=7) ~> O1", "output": "Returns: 3"}
+{"instruction": "What does this T code return: is_even(n=4) ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: is_odd(n=7) ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: safe_div(a=10, b=2) ~> O1", "output": "Returns: 5"}
+{"instruction": "What does this T code return: safe_div(a=10, b=0) ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: cube(n=3) ~> O1", "output": "Returns: 27"}
+{"instruction": "What does this T code return: len(val="hello") ~> O1", "output": "Returns: 5"}
+{"instruction": "What does this T code return: upper(str="hello") ~> O1", "output": "Returns: HELLO"}
+{"instruction": "What does this T code return: lower(str="HELLO") ~> O1", "output": "Returns: hello"}
+{"instruction": "What does this T code return: trim(str="  hi  ") ~> O1", "output": "Returns: hi"}
+{"instruction": "What does this T code return: contains(str="hello", sub="ell") ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: str_reverse(str="hello") ~> O1", "output": "Returns: olleh"}
+{"instruction": "What does this T code return: str_count(str="hello", sub="l") ~> O1", "output": "Returns: 2"}
+{"instruction": "What does this T code return: str_starts(str="hello", sub="hel") ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: str_ends(str="hello", sub="llo") ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: is_blank(str="  ") ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: is_blank(str="hi") ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: sum(arr=[1,2,3,4,5]) ~> O1", "output": "Returns: 15"}
+{"instruction": "What does this T code return: avg(arr=[1,2,3,4,5]) ~> O1", "output": "Returns: 3"}
+{"instruction": "What does this T code return: max_arr(arr=[3,1,4,1,5,9]) ~> O1", "output": "Returns: 9"}
+{"instruction": "What does this T code return: min_arr(arr=[3,1,4,1,5,9]) ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: len(val=[1,2,3]) ~> O1", "output": "Returns: 3"}
+{"instruction": "What does this T code return: arr_first(arr=[10,20,30]) ~> O1", "output": "Returns: 10"}
+{"instruction": "What does this T code return: arr_last(arr=[10,20,30]) ~> O1", "output": "Returns: 30"}
+{"instruction": "What does this T code return: any_arr(arr=[0,0,1]) ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: all_arr(arr=[1,1,1]) ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: all_arr(arr=[1,0,1]) ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: gcd(a=48, b=18) ~> O1", "output": "Returns: 6"}
+{"instruction": "What does this T code return: lcm(a=12, b=8) ~> O1", "output": "Returns: 24"}
+{"instruction": "What does this T code return: factorial(n=5) ~> O1", "output": "Returns: 120"}
+{"instruction": "What does this T code return: fibonacci(n=10) ~> O1", "output": "Returns: 55"}
+{"instruction": "What does this T code return: is_prime(n=17) ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: is_prime(n=15) ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: median(arr=[1,2,3,4,5]) ~> O1", "output": "Returns: 3"}
+{"instruction": "What does this T code return: capitalize(str="hello") ~> O1", "output": "Returns: Hello"}
+{"instruction": "What does this T code return: is_palindrome(str="racecar") ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: is_palindrome(str="hello") ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: str_count_words(str="hello world foo") ~> O1", "output": "Returns: 3"}
+{"instruction": "What does this T code return: is_error(val="!ERROR") ~> O1", "output": "Returns: 1"}
+{"instruction": "What does this T code return: is_error(val="hello") ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: is_error(val=42) ~> O1", "output": "Returns: 0"}
+{"instruction": "What does this T code return: gcd(a=48, b=18) ~> O1", "output": "Returns: 6"}
+{"instruction": "What does this T code return: fibonacci(n=10) ~> O1", "output": "Returns: 55"}
+{"instruction": "What does this T code return: upper(str="hello") ~> O1", "output": "Returns: HELLO"}
+{"instruction": "What does this T code return: avg(arr=[1,2,3]) ~> O1", "output": "Returns: 2"}
+{"instruction": "What does this T code return: str_count(str="hello", sub="l") ~> O1", "output": "Returns: 2"}
+{"instruction": "What does this T code return: factorial(n=5) ~> O1", "output": "Returns: 120"}
+{"instruction": "What does this T code return: lcm(a=12, b=8) ~> O1", "output": "Returns: 24"}
+{"instruction": "What does this T code return: cube(n=3) ~> O1", "output": "Returns: 27"}
+{"instruction": "What does this T code return: max3(a=5, b=3, c=9) ~> O1", "output": "Returns: 9"}
+{"instruction": "What does this T code return: str_reverse(str="hello") ~> O1", "output": "Returns: olleh"}
+{"instruction": "What is examples/calculator.t in T language?", "output": "T program: calculator - example/demo program in T language repository"}
+{"instruction": "What is examples/diem_hs.t in T language?", "output": "T program: diem_hs - example/demo program in T language repository"}
+{"instruction": "What is examples/hocsinh.t in T language?", "output": "T program: hocsinh - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-analyze.t in T language?", "output": "T program: t-ai-analyze - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-autofix.t in T language?", "output": "T program: t-ai-autofix - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-autotest.t in T language?", "output": "T program: t-ai-autotest - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-bytecode.t in T language?", "output": "T program: t-ai-bytecode - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-codegen.t in T language?", "output": "T program: t-ai-codegen - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-compare.t in T language?", "output": "T program: t-ai-compare - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-complexity.t in T language?", "output": "T program: t-ai-complexity - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-debug.t in T language?", "output": "T program: t-ai-debug - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-deps.t in T language?", "output": "T program: t-ai-deps - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-eval.t in T language?", "output": "T program: t-ai-eval - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-fix-suggest.t in T language?", "output": "T program: t-ai-fix-suggest - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-full-scan.t in T language?", "output": "T program: t-ai-full-scan - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-functest.t in T language?", "output": "T program: t-ai-functest - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-gemini.t in T language?", "output": "T program: t-ai-gemini - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-integrate.t in T language?", "output": "T program: t-ai-integrate - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-learn.t in T language?", "output": "T program: t-ai-learn - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-libgen.t in T language?", "output": "T program: t-ai-libgen - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-lint.t in T language?", "output": "T program: t-ai-lint - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-master.t in T language?", "output": "T program: t-ai-master - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-master2.t in T language?", "output": "T program: t-ai-master2 - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-master3.t in T language?", "output": "T program: t-ai-master3 - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-master4.t in T language?", "output": "T program: t-ai-master4 - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-memory.t in T language?", "output": "T program: t-ai-memory - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-optimize.t in T language?", "output": "T program: t-ai-optimize - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-parallel.t in T language?", "output": "T program: t-ai-parallel - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-pattern.t in T language?", "output": "T program: t-ai-pattern - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-risk-score.t in T language?", "output": "T program: t-ai-risk-score - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-rules.t in T language?", "output": "T program: t-ai-rules - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-scan-all.t in T language?", "output": "T program: t-ai-scan-all - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-scan-rules.t in T language?", "output": "T program: t-ai-scan-rules - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-scan-src.t in T language?", "output": "T program: t-ai-scan-src - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-scan.t in T language?", "output": "T program: t-ai-scan - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-selflearn.t in T language?", "output": "T program: t-ai-selflearn - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-suggest.t in T language?", "output": "T program: t-ai-suggest - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-testgen.t in T language?", "output": "T program: t-ai-testgen - example/demo program in T language repository"}
+{"instruction": "What is examples/t-ai-typecheck.t in T language?", "output": "T program: t-ai-typecheck - example/demo program in T language repository"}
+{"instruction": "What is examples/t-doc.t in T language?", "output": "T program: t-doc - example/demo program in T language repository"}
+{"instruction": "What is examples/t-pipeline.t in T language?", "output": "T program: t-pipeline - example/demo program in T language repository"}
+{"instruction": "What is examples/t-runner.t in T language?", "output": "T program: t-runner - example/demo program in T language repository"}
+{"instruction": "What is examples/t-stats.t in T language?", "output": "T program: t-stats - example/demo program in T language repository"}
+{"instruction": "What is examples/test_caesar.t in T language?", "output": "T program: test_caesar - example/demo program in T language repository"}
+{"instruction": "What is examples/test_case.t in T language?", "output": "T program: test_case - example/demo program in T language repository"}
+{"instruction": "What is examples/test_contains2.t in T language?", "output": "T program: test_contains2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_csv.t in T language?", "output": "T program: test_csv - example/demo program in T language repository"}
+{"instruction": "What is examples/test_csv2.t in T language?", "output": "T program: test_csv2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_datetime.t in T language?", "output": "T program: test_datetime - example/demo program in T language repository"}
+{"instruction": "What is examples/test_encode.t in T language?", "output": "T program: test_encode - example/demo program in T language repository"}
+{"instruction": "What is examples/test_exec.t in T language?", "output": "T program: test_exec - example/demo program in T language repository"}
+{"instruction": "What is examples/test_file2.t in T language?", "output": "T program: test_file2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_groupby.t in T language?", "output": "T program: test_groupby - example/demo program in T language repository"}
+{"instruction": "What is examples/test_groupby2.t in T language?", "output": "T program: test_groupby2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_groupby_t.t in T language?", "output": "T program: test_groupby_t - example/demo program in T language repository"}
+{"instruction": "What is examples/test_hash.t in T language?", "output": "T program: test_hash - example/demo program in T language repository"}
+{"instruction": "What is examples/test_helloworld.t in T language?", "output": "T program: test_helloworld - example/demo program in T language repository"}
+{"instruction": "What is examples/test_inter2.t in T language?", "output": "T program: test_inter2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_inter_full.t in T language?", "output": "T program: test_inter_full - example/demo program in T language repository"}
+{"instruction": "What is examples/test_json.t in T language?", "output": "T program: test_json - example/demo program in T language repository"}
+{"instruction": "What is examples/test_json2.t in T language?", "output": "T program: test_json2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_jsonset.t in T language?", "output": "T program: test_jsonset - example/demo program in T language repository"}
+{"instruction": "What is examples/test_lookup.t in T language?", "output": "T program: test_lookup - example/demo program in T language repository"}
+{"instruction": "What is examples/test_math.t in T language?", "output": "T program: test_math - example/demo program in T language repository"}
+{"instruction": "What is examples/test_math2.t in T language?", "output": "T program: test_math2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_math3.t in T language?", "output": "T program: test_math3 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_multishow.t in T language?", "output": "T program: test_multishow - example/demo program in T language repository"}
+{"instruction": "What is examples/test_network.t in T language?", "output": "T program: test_network - example/demo program in T language repository"}
+{"instruction": "What is examples/test_new2.t in T language?", "output": "T program: test_new2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_new3.t in T language?", "output": "T program: test_new3 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_new4.t in T language?", "output": "T program: test_new4 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_pad2.t in T language?", "output": "T program: test_pad2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_regex.t in T language?", "output": "T program: test_regex - example/demo program in T language repository"}
+{"instruction": "What is examples/test_replace2.t in T language?", "output": "T program: test_replace2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_string2.t in T language?", "output": "T program: test_string2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_takedrop.t in T language?", "output": "T program: test_takedrop - example/demo program in T language repository"}
+{"instruction": "What is examples/test_title.t in T language?", "output": "T program: test_title - example/demo program in T language repository"}
+{"instruction": "What is examples/test_trim2.t in T language?", "output": "T program: test_trim2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_trim3.t in T language?", "output": "T program: test_trim3 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_unique2.t in T language?", "output": "T program: test_unique2 - example/demo program in T language repository"}
+{"instruction": "What is examples/test_url.t in T language?", "output": "T program: test_url - example/demo program in T language repository"}
+{"instruction": "What is examples/test_window.t in T language?", "output": "T program: test_window - example/demo program in T language repository"}
+{"instruction": "What is examples/test_zipwith.t in T language?", "output": "T program: test_zipwith - example/demo program in T language repository"}
