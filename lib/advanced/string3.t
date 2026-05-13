@@ -7,8 +7,8 @@ func starts_with(str, sub) {
     len(val=P) ~> plen
     slice(str=S, from=0, to=plen) ~> head
     indexOf(str=head, sub=P) ~> idx
-    Gate idx (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate idx (== 0) >> out
 }
 
 func ends_with(str, sub) {
@@ -19,8 +19,8 @@ func ends_with(str, sub) {
     slen - plen >> from
     slice(str=S, from=from, to=slen) ~> tail
     indexOf(str=tail, sub=P) ~> idx
-    Gate idx (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate idx (== 0) >> out
 }
 
 func char_at(str, n) {
@@ -61,8 +61,8 @@ func count_char(str, ch) {
 func is_empty(str) {
     past(str) ~> S
     len(val=S) ~> n
-    Gate n (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate n (== 0) >> out
 }
 
 func str_wrap(str, width) {

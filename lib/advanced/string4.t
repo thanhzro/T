@@ -77,6 +77,6 @@ func str_only_spaces(str) {
     past(str) ~> S
     trim(str=S) ~> t
     len(val=t) ~> n
-    Gate n (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate n (== 0) >> out
 }

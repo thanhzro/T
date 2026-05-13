@@ -23,8 +23,8 @@ func verify_md5(str, expected) {
     indexOf(str=actual, sub=E) ~> idx
     indexOf(str=E, sub=actual) ~> idx2
     idx + idx2 >> s
-    Gate s (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate s (== 0) >> out
 }
 
 func to_hex_str(str) {

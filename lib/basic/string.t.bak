@@ -279,16 +279,16 @@ func is_blank(str) {
     past(str) ~> S
     trim(str=S) ~> t
     len(val=t) ~> n
-    0 >> out
-    Gate n (== 0) >> out
+    Gate n (== 0) >> O1
+    isNumber(val=O1) ~> out
 }
 
 func str_starts(str, sub) {
     past(str) ~> S
     past(sub) ~> P
     indexOf(str=S, sub=P) ~> idx
-    0 >> out
-    Gate idx (== 0) >> out
+    Gate idx (== 0) >> O1
+    isNumber(val=O1) ~> out
 }
 
 func str_ends(str, sub) {
@@ -299,8 +299,8 @@ func str_ends(str, sub) {
     slen - plen >> expected_idx
     indexOf(str=S, sub=P) ~> idx
     idx - expected_idx >> diff
-    0 >> out
-    Gate diff (== 0) >> out
+    Gate diff (== 0) >> O1
+    isNumber(val=O1) ~> out
 }
 
 func str_first(str) {

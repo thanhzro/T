@@ -51,8 +51,8 @@ func stack_dequeue(s) {
 func is_empty_col(col) {
     past(col) ~> C
     len(val=C) ~> n
-    Gate n (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate n (== 0) >> out
 }
 
 func queue_size(q) {
@@ -63,8 +63,8 @@ func queue_size(q) {
 func queue_is_empty(q) {
     past(q) ~> Q
     len(val=Q) ~> n
-    Gate n (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate n (== 0) >> out
 }
 
 func queue_peek(q) {

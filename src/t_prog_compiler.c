@@ -127,17 +127,28 @@ void compile_line(Chunk *chunk, const char *line) {
             char *fn=fname; while(*fn==' ')fn++;
             char args[256]; strncpy(args,lp+1,rp-lp-1); args[rp-lp-1]=0;
             int argc=0;
-            char *tok=strtok(args,",");
-            while(tok){
-                while(*tok==' ')tok++;
-                char *eq=strchr(tok,'=');
+            /* bracket-aware arg split */
+            char *ap=args;
+            while(*ap){
+                while(*ap==' ')ap++;
+                if(!*ap) break;
+                /* find next comma not inside [] */
+                char tok2[256]={0}; int ti=0; int depth=0;
+                while(*ap && !((*ap==','&&depth==0))){
+                    if(*ap=='[')depth++;
+                    else if(*ap==']')depth--;
+                    tok2[ti++]=*ap++;
+                }
+                if(*ap==',') ap++;
+                /* trim trailing space */
+                while(ti>0&&tok2[ti-1]==' ')tok2[--ti]=0;
+                if(!tok2[0]) continue;
+                char *eq=strchr(tok2,'=');
                 if(eq){ char *val=eq+1; while(*val==' ')val++;
                     compile_expr(chunk,val); argc++;
-                } else if(*tok){
-                    /* no = : treat as positional arg */
-                    compile_expr(chunk,tok); argc++;
+                } else {
+                    compile_expr(chunk,tok2); argc++;
                 }
-                tok=strtok(NULL,",");
             }
             int ifn=chunk_add_str(chunk,fn);
             chunk_write(chunk,OP_CALL); chunk_write(chunk,ifn); chunk_write(chunk,argc);

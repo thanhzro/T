@@ -162,8 +162,8 @@ func is_divisor(n, d) {
     floor(val=q) ~> qi
     qi * D >> prod
     N - prod >> rem
-    Gate rem (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate rem (== 0) >> out
 }
 
 

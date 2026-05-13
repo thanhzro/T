@@ -89,6 +89,6 @@ func validate_is_int(val) {
     past(val) ~> V
     floor(val=V) ~> fi
     V - fi >> diff
-    Gate diff (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate diff (== 0) >> out
 }

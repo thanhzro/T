@@ -138,8 +138,8 @@ func sort_desc(arr) {
 func arr_is_empty(arr) {
     past(arr) ~> A
     len(val=A) ~> n
-    0 >> out
-    Gate n (== 0) >> out
+    Gate n (== 0) >> O1
+    isNumber(val=O1) ~> out
 }
 
 
