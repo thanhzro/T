@@ -293,3 +293,8 @@ func arr_insert_at(arr, idx, val) {
     ws + "|" + af >> combined
     split(str=combined, sep="|") ~> out
 }
+
+func sort(arr) {
+    past(arr) ~> A
+    sort_asc(arr=A) ~> out
+}

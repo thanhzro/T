@@ -331,3 +331,8 @@ func interpolate(arr, t) {
     get(arr=A, idx=last) ~> end
     lerp(a=first, b=end, t=Tv) ~> out
 }
+
+func sqrt(val) {
+    past(val) ~> V
+    sqrt_n(val=V) ~> out
+}
