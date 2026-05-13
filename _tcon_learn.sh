@@ -14,3 +14,16 @@ while IFS= read -r line; do
     fi
 done <<< "$FAILS"
 echo "Rules total: $(wc -l < ai_rules.txt)"
+
+# Learn from tcon_query results
+if [ -f _train_log.txt ]; then
+    while IFS= read -r line; do
+        FUNC=$(echo "$line" | grep -oP '(?<=\[)\w+(?=\])')
+        RULE=$(echo "$line" | cut -d'→' -f2 | xargs)
+        NEW_RULE="tcon_learned: $FUNC → $RULE"
+        if ! grep -q "tcon_learned: $FUNC" ai_rules.txt; then
+            echo "$NEW_RULE" >> ai_rules.txt
+            echo "T con learned: $NEW_RULE"
+        fi
+    done < _train_log.txt
+fi
