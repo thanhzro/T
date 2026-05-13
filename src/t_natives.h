@@ -245,27 +245,6 @@ void nat_reverse_unified(BVal *stack, int argc, BVal *out){
         out->type=VT_STR; out->str=r;
     }
 }
-
-double nat_floor_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return floor(stack[0].num);
-}
-double nat_ceil_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return ceil(stack[0].num);
-}
-double nat_round_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return round(stack[0].num);
-}
-double nat_sqrt_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return sqrt(stack[0].num);
-}
-double nat_pow_c(BVal *stack, int argc){
-    if(argc<2) return 0;
-    return pow(stack[0].num, stack[1].num);
-}
 void register_all_natives(VM *vm) {
     TFunc *f;
     #define REG_S1(nm, fn, p0) \
@@ -306,10 +285,6 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
     f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
     {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_unified;f->param_count=1;strcpy(f->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"floor");f2->is_native=3;f2->native_m=nat_floor_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sqrt");f2->is_native=3;f2->native_m=nat_sqrt_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sqrt_n");f2->is_native=3;f2->native_m=nat_sqrt_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"pow");f2->is_native=3;f2->native_m=nat_pow_c;f2->param_count=2;strcpy(f2->params[0],"base");strcpy(f2->params[1],"exp");}
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
