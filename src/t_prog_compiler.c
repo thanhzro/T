@@ -9,10 +9,29 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define TCON_SOCKET "/data/data/com.termux/files/home/t-lang/tbc_server.sock"
 
+
+/* File cache for server mode */
+#define MAX_CACHE 32
+static struct { char path[256]; char *content; int len; } _file_cache[MAX_CACHE];
+static int _cache_count = 0;
+
+static char* cache_get(const char *path) {
+    for(int i=0;i<_cache_count;i++)
+        if(strcmp(_file_cache[i].path,path)==0) return _file_cache[i].content;
+    return NULL;
+}
+static void cache_set(const char *path, const char *content, int len) {
+    if(_cache_count>=MAX_CACHE) return;
+    strncpy(_file_cache[_cache_count].path,path,255);
+    _file_cache[_cache_count].content=strdup(content);
+    _file_cache[_cache_count].len=len;
+    _cache_count++;
+}
 int run_file(const char *path);
 void run_server() {
     int srv = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -22,21 +41,40 @@ void run_server() {
     unlink(TCON_SOCKET);
     bind(srv, (struct sockaddr*)&addr, sizeof(addr));
     listen(srv, 10);
+    /* Preload common libs into cache */
+    {
+        const char *preload[] = {"lib/basic/std.t","lib/basic/math.t","lib/basic/string.t","lib/basic/array.t"};
+        for(int pi=0;pi<4;pi++){
+            FILE*pf=fopen(preload[pi],"r");
+            if(!pf) continue;
+            fseek(pf,0,SEEK_END); long sz=ftell(pf); fseek(pf,0,SEEK_SET);
+            char*buf=malloc(sz+1); fread(buf,1,sz,pf); buf[sz]=0; fclose(pf);
+            cache_set(preload[pi],buf,sz); free(buf);
+        }
+        fprintf(stderr,"Preloaded %d lib files\n",_cache_count);
+    }
     fprintf(stderr, "T con server ready: %s\n", TCON_SOCKET);
     
     while(1) {
         int cli = accept(srv, NULL, NULL);
         if(cli < 0) continue;
-        char path[512] = {0};
-        read(cli, path, 511);
-        /* Redirect stdout to socket */
-        int old_stdout = dup(1);
-        dup2(cli, 1);
-        run_file(path);
-        fflush(stdout);
-        dup2(old_stdout, 1);
-        close(old_stdout);
+        pid_t pid = fork();
+        if(pid == 0) {
+            /* Child: handle request */
+            char path[512] = {0};
+            read(cli, path, 511);
+            int old_stdout = dup(1);
+            dup2(cli, 1);
+            run_file(path);
+            fflush(stdout);
+            dup2(old_stdout, 1);
+            close(old_stdout);
+            close(cli);
+            exit(0);
+        }
         close(cli);
+        /* Reap zombies */
+        while(waitpid(-1, NULL, WNOHANG) > 0);
     }
 }
 
