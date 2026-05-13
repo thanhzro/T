@@ -148,6 +148,27 @@ void compile_line(Chunk *chunk, const char *line) {
     while(*p == ' ') p++;
     if(*p == 0 || *p == '#') return;
 
+
+    /* a != b >> var */
+    char *neq = strstr(p, "!=");
+    char *arr_neq = strstr(p, ">>");
+    if(neq && arr_neq && neq < arr_neq && !strchr(p,'(')) {
+        char lhs[64]={0}; strncpy(lhs,p,neq-p);
+        char *lt=lhs+strlen(lhs)-1; while(lt>lhs&&*lt==' ')*lt--=0;
+        char rhs[64]={0}; char *rs=neq+2; while(*rs==' ')rs++;
+        /* trim rhs - only up to >> */
+        char *rhs_end = arr_neq;
+        while(rhs_end > rs && *(rhs_end-1)==' ') rhs_end--;
+        strncpy(rhs, rs, rhs_end-rs);
+        rhs[rhs_end-rs]=0;
+        char *tgt=arr_neq+2; while(*tgt==' ')tgt++;
+        compile_expr(chunk,lhs);
+        compile_expr(chunk,rhs);
+        chunk_write(chunk,OP_NEQ);
+        int it=chunk_add_str(chunk,tgt);
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+        return;
+    }
     /* show X */
     /* return X */
     if(strncmp(p, "return ", 7) == 0) {
@@ -260,6 +281,7 @@ void compile_line(Chunk *chunk, const char *line) {
             else if(strcmp(op_str,"==")==0) chunk_write(chunk,OP_EQ);
             else if(strcmp(op_str,">=")==0) chunk_write(chunk,OP_GE);
             else if(strcmp(op_str,"<=")==0) chunk_write(chunk,OP_LE);
+            else if(strcmp(op_str,"!=")==0) chunk_write(chunk,OP_NEQ);
             chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,4);
             int i1g=chunk_add_num(chunk,1);
             chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,i1g);
@@ -525,6 +547,7 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         if(strcmp(gate_op,">")==0)  chunk_write(chunk,OP_GT);
         else if(strcmp(gate_op,"<")==0)  chunk_write(chunk,OP_LT);
         else if(strcmp(gate_op,"==")==0) chunk_write(chunk,OP_EQ);
+        else if(strcmp(gate_op,"!=")==0) chunk_write(chunk,OP_NEQ);
         else if(strcmp(gate_op,">=")==0) chunk_write(chunk,OP_GE);
         else if(strcmp(gate_op,"<=")==0) chunk_write(chunk,OP_LE);
         /* Jump over push if false */
@@ -622,7 +645,7 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
                             chunk_write(&f->chunk,OP_PUSH_NUM); chunk_write(&f->chunk,iv2);
                         }
                         if(strcmp(op_str,"==")==0) chunk_write(&f->chunk,OP_EQ);
-                        else if(strcmp(op_str,"!=")==0){chunk_write(&f->chunk,OP_EQ);} /* TODO: NEQ */
+                        else if(strcmp(op_str,"!=")==0){chunk_write(&f->chunk,OP_NEQ);}
                         else if(strcmp(op_str,">")==0) chunk_write(&f->chunk,OP_GT);
                         else if(strcmp(op_str,"<")==0) chunk_write(&f->chunk,OP_LT);
                         else if(strcmp(op_str,">=")==0) chunk_write(&f->chunk,OP_GE);

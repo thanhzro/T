@@ -12,7 +12,7 @@ typedef enum {
     OP_PUSH_NUM, OP_PUSH_STR, OP_PUSH_NIL, OP_PUSH_ARR,
     OP_LOAD, OP_STORE,
     OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_NEG,
-    OP_EQ, OP_LT, OP_GT, OP_LE, OP_GE,
+    OP_EQ, OP_NEQ, OP_LT, OP_GT, OP_LE, OP_GE,
     OP_JUMP, OP_JUMP_IF_0, OP_JUMP_IF_1,
     OP_CALL, OP_RETURN,
     OP_CONCAT, OP_TOSTR,
@@ -228,6 +228,16 @@ case OP_GE:{
     double a=vm->stack[--vm->top].num;
     vm->stack[vm->top].type=VT_NUM;
     vm->stack[vm->top].num=(a==b)?1:0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++;
+    break;}
+case OP_NEQ:{
+    double b=vm->stack[--vm->top].num;
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=(a!=b)?1:0;
     vm->stack[vm->top].str=NULL;
     vm->stack[vm->top].arr=NULL;
     vm->stack[vm->top].arr_len=0;
