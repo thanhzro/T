@@ -7,18 +7,6 @@
 #include "t_bytecode.h"
 
 /* ===== NATIVE FUNCTIONS ===== */
-double nat_floor(double*a,int n){return floor(a[0]);}
-double nat_ceil(double*a,int n){return ceil(a[0]);}
-double nat_sqrt(double*a,int n){return sqrt(a[0]);}
-double nat_abs(double*a,int n){return fabs(a[0]);}
-double nat_log(double*a,int n){return log(a[0]);}
-double nat_sin(double*a,int n){return sin(a[0]);}
-double nat_cos(double*a,int n){return cos(a[0]);}
-double nat_exp(double*a,int n){return exp(a[0]);}
-double nat_atan(double*a,int n){return atan(a[0]);}
-double nat_atan2(double*a,int n){return atan2(a[0],a[1]);}
-double nat_round(double*a,int n){return round(a[0]);}
-double nat_pow(double*a,int n){return pow(a[0],a[1]);}
 double nat_toNumber(double*a,int n){return a[0];}
 double nat_len(double*a,int n){return a[0];}
 double nat_isArray(double*a,int n){return 0;}
@@ -42,8 +30,6 @@ double nat_lerp(double*a,int n){
 double nat_safe_div(double*a,int n){
     return a[1]==0?0:a[0]/a[1];
 }
-double nat_is_even(double*a,int n){return fmod(a[0],2)==0?1:0;}
-double nat_is_odd(double*a,int n){return fmod(a[0],2)!=0?1:0;}
 
 
 /* Simple array encoding as comma-separated string */
@@ -67,7 +53,6 @@ double nat_sum_s(double*a,int n){
 double nat_max2(double*a,int n){return a[0]>a[1]?a[0]:a[1];}
 double nat_min2(double*a,int n){return a[0]<a[1]?a[0]:a[1];}
 double nat_mod(double*a,int n){return fmod(a[0],a[1]);}
-double nat_pi(double*a,int n){return 3.14159265358979323846;}
 
 #include <ctype.h>
 
@@ -566,16 +551,10 @@ void register_all_natives(VM *vm) {
         strcpy(f->name,nm); f->is_native=1; f->native=fn; \
         f->param_count=2; strcpy(f->params[0],p0); strcpy(f->params[1],p1);
 
-    REG1("exp_e",  nat_exp,    "val")
-    REG2("atan2",  nat_atan2,  "y","x")
-    REG2("pow",    nat_pow,    "base","exp")
     REG2("max2",   nat_max2,   "a","b")
     REG2("min2",   nat_min2,   "a","b")
     REG2("fmod",   nat_mod,    "a","b")
-    REG1("pi",     nat_pi,     "x")
     REG2("safe_div", nat_safe_div, "a","b")
-    REG2("is_even",  nat_is_even,  "n","x")
-    REG2("is_odd",   nat_is_odd,   "n","x")
     REG2("between",  nat_between,  "val","lo")
     REG2("lerp",     nat_lerp,     "a","b")
     /* Range - returns string encoded array */
