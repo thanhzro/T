@@ -7,33 +7,12 @@
 #include "t_bytecode.h"
 
 /* ===== NATIVE FUNCTIONS ===== */
-double nat_toNumber(double*a,int n){return a[0];}
-double nat_len(double*a,int n){return a[0];}
-double nat_isArray(double*a,int n){return 0;}
-double nat_charCode(double*a,int n){return a[0];}
 
 
 
-double nat_clamp(double*a,int n){
-    double v=a[0],lo=a[1],hi=a[2];
-    if(v<lo)return lo; if(v>hi)return hi; return v;
-}
-double nat_between(double*a,int n){
-    return a[0]>=a[1]&&a[0]<=a[2]?1:0;
-}
-double nat_sign(double*a,int n){
-    return a[0]>0?1:(a[0]<0?-1:0);
-}
-double nat_lerp(double*a,int n){
-    return a[0]+(a[1]-a[0])*a[2];
-}
-double nat_safe_div(double*a,int n){
-    return a[1]==0?0:a[0]/a[1];
-}
 
 
 /* Simple array encoding as comma-separated string */
-double nat_range_d(double*a,int n){ return a[0]; }
 char* nat_range_s(char**a,int n){
     int count=(int)atof(a[0]);
     char buf[4096]; buf[0]=0;
@@ -45,14 +24,7 @@ char* nat_range_s(char**a,int n){
     return strdup(buf);
 }
 
-double nat_sum_s(double*a,int n){
-    /* sum of array encoded as string - handle later */
-    return 0;
-}
 
-double nat_max2(double*a,int n){return a[0]>a[1]?a[0]:a[1];}
-double nat_min2(double*a,int n){return a[0]<a[1]?a[0]:a[1];}
-double nat_mod(double*a,int n){return fmod(a[0],a[1]);}
 
 #include <ctype.h>
 
@@ -97,22 +69,12 @@ void nat_get_val(BVal *stack, int argc, BVal *out){
     }
 }
 
-double nat_get_mix(BVal *stack, int argc){
-    if(argc<2) return 0;
-    if(stack[0].type==VT_ARR){
-        int idx=(int)stack[1].num;
-        if(idx<0||idx>=stack[0].arr_len) return 0;
-        return stack[0].arr[idx].num;
-    }
-    return 0;
-}
 double nat_arr_len_mix(BVal *stack, int argc){
     if(argc<1) return 0;
     if(stack[0].type==VT_ARR) return stack[0].arr_len;
     if(stack[0].type==VT_STR) return stack[0].str?strlen(stack[0].str):0;
     return 0;
 }
-
 double nat_toNumber_mix(BVal *stack, int argc){
     if(argc<1) return 0;
     if(stack[0].type==VT_NUM) return stack[0].num;
@@ -128,12 +90,6 @@ double nat_isString_mix(BVal *stack, int argc){
     return stack[0].type==VT_STR?1:0;
 }
 
-char* nat_toString_mix_s(BVal *stack, int argc){
-    if(argc<1) return strdup("");
-    if(stack[0].type==VT_STR) return strdup(stack[0].str?stack[0].str:"");
-    char buf[64]; snprintf(buf,63,"%.15g",stack[0].num);
-    return strdup(buf);
-}
 
 typedef double (*NativeMixFn)(BVal *stack, int argc);
 
@@ -143,38 +99,9 @@ double nat_len_mix(BVal *stack, int argc){
     if(stack[0].type==VT_STR) return stack[0].str?strlen(stack[0].str):0;
     return stack[0].num;
 }
-double nat_contains_mix(BVal *stack, int argc){
-    if(argc<2||stack[0].type!=VT_STR||stack[1].type!=VT_STR) return 0;
-    return strstr(stack[0].str, stack[1].str)?1:0;
-}
-double nat_starts_mix(BVal *stack, int argc){
-    if(argc<2||stack[0].type!=VT_STR||stack[1].type!=VT_STR) return 0;
-    return strncmp(stack[0].str,stack[1].str,strlen(stack[1].str))==0?1:0;
-}
-double nat_ends_mix(BVal *stack, int argc){
-    if(argc<2||stack[0].type!=VT_STR||stack[1].type!=VT_STR) return 0;
-    int sl=strlen(stack[0].str),el=strlen(stack[1].str);
-    if(el>sl) return 0;
-    return strcmp(stack[0].str+sl-el,stack[1].str)==0?1:0;
-}
 
 
-char* nat_str_len(char**a,int n){
-    char buf[32]; snprintf(buf,31,"%d",(int)strlen(a[0])); return strdup(buf);
-}
-double nat_len_n(double*a,int n){return a[0];}
 
-char* nat_reverse(char**a,int n){
-    char *s=a[0]; int l=strlen(s);
-    char *r=malloc(l+1); r[l]=0;
-    for(int i=0;i<l;i++) r[i]=s[l-1-i];
-    return r;
-}
-char* nat_substr(char**a,int n){
-    /* a[0]=str, numeric from/to passed as str */
-    return strdup(a[0]);
-}
-double nat_contains(double*a,int n){return a[0];}
 char* nat_nat_replace(char**a,int n){
     char *s=a[0],*f=a[1],*r=a[2];
     int sl=strlen(s),fl=strlen(f),rl=strlen(r);
@@ -234,7 +161,6 @@ char* nat_concat(char**a,int n){
     return strdup(buf);
 }
 
-double nat_write_file(double*a,int n){return 0;}
 double nat_write_mix(BVal *stack, int argc){
     if(argc<2) return 0;
     const char *content = stack[0].type==VT_STR ? (stack[0].str?stack[0].str:"") : "";
@@ -262,15 +188,6 @@ char* nat_exec_s(char**a,int n){
 }
 
 
-char* nat_toString_s(BVal *stack, int argc){
-    if(argc<1) return strdup("0");
-    if(stack[0].type==VT_STR) return strdup(stack[0].str?stack[0].str:"");
-    char buf[64];
-    double n=stack[0].num;
-    if(n==(long long)n) snprintf(buf,63,"%lld",(long long)n);
-    else snprintf(buf,63,"%g",n);
-    return strdup(buf);
-}
 
 
 double nat_line_count(BVal *stack, int argc){
@@ -280,165 +197,20 @@ double nat_line_count(BVal *stack, int argc){
     if(s[0]&&s[strlen(s)-1]!=10) n++;
     return n;
 }
-double nat_get_line(BVal *stack, int argc){
-    return 0; /* placeholder - use exec grep instead */
-}
 
 /* ===== REGISTER ALL NATIVES ===== */
 
-void nat_exec_val(BVal *stack, int argc, BVal *out){
-    const char *cmd = argc>0 && stack[0].str ? stack[0].str : "";
-    FILE *fp = popen(cmd, "r");
-    if(!fp){ out->type=VT_STR; out->str=strdup("EXEC_FAIL"); return; }
-    char buf[65536]; buf[0]=0;
-    char line[1024];
-    while(fgets(line,1023,fp)) strncat(buf,line,65535-strlen(buf));
-    pclose(fp);
-    int l=strlen(buf); if(l>0&&buf[l-1]=='\n') buf[l-1]=0;
-    out->type=VT_STR; out->str=strdup(buf);
-}
-
-void nat_range_step_val(BVal *stack, int argc, BVal *out){
-    double from=argc>0?stack[0].num:0;
-    double to=argc>1?stack[1].num:0;
-    double step=argc>2?stack[2].num:1;
-    if(step==0) step=1;
-    int count=0;
-    for(double v=from;v<to;v+=step) count++;
-    BVal *arr=(BVal*)calloc(count,sizeof(BVal));
-    int i=0;
-    for(double v=from;v<to;v+=step){
-        arr[i].type=VT_NUM; arr[i].num=v; i++;
-    }
-    out->type=VT_ARR; out->arr=arr; out->arr_len=count;
-}
-
-void nat_split_val(BVal *stack, int argc, BVal *out){
-    if(argc<2||!stack[0].str||!stack[1].str){out->type=VT_ARR;out->arr_len=0;return;}
-    const char *str=stack[0].str, *sep=stack[1].str;
-    int seplen=strlen(sep);
-    BVal *arr=(BVal*)calloc(strlen(str)+2,sizeof(BVal));
-    int cnt=0;
-    if(seplen==0){arr[cnt].type=VT_STR;arr[cnt].str=strdup(str);cnt++;}
-    else{
-        const char *start=str, *found;
-        while((found=strstr(start,sep))!=NULL){
-            int pl=found-start;
-            char *part=(char*)malloc(pl+1); strncpy(part,start,pl); part[pl]=0;
-            arr[cnt].type=VT_STR; arr[cnt].str=part; cnt++;
-            start=found+seplen;
-        }
-        arr[cnt].type=VT_STR; arr[cnt].str=strdup(start); cnt++;
-    }
-    out->type=VT_ARR; out->arr=arr; out->arr_len=cnt;
-}
-
-void nat_join_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){out->type=VT_STR;out->str=strdup("");return;}
-    const char *sep=argc>1&&stack[1].str?stack[1].str:"";
-    char buf[4096]; buf[0]=0;
-    BVal *arr=(BVal*)stack[0].arr;
-    for(int i=0;i<stack[0].arr_len;i++){
-        if(i) strncat(buf,sep,4095-strlen(buf));
-        if(arr[i].type==VT_NUM){char tmp[64];snprintf(tmp,63,"%.15g",arr[i].num);strncat(buf,tmp,4095-strlen(buf));}
-        else if(arr[i].str) strncat(buf,arr[i].str,4095-strlen(buf));
-    }
-    out->type=VT_STR; out->str=strdup(buf);
-}
-
-void nat_unique_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
-    int n=stack[0].arr_len;
-    BVal *src=(BVal*)stack[0].arr;
-    BVal *arr2=(BVal*)calloc(n,sizeof(BVal));
-    int cnt=0;
-    /* Sort first */
-    for(int i=0;i<n-1;i++) for(int j=0;j<n-1-i;j++) if(src[j].num>src[j+1].num){BVal t=src[j];src[j]=src[j+1];src[j+1]=t;}
-    for(int i=0;i<n;i++){
-        int found=0;
-        for(int j=0;j<cnt;j++){
-            if(src[i].type==VT_STR&&arr2[j].type==VT_STR&&src[i].str&&arr2[j].str&&strcmp(src[i].str,arr2[j].str)==0){found=1;break;}
-            if(src[i].type==VT_NUM&&arr2[j].type==VT_NUM&&src[i].num==arr2[j].num){found=1;break;}
-        }
-        if(!found) arr2[cnt++]=src[i];
-    }
-    out->type=VT_ARR; out->arr=arr2; out->arr_len=cnt;
-}
-
-void nat_slice_arr_val(BVal *stack, int argc, BVal *out){
-    if(argc<3||stack[0].type!=VT_ARR){out->type=VT_ARR;out->arr_len=0;return;}
-    int a=(int)stack[1].num, b=(int)stack[2].num;
-    int n=stack[0].arr_len;
-    BVal *src=(BVal*)stack[0].arr;
-    if(a<0)a=0; if(b>n)b=n;
-    int cnt=b-a; if(cnt<0)cnt=0;
-    BVal *arr=(BVal*)calloc(cnt,sizeof(BVal));
-    for(int i=0;i<cnt;i++) arr[i]=src[a+i];
-    out->type=VT_ARR; out->arr=arr; out->arr_len=cnt;
-}
-
-double nat_min2_mix(BVal *stack, int argc){
-    if(argc<2) return 0;
-    return stack[0].num < stack[1].num ? stack[0].num : stack[1].num;
-}
-
-double nat_max2_mix(BVal *stack, int argc){
-    if(argc<2) return 0;
-    return stack[0].num > stack[1].num ? stack[0].num : stack[1].num;
-}
 
 
-void nat_concat_val(BVal *stack, int argc, BVal *out){
-    if(argc<2){if(argc==1)*out=stack[0];return;}
-    int n1=stack[0].type==VT_ARR?stack[0].arr_len:0;
-    int n2=stack[1].type==VT_ARR?stack[1].arr_len:0;
-    BVal *arr=(BVal*)calloc(n1+n2,sizeof(BVal));
-    if(n1>0) memcpy(arr,(BVal*)stack[0].arr,n1*sizeof(BVal));
-    if(n2>0) memcpy(arr+n1,(BVal*)stack[1].arr,n2*sizeof(BVal));
-    out->type=VT_ARR; out->arr=arr; out->arr_len=n1+n2;
-}
-void nat_flatten_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
-    /* Count total elements */
-    int total=0;
-    BVal *src=(BVal*)stack[0].arr;
-    for(int i=0;i<stack[0].arr_len;i++){
-        if(src[i].type==VT_ARR) total+=src[i].arr_len;
-        else total++;
-    }
-    BVal *arr=(BVal*)calloc(total,sizeof(BVal));
-    int cnt=0;
-    for(int i=0;i<stack[0].arr_len;i++){
-        if(src[i].type==VT_ARR){
-            BVal *sub=(BVal*)src[i].arr;
-            for(int j=0;j<src[i].arr_len;j++) arr[cnt++]=sub[j];
-        } else arr[cnt++]=src[i];
-    }
-    out->type=VT_ARR; out->arr=arr; out->arr_len=cnt;
-}
 
-double nat_gcd_mix(BVal *stack, int argc){
-    if(argc<2) return 0;
-    long long a=(long long)stack[0].num;
-    long long b=(long long)stack[1].num;
-    while(b){long long t=b;b=a%b;a=t;}
-    return (double)(a<0?-a:a);
-}
-double nat_lcm_mix(BVal *stack, int argc){
-    if(argc<2) return 0;
-    long long a=(long long)stack[0].num;
-    long long b=(long long)stack[1].num;
-    if(!a||!b) return 0;
-    long long g=a; long long tb=b;
-    while(tb){long long t=tb;tb=g%tb;g=t;}
-    return (double)(a/g*b);
-}
 
-double nat_sign_mix(BVal *stack, int argc){
-    if(argc<1) return 0;
-    double v=stack[0].num;
-    return v>0?1:(v<0?-1:0);
-}
+
+
+
+
+
+
+
 char* nat_md5_s(char**a,int n){
     /* Simple MD5 stub - use exec md5sum */
     char cmd[512]; snprintf(cmd,511,"echo -n '%s' | md5sum | cut -d' ' -f1",a[0]?a[0]:"");
@@ -454,75 +226,16 @@ char* nat_sha256_s(char**a,int n){
     int l=strlen(buf); while(l>0&&(buf[l-1]=='\n'||buf[l-1]==' '))buf[--l]=0;
     return strdup(buf);
 }
-double nat_is_email_mix(BVal *stack, int argc){
-    if(argc<1||!stack[0].str) return 0;
-    char *s=stack[0].str;
-    char *at=strchr(s,'@');
-    if(!at) return 0;
-    char *dot=strchr(at,'.');
-    return dot&&dot>at+1?1:0;
-}
-double nat_is_url_mix(BVal *stack, int argc){
-    if(argc<1||!stack[0].str) return 0;
-    char *s=stack[0].str;
-    return (strncmp(s,"http://",7)==0||strncmp(s,"https://",8)==0)?1:0;
-}
 
 
-char* nat_slice_str(char**a,int n){
-    /* from/to passed as strings of numbers */
-    /* from/to passed as strings of numbers */
-    if(n<1||!a[0]) return strdup("");
-    char *s=a[0];
-    int len=strlen(s);
-    int from=n>1?(int)strtod(a[1],NULL):0;
-    int to=n>2?(int)strtod(a[2],NULL):len;
-    if(from<0)from=0; if(to>len)to=len; if(from>to)from=to;
-    char *r=malloc(to-from+1);
-    strncpy(r,s+from,to-from); r[to-from]=0;
-    return r;
-}
-
-void nat_slice_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||!stack[0].str){out->type=VT_STR;out->str=strdup("");return;}
-    char *s=stack[0].str;
-    int len=strlen(s);
-    int from=argc>1?(int)stack[1].num:0;
-    int to=argc>2?(int)stack[2].num:len;
-    if(from<0)from=0; if(to>len)to=len; if(from>to)from=to;
-    char *r=malloc(to-from+1);
-    strncpy(r,s+from,to-from); r[to-from]=0;
-    out->type=VT_STR; out->str=r;
-}
 
 
-void nat_sort_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){*out=stack[0];return;}
-    int n=stack[0].arr_len;
-    BVal *src=(BVal*)stack[0].arr;
-    BVal *arr2=(BVal*)calloc(n,sizeof(BVal));
-    for(int i=0;i<n;i++) arr2[i]=src[i];
-    for(int i=0;i<n-1;i++)
-        for(int j=0;j<n-1-i;j++){
-            int sw=arr2[j].type==VT_STR?strcmp(arr2[j].str,arr2[j+1].str)>0:arr2[j].num>arr2[j+1].num;
-            if(sw){BVal t=arr2[j];arr2[j]=arr2[j+1];arr2[j+1]=t;}
-        }
-    out->type=VT_ARR; out->arr=arr2; out->arr_len=n;
-}
 
 
-void nat_reverse_arr_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){if(argc>0)*out=stack[0];return;}
-    int n=stack[0].arr_len;
-    BVal *src=(BVal*)stack[0].arr;
-    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
-    for(int i=0;i<n;i++) arr[i]=src[n-1-i];
-    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
-}
+
 void nat_reverse_unified(BVal *stack, int argc, BVal *out){
     if(argc<1){out->type=VT_NUM;out->num=0;return;}
     if(stack[0].type==VT_ARR){
-        nat_reverse_arr_val(stack,argc,out);
     } else {
         /* string reverse */
         const char *s=stack[0].str?stack[0].str:"";
@@ -551,12 +264,6 @@ void register_all_natives(VM *vm) {
         strcpy(f->name,nm); f->is_native=1; f->native=fn; \
         f->param_count=2; strcpy(f->params[0],p0); strcpy(f->params[1],p1);
 
-    REG2("max2",   nat_max2,   "a","b")
-    REG2("min2",   nat_min2,   "a","b")
-    REG2("fmod",   nat_mod,    "a","b")
-    REG2("safe_div", nat_safe_div, "a","b")
-    REG2("between",  nat_between,  "val","lo")
-    REG2("lerp",     nat_lerp,     "a","b")
     /* Range - returns string encoded array */
     REG_S1("range_bc", nat_range_s, "n")
     REG_S1("upper", nat_upper, "str")
@@ -569,13 +276,11 @@ void register_all_natives(VM *vm) {
     f->param_count=1; strcpy(f->params[0],"str");
     /* past(x) = identity - returns x as-is */
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"past"); f->is_native=3; f->native_m=nat_toNumber_mix;
     f->param_count=1; strcpy(f->params[0],"val");
     /* toString - special: returns string from any type */
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"toString"); f->is_native=2; f->native_s=NULL;
     f->param_count=1; strcpy(f->params[0],"val");
-    f->native_m=(NativeMixFn)nat_toString_s;  /* reuse field */
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
     f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
@@ -595,23 +300,10 @@ void register_all_natives(VM *vm) {
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice");f2->is_native=4;f2->native_v=nat_slice_val;f2->param_count=3;strcpy(f2->params[0],"str");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sign");f2->is_native=3;f2->native_m=nat_sign_mix;f2->param_count=1;strcpy(f2->params[0],"val");}
     REG_S1("md5",nat_md5_s,"str")
     REG_S1("sha256",nat_sha256_s,"str")
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_email");f2->is_native=3;f2->native_m=nat_is_email_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_url");f2->is_native=3;f2->native_m=nat_is_url_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"validate_email");f2->is_native=3;f2->native_m=nat_is_email_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"validate_url");f2->is_native=3;f2->native_m=nat_is_url_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
     REG_S1("md5",nat_md5_s,"str")
     REG_S1("sha256",nat_sha256_s,"str")
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"concat");f2->is_native=4;f2->native_v=nat_concat_val;f2->param_count=2;strcpy(f2->params[0],"arr1");strcpy(f2->params[1],"arr2");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
     REG_S1("md5",nat_md5_s,"str")
     REG_S1("sha256",nat_sha256_s,"str")
     REG_S1("md5",nat_md5_s,"str")
@@ -621,7 +313,6 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"arr_len"); f->is_native=3; f->native_m=nat_arr_len_mix;
     f->param_count=1; strcpy(f->params[0],"arr");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"toNumber"); f->is_native=3; f->native_m=nat_toNumber_mix;
     f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"isNumber"); f->is_native=3; f->native_m=nat_isNumber_mix;
