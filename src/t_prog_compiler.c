@@ -7,6 +7,40 @@
 #include "t_natives.h"
 #include <math.h>
 
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+
+#define TCON_SOCKET "/data/data/com.termux/files/home/t-lang/tbc_server.sock"
+
+int run_file(const char *path);
+void run_server() {
+    int srv = socket(AF_UNIX, SOCK_STREAM, 0);
+    struct sockaddr_un addr = {0};
+    addr.sun_family = AF_UNIX;
+    strcpy(addr.sun_path, TCON_SOCKET);
+    unlink(TCON_SOCKET);
+    bind(srv, (struct sockaddr*)&addr, sizeof(addr));
+    listen(srv, 10);
+    fprintf(stderr, "T con server ready: %s\n", TCON_SOCKET);
+    
+    while(1) {
+        int cli = accept(srv, NULL, NULL);
+        if(cli < 0) continue;
+        char path[512] = {0};
+        read(cli, path, 511);
+        /* Redirect stdout to socket */
+        int old_stdout = dup(1);
+        dup2(cli, 1);
+        run_file(path);
+        fflush(stdout);
+        dup2(old_stdout, 1);
+        close(old_stdout);
+        close(cli);
+    }
+}
+
+
 /* Forward declarations */
 
 static char* find_arrow(char *s) {
@@ -647,6 +681,7 @@ int _g_trace=0;
 int main(int argc, char *argv[]) {
     register_signals();
     if(argc > 1) {
+        if(strcmp(argv[1],"--server")==0){run_server();return 0;}
         if(argc > 2 && strcmp(argv[2],"--trace")==0) _g_trace=1;
         run_file(argv[1]);
         return 0;
