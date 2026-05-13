@@ -10,7 +10,7 @@ while IFS=$'\t' read lib code exp; do
 import "lib/intermediate/std.t"'
         fi
         printf "[T-]\n%s\n[T0]\n%s\n[T+]\nshow shall(O1)\n" "$IMP" "$code" > "$T"
-        OUT=$(timeout 3 ./t_bc "$T" 2>/dev/null)
+        OUT=$(timeout 3 ./t_client "$T" 2>/dev/null || timeout 3 ./t_bc "$T" 2>/dev/null)
         rm -f "$T"
         [ "$OUT" = "$exp" ] && echo "PASS" || echo "FAIL: $code got=$OUT expected=$exp"
     ) &

@@ -1,10 +1,8 @@
 [T-]
-import "lib/basic/std.t"
-nums=[1,2,3]
+import "lib/basic/string.t"
+s=hello
 [T0]
-len(val=nums) ~> r
+upper(str=s) ~> r
 [T+]
 show shall(r)
-shall(r)
-
-all(r)
+how shall(r)

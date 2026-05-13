@@ -1,5 +1,6 @@
 [T-]
+import "lib/basic/std.t"
 [T0]
-tcon_query(query="report slow 10 seconds despite cache parallel") ~> r
+replace(str="hello world", old=" ", new="_") ~> r
 [T+]
 show shall(r)

@@ -41,7 +41,7 @@ char* nat_{func}_auto(char**a,int n){{
     return strdup(a[0]);
 }}
 '''
-    reg = f'    REG_S{len(params)}("{func}",nat_{func}_auto'
+    reg = f'    {{TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"{func}");f2->is_native=2;f2->native_s=nat_{func}_auto;f2->param_count={len(params)};'
 
 for i,p in enumerate(params):
     reg += f';strcpy(f2->params[{i}],"{p}")'
