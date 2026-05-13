@@ -9,8 +9,8 @@ func cache_set(key, val) {
 func cache_get(key) {
     past(key) ~> K
     file_exists(path=K + ".cache") ~> ok
-    Gate ok (== 1) >> has
-    isNumber(val=has) ~> h
+    0 >> h
+    Gate ok (== 1) >> h
     [] >> opts
     push(arr=opts, val="") ~> opts
     exec(cmd="cat " + K + ".cache") ~> raw

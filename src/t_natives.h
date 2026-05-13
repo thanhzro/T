@@ -170,6 +170,73 @@ char* nat_tcon_query(char**a,int n){
     int l=strlen(best); while(l>0&&(best[l-1]=='\n'||best[l-1]==' '))best[--l]=0;
     return strdup(best);
 }
+
+void nat_split_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||!stack[0].str){out->type=VT_ARR;out->arr_len=0;return;}
+    char *s=strdup(stack[0].str);
+    char *sep=argc>1&&stack[1].str?stack[1].str:" ";
+    int seplen=strlen(sep);
+    BVal *arr=(BVal*)calloc(256,sizeof(BVal)); int n=0;
+    char *p=s;
+    while(*p){
+        char *found=strstr(p,sep);
+        int len=found?found-p:strlen(p);
+        arr[n].type=VT_STR;
+        arr[n].str=(char*)malloc(len+1);
+        strncpy(arr[n].str,p,len); arr[n].str[len]=0;
+        n++; if(!found) break; p=found+seplen;
+    }
+    free(s);
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
+void nat_first_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return;
+    *out=stack[0].arr[0];
+}
+void nat_last_val(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return;
+    *out=stack[0].arr[stack[0].arr_len-1];
+}
+
+int _cmp_bval(const void *a, const void *b){
+    double da=((BVal*)a)->num, db=((BVal*)b)->num;
+    if(((BVal*)a)->type==VT_STR&&((BVal*)a)->str&&
+       ((BVal*)b)->type==VT_STR&&((BVal*)b)->str)
+        return strcmp(((BVal*)a)->str,((BVal*)b)->str);
+    return da<db?-1:da>db?1:0;
+}
+void nat_sort_c(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_ARR) return;
+    int n=stack[0].arr_len;
+    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++) arr[i]=stack[0].arr[i];
+    qsort(arr,n,sizeof(BVal),_cmp_bval);
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
+
+double nat_min_arr_c(BVal *stack, int argc){
+    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return 0;
+    double m=stack[0].arr[0].num;
+    for(int i=1;i<stack[0].arr_len;i++) if(stack[0].arr[i].num<m) m=stack[0].arr[i].num;
+    return m;
+}
+double nat_max_arr_c(BVal *stack, int argc){
+    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return 0;
+    double m=stack[0].arr[0].num;
+    for(int i=1;i<stack[0].arr_len;i++) if(stack[0].arr[i].num>m) m=stack[0].arr[i].num;
+    return m;
+}
+double nat_all_arr_c(BVal *stack, int argc){
+    if(argc<1||stack[0].type!=VT_ARR) return 0;
+    for(int i=0;i<stack[0].arr_len;i++) if(stack[0].arr[i].num==0) return 0;
+    return 1;
+}
+
+double nat_is_error_c(BVal *stack, int argc){
+    if(argc<1) return 0;
+    if(stack[0].type!=VT_STR||!stack[0].str) return 0;
+    return stack[0].str[0]=='!'?1:0;
+}
 void nat_push_val(BVal *stack, int argc, BVal *out){
     /* stack[0]=arr, stack[1]=val */
     out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
@@ -432,6 +499,15 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"safe_div");f2->is_native=3;f2->native_m=nat_safe_div_auto;f2->param_count=2;;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     REG_S1("tcon_query",nat_tcon_query,"query")
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"first");f2->is_native=4;f2->native_v=nat_first_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"last");f2->is_native=4;f2->native_v=nat_last_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort_asc");f2->is_native=4;f2->native_v=nat_sort_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min_arr");f2->is_native=3;f2->native_m=nat_min_arr_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max_arr");f2->is_native=3;f2->native_m=nat_max_arr_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"all_arr");f2->is_native=3;f2->native_m=nat_all_arr_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_error");f2->is_native=3;f2->native_m=nat_is_error_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_c;f->param_count=1;strcpy(f->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"floor");f2->is_native=3;f2->native_m=nat_floor_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"round");f2->is_native=3;f2->native_m=nat_round_c;f2->param_count=1;strcpy(f2->params[0],"val");}

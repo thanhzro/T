@@ -33,8 +33,8 @@ func is_arr(val) {
 func is_error(val) {
     past(val) ~> V
     isString(val=V) ~> is_str
-    Gate is_str (== 1) >> O1
-    isNumber(val=O1) ~> ok
+    0 >> ok
+    Gate is_str (== 1) >> ok
     [] >> opts
     push(arr=opts, val=0) ~> opts
     indexOf(str=V, sub="!") ~> idx

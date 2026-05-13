@@ -12,8 +12,8 @@ func event_emit(name, data) {
 
 func event_log() {
     file_exists(path="events.log") ~> ok
-    Gate ok (== 1) >> has
-    isNumber(val=has) ~> h
+    0 >> h
+    Gate ok (== 1) >> h
     [] >> opts
     push(arr=opts, val="") ~> opts
     exec(cmd="cat events.log") ~> raw
@@ -27,8 +27,8 @@ func event_clear() {
 
 func event_count() {
     file_exists(path="events.log") ~> ok
-    Gate ok (== 1) >> has
-    isNumber(val=has) ~> h
+    0 >> h
+    Gate ok (== 1) >> h
     [] >> opts
     push(arr=opts, val=0) ~> opts
     exec(cmd="wc -l < events.log") ~> raw
