@@ -90,3 +90,4 @@ auto: tlib_only: is_error in T lib depends on: past,isString,isNumber, - check i
 auto: tlib_only: str_count in T lib depends on: past,past,split, - check if deps work in t_bc
 auto: tlib_only: str_reverse in T lib depends on: past,str_chars,reverse, - check if deps work in t_bc
 Gate: when condition false, target var stays undefined - isNumber(undefined)=1 causes wrong output
+array-in-func: push/sort inside func body receives num instead of arr - array assignment inside func not preserved across nested calls

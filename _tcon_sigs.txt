@@ -19,3 +19,6 @@ max:a,b
 clamp:val,lo,hi
 split:str,sep
 join:arr,sep
+max2:a,b
+min2:a,b
+clamp:val,lo,hi
