@@ -618,17 +618,14 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"len"); f->is_native=3; f->native_m=nat_len_mix;
     f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"contains"); f->is_native=3; f->native_m=nat_contains_mix;
     f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"str_starts"); f->is_native=3; f->native_m=nat_starts_mix;
     f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"push"); f->is_native=4; f->native_v=nat_push_val;
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"unique");f2->is_native=4;f2->native_v=nat_unique_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice");f2->is_native=4;f2->native_v=nat_slice_val;f2->param_count=3;strcpy(f2->params[0],"str");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
@@ -641,17 +638,11 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"validate_url");f2->is_native=3;f2->native_m=nat_is_url_mix;f2->param_count=1;strcpy(f2->params[0],"str");}
     REG_S1("md5",nat_md5_s,"str")
     REG_S1("sha256",nat_sha256_s,"str")
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"gcd");f2->is_native=3;f2->native_m=nat_gcd_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lcm");f2->is_native=3;f2->native_m=nat_lcm_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"concat");f2->is_native=4;f2->native_v=nat_concat_val;f2->param_count=2;strcpy(f2->params[0],"arr1");strcpy(f2->params[1],"arr2");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"flatten");f2->is_native=4;f2->native_v=nat_flatten_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice_arr");f2->is_native=4;f2->native_v=nat_slice_arr_val;f2->param_count=3;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_mix;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step_val;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exec");f2->is_native=4;f2->native_v=nat_exec_val;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_val;}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"reverse_arr");f2->is_native=4;f2->native_v=nat_reverse_arr_val;}
     REG_S1("md5",nat_md5_s,"str")
     REG_S1("sha256",nat_sha256_s,"str")
     REG_S1("md5",nat_md5_s,"str")
@@ -670,7 +661,6 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"isString"); f->is_native=3; f->native_m=nat_isString_mix;
     f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"str_ends"); f->is_native=3; f->native_m=nat_ends_mix;
     f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
 
     #undef REG1
