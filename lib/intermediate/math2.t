@@ -1,3 +1,15 @@
+func gcd(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    loop {
+        A % B >> r
+        B >> A
+        r >> B
+        Gate B (== 0) >> done
+    }
+    A >> out
+}
+
 [T-]
 
 

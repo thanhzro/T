@@ -233,7 +233,7 @@ case OP_GE:{
     vm->top++;
     break;}
             case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
-            case OP_JUMP:{int off=vm->chunk->code[vm->ip++];vm->ip+=off;break;}
+            case OP_JUMP:{int off=(int8_t)vm->chunk->code[vm->ip++];vm->ip+=off;break;}
             case OP_CALL:{
                 int ni=vm->chunk->code[vm->ip++];
                 int argc=vm->chunk->code[vm->ip++];
