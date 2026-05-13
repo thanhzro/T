@@ -70,3 +70,23 @@ git_fix: feat: T AI function test tools - found 5 AST bugs vs t_bc
 git_fix: chore: remove debug txt files, update gitignore
 git_fix: fix: .gitignore - allow _ai_*.t in ai-tools, keep ai_rules.txt
 git_fix: feat: range_step, len handles array, fix padLeft/repeat in t_bc
+indexOf: not in t_bc natives and not in T lib - any func calling indexOf will return 0
+is_even: T lib version uses floor+divide logic - may differ from C native behavior
+contains: depends on indexOf - will fail if indexOf missing
+str_reverse/str_count: likely depend on indexOf or loop constructs not working
+auto: tlib_only: is_odd in T lib depends on: past,is_even,past, - check if deps work in t_bc
+auto: tlib_only: safe_div in T lib depends on: past,past,isNumber, - check if deps work in t_bc
+auto: tlib_only: contains in T lib depends on: indexOf,clamp,past, - check if deps work in t_bc
+auto: tlib_only: str_reverse in T lib depends on: past,str_chars,reverse, - check if deps work in t_bc
+auto: tlib_only: str_count in T lib depends on: past,past,split, - check if deps work in t_bc
+auto: tlib_only: is_blank in T lib depends on: past,trim,len, - check if deps work in t_bc
+auto: tlib_only: min_arr in T lib depends on: past,sort,first, - check if deps work in t_bc
+auto: tlib_only: all_arr in T lib depends on: past,len,isNumber, - check if deps work in t_bc
+auto: tlib_only: capitalize in T lib depends on: past,slice,slice, - check if deps work in t_bc
+auto: tlib_only: is_palindrome in T lib depends on: past,lower,str_reverse, - check if deps work in t_bc
+auto: tlib_only: str_count_words in T lib depends on: past,trim,split, - check if deps work in t_bc
+auto: tlib_only: is_error in T lib depends on: past,isString,isNumber, - check if deps work in t_bc
+auto: tlib_only: is_error in T lib depends on: past,isString,isNumber, - check if deps work in t_bc
+auto: tlib_only: str_count in T lib depends on: past,past,split, - check if deps work in t_bc
+auto: tlib_only: str_reverse in T lib depends on: past,str_chars,reverse, - check if deps work in t_bc
+Gate: when condition false, target var stays undefined - isNumber(undefined)=1 causes wrong output

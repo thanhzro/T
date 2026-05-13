@@ -229,8 +229,9 @@ func is_even(n) {
     floor(val=half) ~> h
     h * 2 >> doubled
     ni - doubled >> rem
-    Gate rem (== 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    0 >> out
+    Gate rem (== 0) >> out
 }
 
 func is_odd(n) {
