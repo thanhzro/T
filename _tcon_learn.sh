@@ -1,29 +1,29 @@
 #!/bin/bash
-# T con self-learning: detect mismatch bugs and log to ai_rules.txt
 FAILS=${FAILS:-$(bash _run_tests.sh 2>/dev/null | grep "FAIL.*mismatch")}
-while IFS= read -r line; do
-    if [ -n "$line" ]; then
-        FUNC=$(echo "$line" | grep -o 'FAIL [a-z_]*' | cut -d' ' -f2)
-        LOC=$(echo "$line" | grep -o 'at: .*' | cut -d' ' -f2-)
-        RULE="mismatch: $FUNC output differs t_bc vs AST - check $LOC"
-        # Only add if not already in rules
-        if ! grep -q "mismatch: $FUNC" ai_rules.txt; then
-            echo "$RULE" >> ai_rules.txt
-            echo "T con learned: $RULE"
-        fi
-    fi
-done <<< "$FAILS"
-echo "Rules total: $(wc -l < ai_rules.txt)"
 
-# Learn from tcon_query results
-if [ -f _train_log.txt ]; then
-    while IFS= read -r line; do
-        FUNC=$(echo "$line" | grep -oP '(?<=\[)\w+(?=\])')
-        RULE=$(echo "$line" | cut -d'→' -f2 | xargs)
-        NEW_RULE="tcon_learned: $FUNC → $RULE"
-        if ! grep -q "tcon_learned: $FUNC" ai_rules.txt; then
-            echo "$NEW_RULE" >> ai_rules.txt
-            echo "T con learned: $NEW_RULE"
-        fi
-    done < _train_log.txt
-fi
+# Process everything with awk - fast single pass
+{
+    echo "$FAILS"
+    [ -f _train_log.txt ] && cat _train_log.txt
+} | awk -v rules="$(cat ai_rules.txt)" '
+/FAIL [a-z_]+ →|FAIL [a-z_]+ output/ {
+    match($0, /FAIL ([a-z_]+)/, a)
+    func=a[1]
+    if(func && index(rules,"mismatch: "func)==0) {
+        match($0, /at: (.*)/, b)
+        rule="mismatch: "func" output differs t_bc vs AST - check "b[1]
+        print rule >> "ai_rules.txt"
+        rules=rules"\n"rule
+        print "T con learned: "rule
+    }
+}
+/^\[/ {
+    match($0, /\[(\w+)\]/, a); func=a[1]
+    sub(/.*→ */,""); rule=$0
+    nr="tcon_learned: "func" → "rule
+    if(func && index(rules,"tcon_learned: "func)==0) {
+        rules=rules"\n"nr
+    }
+}
+END { print "Rules total: " (system("wc -l < ai_rules.txt")+0) }
+'
