@@ -1,6 +1,5 @@
 [T-]
 [T0]
-0 >> x
+42 >> val
 [T+]
-show shall(x)
-show shall(y)
+write("_test.txt") shall(val)

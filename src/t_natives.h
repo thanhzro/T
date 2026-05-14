@@ -251,6 +251,18 @@ void nat_range_c(BVal *stack, int argc, BVal *out){
     out->type=VT_NUM; out->num=n; out->arr=NULL; out->arr_len=0;
 }
 
+
+
+void nat_file_read(BVal *stack, int argc, BVal *out){
+    if(argc<1||!stack[0].str){out->type=VT_STR;out->str=strdup("");return;}
+    FILE*f=fopen(stack[0].str,"r");
+    if(!f){out->type=VT_STR;out->str=strdup("");return;}
+    fseek(f,0,SEEK_END); long sz=ftell(f); rewind(f);
+    char*buf=(char*)malloc(sz+1);
+    fread(buf,1,sz,f); buf[sz]=0;
+    fclose(f);
+    out->type=VT_STR; out->str=buf;
+}
 void nat_push_val(BVal *stack, int argc, BVal *out){
     /* stack[0]=arr, stack[1]=val */
     out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
@@ -382,14 +394,17 @@ char* nat_concat(char**a,int n){
 
 double nat_write_mix(BVal *stack, int argc){
     if(argc<2) return 0;
-    const char *content = stack[0].type==VT_STR ? (stack[0].str?stack[0].str:"") : "";
-    const char *fname   = stack[1].type==VT_STR ? (stack[1].str?stack[1].str:"") : "";
+    char _cbuf[64]={0};
+    const char *content;
+    if(stack[0].type==VT_STR) content=stack[0].str?stack[0].str:"";
+    else{snprintf(_cbuf,63,"%g",stack[0].num);content=_cbuf;}
+    const char *fname = stack[1].type==VT_STR ? (stack[1].str?stack[1].str:"") : "";
     if(!fname||!fname[0]) return 0;
-    FILE *dbg=fopen("debug_write.txt","a"); if(dbg){fprintf(dbg,"content=[%s] fname=[%s]\n",content,fname);fclose(dbg);}
-    char wcmd[4096];
-    snprintf(wcmd,sizeof(wcmd),"echo '%s' >> '%s'",content,fname);
-    int wr=system(wcmd);
-    return wr==0?1:0;
+    FILE *f=fopen(fname,"w");
+    if(!f) return 0;
+    fprintf(f,"%s\n",content);
+    fclose(f);
+    return 1;
 }
 
 
@@ -550,6 +565,8 @@ void register_all_natives(VM *vm) {
     f=&vm->funcs[vm->func_count++];
     f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
 
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"file_read");f2->is_native=4;f2->native_v=nat_file_read;f2->param_count=1;strcpy(f2->params[0],"path");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"toNumber");f2->is_native=3;f2->native_m=nat_toNumber_mix;f2->param_count=1;strcpy(f2->params[0],"val");}
     #undef REG1
     #undef REG2
     #undef REG_S1

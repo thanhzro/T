@@ -193,10 +193,10 @@ void compile_line(Chunk *chunk, const char *line) {
 
     /* write("file") shall(var) */
     if(strncmp(p, "write(", 6) == 0) {
-        char *lp=strchr(p,40), *rp=strchr(p,41);
+        char *lp=p+6, *rp=strchr(lp,41);
         char *sh=strstr(p,"shall(");
         if(lp&&rp&&sh) {
-            char fn[128]={0}; strncpy(fn,lp+1,rp-lp-1);
+            char fn[128]={0}; strncpy(fn,lp,rp-lp);
             if(fn[0]==34){memmove(fn,fn+1,strlen(fn));int fl=strlen(fn);if(fl>0&&fn[fl-1]==34)fn[fl-1]=0;}
             char vn[64]={0}; char *vs=sh+6, *ve=strrchr(vs,41);
             if(ve){strncpy(vn,vs,ve-vs);vn[ve-vs]=0;}
@@ -216,7 +216,18 @@ void compile_line(Chunk *chunk, const char *line) {
             char *rp=strchr(p,')');
             char vn[64]={0}; strncpy(vn,p+5,rp-p-5);
             char *tgt=tilde2+2; while(*tgt==' ')tgt++;
-            compile_expr(chunk,vn);
+            /* past("file.t") = read file content */
+            if(vn[0]==34){
+                /* string literal = file path */
+                char fname[64]={0}; strncpy(fname,vn+1,strlen(vn)-2);
+                int ifr=chunk_add_str(chunk,"file_read");
+                int ipath=chunk_add_str(chunk,fname);
+                chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,ipath);
+                chunk_write(chunk,OP_CALL); chunk_write(chunk,ifr); chunk_write(chunk,1);
+            } else {
+                /* variable name = load from frame */
+                compile_expr(chunk,vn);
+            }
             int it=chunk_add_str(chunk,tgt);
             chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
         }
@@ -520,11 +531,6 @@ int run_file(const char *path) {
                 lines[count++]=strdup(buf);
             } else {
                 fprintf(stderr,"T+ warning: ignored: %s\n",buf);
-            }
-            if(0 && strncmp(buf,"write(",6)==0){
-                lines[count++]=strdup(buf);
-            } else if(strncmp(buf,"append(",7)==0){
-                lines[count++]=strdup(buf);
             }
             continue;
         }

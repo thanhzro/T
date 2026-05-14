@@ -143,3 +143,5 @@ T-SPEC: arr[i] ~> r là syntax sugar cho get(arr=arr, idx=i) ~> r
 T-SPEC: func return qua out - không có return keyword
 T-SPEC: T-first - check T lib trước khi viết C native
 T-SPEC: pipeline thuần khiết - không dùng exec() không dùng bash trong lib
+write-native: nat_write_mix stack[0] can be VT_NUM not VT_STR - must convert num to string before writing to file
+write-native: always handle both VT_NUM and VT_STR in native functions that expect string content
