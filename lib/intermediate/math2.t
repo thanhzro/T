@@ -1,10 +1,12 @@
 func gcd(a, b) {
     past(a) ~> A
     past(b) ~> B
-    loop {
+    range(n=1000) ~> steps
+    F(steps) {
         A % B >> r
         B >> A
         r >> B
+        0 >> done
         Gate B (== 0) >> done
     }
     A >> out
@@ -29,8 +31,10 @@ func is_prime(n) {
     isNumber(val=ok) ~> valid
     result * valid >> result
     2 >> i
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
         i * i >> i2
+        0 >> done
         Gate i2 (> N) >> done
         N % i >> r
         Gate r (== 0) >> is_factor
@@ -46,7 +50,9 @@ func factorial(n) {
     past(n) ~> N
     1 >> result
     1 >> i
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (> N) >> done
         result * i >> result
         i + 1 >> i
@@ -59,7 +65,9 @@ func fibonacci(n) {
     0 >> a
     1 >> b
     1 >> i
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (> N) >> done
         a + b >> tmp
         b >> a
@@ -84,7 +92,9 @@ func mode(arr) {
     0 >> max_count
     0 >> mode_val
     0 >> i
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (>= L) >> done
         get(arr=A2, idx=i) ~> cur
         count(arr=A2, val=cur) ~> cnt
@@ -174,7 +184,9 @@ func pow_mod(base, exp, mod) {
     1 >> result
     floor(val=E) ~> ei
     0 >> i
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (>= ei) >> done
         result * B >> result
         result / M >> q

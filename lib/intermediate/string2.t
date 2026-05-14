@@ -91,9 +91,11 @@ func lstrip(str) {
     past(str) ~> A1
     len(val=A1) ~> L
     0 >> start
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
         slice(str=A1, from=start, to=start+1) ~> ch
         start + 1 >> start
+        0 >> done
         Gate ch (!= " ") >> done
     }
     start - 1 >> real_start
@@ -104,9 +106,11 @@ func rstrip(str) {
     past(str) ~> A1
     len(val=A1) ~> L
     L - 1 >> rend
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
         slice(str=A1, from=rend, to=rend+1) ~> ch2
         rend - 1 >> rend
+        0 >> done
         Gate ch2 (!= " ") >> done
     }
     rend + 2 >> real_end
@@ -231,7 +235,9 @@ func str_common_prefix(a, b) {
     min2(a=la, b=lb) ~> mn
     0 >> i
     "" >> prefix
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (>= mn) >> done
         slice(str=A, from=i, to=i+1) ~> ca
         slice(str=B, from=i, to=i+1) ~> cb

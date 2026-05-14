@@ -90,7 +90,9 @@ func groupBy(arr) {
     [] >> cur_group
     "__NONE__" >> prev_str
     0 >> i
-    loop {
+    range(n) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (>= L) >> done
         get(arr=sorted, idx=i) ~> cur
         toString(val=cur) ~> cur_str

@@ -203,8 +203,10 @@ func arr_index_of(arr, val) {
     past(val) ~> V
     0 >> result
     0 >> found
-    loop {
+    range(n=0) ~> _steps
+    F(_steps) {
         len(val=A) ~> n
+        0 >> done
         Gate result (>= n) >> done
         get(arr=A, idx=result) ~> cur
         Gate cur (== V) >> matched

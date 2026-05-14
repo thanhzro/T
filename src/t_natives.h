@@ -246,15 +246,9 @@ void nat_range_step(BVal *stack, int argc, BVal *out){
 }
 
 void nat_range_c(BVal *stack, int argc, BVal *out){
-    if(argc<1) return;
-    int n=(int)stack[0].num;
-    if(n<0)n=0;
-    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
-    for(int i=0;i<n;i++){
-        arr[i].type=VT_NUM;
-        arr[i].num=i;
-    }
-    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+    /* Return number not array - VM handles as lazy counter */
+    int n=(argc>=1&&stack[0].num>0)?(int)stack[0].num:2147483647;
+    out->type=VT_NUM; out->num=n; out->arr=NULL; out->arr_len=0;
 }
 
 void nat_push_val(BVal *stack, int argc, BVal *out){

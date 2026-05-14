@@ -129,3 +129,17 @@ C-to-Tlib: safe_div, is_error, all_arr, max_arr, min_arr can be replaced by T li
 tcon_learned: safe_div → removed C native causes fail - need T lib import in test
 C-native-removed: safe_div/all_arr/is_error fail without C native because check_runtime.py uses B=import std.t only - T lib funcs need std.t which is imported but array-in-func bug prevents all_arr from working via T lib
 inline-array-arg: arr=[1,0,1] in func call not parsed correctly - use T- variable instead: bits=[1,0,1] then all_arr(arr=bits)
+T-SPEC: [T-] chỉ có literal binding (var=literal), import, func definition - không có logic
+T-SPEC: [T0] chỉ có 4 toán tử: >> ~> F() Gate - không có = không có if không có while
+T-SPEC: [T+] chỉ có show shall() write() append() - không có computation
+T-SPEC: >> dùng cho expression result: x*2 >> r
+T-SPEC: ~> dùng cho function call result: abs(val=x) ~> r
+T-SPEC: F(arr){} loop - transform: now*2>>now, filter: Gate now(>3)>>result (target≠now)
+T-SPEC: Gate cond(op literal) >> target - chỉ compare literal không compare variable
+T-SPEC: Gate undefined fix - luôn init 0>>target trước Gate
+T-SPEC: past() dùng trong func body để tham chiếu parameter
+T-SPEC: T không có if else while for - Gate thay if, F() thay loop
+T-SPEC: arr[i] ~> r là syntax sugar cho get(arr=arr, idx=i) ~> r
+T-SPEC: func return qua out - không có return keyword
+T-SPEC: T-first - check T lib trước khi viết C native
+T-SPEC: pipeline thuần khiết - không dùng exec() không dùng bash trong lib

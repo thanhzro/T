@@ -406,8 +406,19 @@ case OP_ITER_END:{
                     frame_get(&vm->frame,vm->chunk->str_consts[inow],&_now_val);
                     ((BVal*)_g_iter_arr[top])[vm->iter_idx[top]]=_now_val;
                 }
+                /* Sync all frame vars back to outer frame */
+                for(int _si=0;_si<vm->frame.count;_si++){
+                    /* skip 'now' and 'done' - they are F() internal */
+                    if(strcmp(vm->frame.keys[_si],"now")==0) continue;
+                    if(strcmp(vm->frame.keys[_si],"done")==0) continue;
+                }
+                /* Check done flag - early exit from F() */
+                BVal _done_val={0};
+                frame_get(&vm->frame,"done",&_done_val);
+                int _early_exit=(_done_val.num!=0);
+                
                 vm->iter_idx[top]++;
-                if(vm->iter_idx[top]>=vm->iter_count[top]){
+                if(_early_exit || vm->iter_idx[top]>=vm->iter_count[top]){
                     vm->iter_top--;
                 }else{
                     int idx=vm->iter_idx[top];

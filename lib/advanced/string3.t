@@ -73,7 +73,9 @@ func str_wrap(str, width) {
     "" >> line
     "" >> result
     0 >> i
-    loop {
+    range(n) ~> _steps
+    F(_steps) {
+        0 >> done
         Gate i (>= n) >> done
         get(arr=words, idx=i) ~> word
         len(val=line) ~> ll

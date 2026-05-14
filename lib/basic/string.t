@@ -70,16 +70,20 @@ func trim(str) {
     past(str) ~> A1
     len(val=A1) ~> L
     0 >> start
-    loop {
+    range(n) ~> _steps
+    F(_steps) {
         slice(str=A1, from=start, to=start+1) ~> ch
         start + 1 >> start
+        0 >> done
         Gate ch (!= " ") >> done
     }
     start - 1 >> real_start
     L - 1 >> end
-    loop {
+    range(n) ~> _steps
+    F(_steps) {
         slice(str=A1, from=end, to=end+1) ~> ch2
         end - 1 >> end
+        0 >> done
         Gate ch2 (!= " ") >> done2
     }
     end + 2 >> real_end
