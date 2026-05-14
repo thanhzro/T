@@ -176,6 +176,15 @@ void compile_line(Chunk *chunk, const char *line) {
         chunk_write(chunk, OP_RETURN);
         return;
     }
+    if(strncmp(p, "show_named ", 11) == 0) {
+        /* push var name as string first, then value */
+        char *vn=p+11; while(*vn==" "[0])vn++;
+        int isn=chunk_add_str(chunk,vn);
+        chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,isn);
+        compile_expr(chunk, vn);
+        chunk_write(chunk, OP_SHOW);
+        return;
+    }
     if(strncmp(p, "show ", 5) == 0) {
         compile_expr(chunk, p+5);
         chunk_write(chunk, OP_SHOW);
@@ -496,7 +505,7 @@ int run_file(const char *path) {
                         tok2[ti]=0;
                         char *t2=tok2; while(*t2==' ')t2++;
                         int tl2=strlen(t2); while(tl2>0&&t2[tl2-1]==' ')t2[--tl2]=0;
-                        if(tl2>0){char line[256];snprintf(line,255,"show %s",t2);lines[count++]=strdup(line);}
+                        if(tl2>0){char line[256];snprintf(line,255,"show_named %s",t2);lines[count++]=strdup(line);}
                         ti=0; p2++; continue;
                     }
                     tok2[ti++]=*p2++; if(ti>254)ti=254;
@@ -504,7 +513,7 @@ int run_file(const char *path) {
                 tok2[ti]=0;
                 char *t2=tok2; while(*t2==' ')t2++;
                 int tl2=strlen(t2); while(tl2>0&&t2[tl2-1]==' ')t2[--tl2]=0;
-                if(tl2>0){char line[256];snprintf(line,255,"show %s",t2);lines[count++]=strdup(line);}
+                if(tl2>0){char line[256];snprintf(line,255,"show_named %s",t2);lines[count++]=strdup(line);}
             } else if(strncmp(buf,"show ",5)==0){
                 lines[count++]=strdup(buf);
             } else if(strncmp(buf,"write(",6)==0 || strncmp(buf,"append(",7)==0){

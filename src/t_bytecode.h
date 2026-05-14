@@ -22,7 +22,7 @@ typedef enum {
 } OpCode;
 
 /* ===== VALUE ===== */
-typedef enum { VT_NUM, VT_STR, VT_ARR, VT_ERR } VType;
+typedef enum { VT_NIL, VT_NUM, VT_STR, VT_ARR, VT_ERR } VType;
 typedef struct BVal {
     VType type;
     double num;
@@ -82,7 +82,7 @@ void frame_set(Frame*f,const char*k,BVal*v){
     f->vals[f->count].arr_len=v->arr_len; f->count++;
 }
 void frame_get(Frame*f,const char*k,BVal*out){
-    out->type=VT_NUM; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
+    out->type=VT_NIL; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
     for(int i=0;i<f->count;i++){
         if(strcmp(f->keys[i],k)==0){
             out->type=f->vals[i].type;
@@ -456,6 +456,13 @@ case OP_ITER_END:{
             case OP_SHOW:{
                 vm->top--;
                 BVal*v=&vm->stack[vm->top];
+                /* Check if name was pushed before value */
+                char _vname[64]="?";
+                if(vm->top>0 && vm->stack[vm->top-1].type==VT_STR){
+                    vm->top--;
+                    if(vm->stack[vm->top].str) strncpy(_vname,vm->stack[vm->top].str,63);
+                }
+                if(v->type==VT_NIL){printf("!EMPTY_COORD(%s)\n",_vname);break;}
                 if(v->type==VT_STR) printf("%s\n",v->str?v->str:"");
                 else if(v->type==VT_ARR){
                     printf("[");

@@ -1,9 +1,6 @@
 [T-]
-func double(n) {
-    past(n) ~> x
-    x * 2 >> result
-}
 [T0]
-double(n=5) ~> r
+0 >> x
 [T+]
-show shall(r)
+show shall(x)
+show shall(y)
