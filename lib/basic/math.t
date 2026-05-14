@@ -1,3 +1,12 @@
+func floor(val) {
+    past(val) ~> V
+    V % 1 >> rem
+    V - rem >> base
+    0 >> adj
+    Gate rem (< 0) >> adj
+    base - adj >> out
+}
+
 [T-]
 
 

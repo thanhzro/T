@@ -6,6 +6,7 @@ static int _g_iter_is_arr[16];
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 
 /* ===== OPCODES ===== */
 typedef enum {
@@ -182,7 +183,7 @@ void run(VM*vm){
             case OP_SUB:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a-b));break;}
             case OP_MUL:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(a*b));break;}
             case OP_DIV:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?a/b:0));break;}
-            case OP_MOD:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?(long long)a%(long long)b:0));break;}
+            case OP_MOD:{double b=vm->stack[--vm->top].num;double a=vm->stack[--vm->top].num;push(vm,make_num(b?fmod(a,b):0));break;}
             case OP_GT:{
     double b=vm->stack[--vm->top].num;
     double a=vm->stack[--vm->top].num;

@@ -265,10 +265,18 @@ func str_slice(str, lo, hi) {
 }
 
 func str_reverse(str) {
-    past(str) ~> S
-    str_chars(str=S) ~> chars
-    reverse(arr=chars) ~> rev
-    join(arr=rev, sep="") ~> out
+    past(str) ~> _srS
+    str_chars(str=_srS) ~> _srchars
+    len(val=_srchars) ~> _srn
+    _srn - 1 >> _srlast
+    [] >> _sracc
+    range(n=_srn) ~> _sridx
+    F(_sridx) {
+        _srlast - now >> _sri
+        get(arr=_srchars, idx=_sri) ~> _srEl
+        push(arr=_sracc, val=_srEl) ~> _sracc
+    }
+    join(arr=_sracc, sep="") ~> out
 }
 
 func str_count(str, sub) {

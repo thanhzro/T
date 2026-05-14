@@ -673,8 +673,22 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
         }
     }
     /* Add RETURN at end */
-    /* Load "out" variable and return */
-    int iout = chunk_add_str(&f->chunk, "out");
+    /* Find last assigned var in body - that is the return value */
+    const char *_retvar = "out"; /* fallback */
+    for(int _ri=body_count-1;_ri>=0;_ri--){
+        const char *_rl=body[_ri];
+        const char *_rr=strstr(_rl,">>");
+        const char *_rt=strstr(_rl,"~>");
+        const char *_ra=_rr?_rr:_rt;
+        if(_ra){
+            const char *_rv=_ra+2; while(*_rv==' ')_rv++;
+            if(*_rv && !strchr(_rv,'(') && !strchr(_rv,')')){
+                _retvar=_rv;
+                break;
+            }
+        }
+    }
+    int iout = chunk_add_str(&f->chunk, _retvar);
     chunk_write(&f->chunk, OP_LOAD); chunk_write(&f->chunk, iout);
     chunk_write(&f->chunk, OP_RETURN);
     {FILE*_cd=fopen("chunk_dbg.txt","w");if(_cd){fprintf(_cd,"func=%s bc=%d cc=%d\n",name,body_count,f->chunk.count);fclose(_cd);}}

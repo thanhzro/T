@@ -1,3 +1,16 @@
+func reverse(arr) {
+    past(arr) ~> _rA
+    len(val=_rA) ~> _rn
+    [] >> _racc
+    range(n=_rn) ~> _ridx
+    F(_ridx) {
+        _rn - now - 1 >> _ri
+        get(arr=_rA, idx=_ri) ~> _rel
+        push(arr=_racc, val=_rel) ~> _racc
+    }
+    _racc >> out
+}
+
 [T-]
 
 
@@ -13,9 +26,7 @@ func last(arr) {
     get(arr=P1, idx=L2) ~> out
 }
 
-func reverse(arr) {
-    reverse_arr(arr=arr) ~> out
-}
+
 
 func count(arr, val) {
     past(arr) ~> A1

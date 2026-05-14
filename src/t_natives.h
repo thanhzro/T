@@ -504,28 +504,14 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
     f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"indexOf");f2->is_native=3;f2->native_m=nat_indexOf_n;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sub");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max");f2->is_native=3;f2->native_m=nat_max2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min");f2->is_native=3;f2->native_m=nat_min2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"max2");f2->is_native=3;f2->native_m=nat_max2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"min2");f2->is_native=3;f2->native_m=nat_min2_c;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice");f2->is_native=4;f2->native_v=nat_slice_val;f2->param_count=3;strcpy(f2->params[0],"str");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"chars");f2->is_native=4;f2->native_v=nat_chars_val;f2->param_count=1;strcpy(f2->params[0],"str");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join_val;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
         REG_S1("tcon_query",nat_tcon_query,"query")
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"split");f2->is_native=4;f2->native_v=nat_split_val;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sep");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"first");f2->is_native=4;f2->native_v=nat_first_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"last");f2->is_native=4;f2->native_v=nat_last_val;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort");f2->is_native=4;f2->native_v=nat_sort_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sort_asc");f2->is_native=4;f2->native_v=nat_sort_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
-                        {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range");f2->is_native=4;f2->native_v=nat_range_c;f2->param_count=1;strcpy(f2->params[0],"n");}
-    {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_c;f->param_count=1;strcpy(f->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"floor");f2->is_native=3;f2->native_m=nat_floor_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"round");f2->is_native=3;f2->native_m=nat_round_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"ceil");f2->is_native=3;f2->native_m=nat_ceil_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"pow");f2->is_native=3;f2->native_m=nat_pow_c;f2->param_count=2;strcpy(f2->params[0],"base");strcpy(f2->params[1],"exp");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sqrt");f2->is_native=3;f2->native_m=nat_sqrt_c;f2->param_count=1;strcpy(f2->params[0],"val");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sqrt_n");f2->is_native=3;f2->native_m=nat_sqrt_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */

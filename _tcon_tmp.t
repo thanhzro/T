@@ -1,7 +1,9 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/intermediate/std.t"
+func double(n) {
+    past(n) ~> x
+    x * 2 >> result
+}
 [T0]
-gcd(a=48, b=18) ~> r
+double(n=5) ~> r
 [T+]
 show shall(r)
