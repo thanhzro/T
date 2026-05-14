@@ -112,3 +112,5 @@ tcon_learned: join → mismatch: join output differs t_bc vs AST - check
 OP_NEG: negation opcode - implement as: double a=POP; PUSH(-a)
 OP_PUSH_NIL: push null - implement as: PUSH type=VT_NIL num=0 str=NULL
 T0-syntax: T0 section chỉ dùng >> và ~> không dùng = cho assignment - dùng T- section cho declarations
+T-spec: T0 assignment dùng >> không phải = ; T- dùng = cho declaration ; T0 chỉ có ~> và >>
+T-philosophy: no = in T0 - pipeline >> and ~> enforce immutable data flow - prevents accidental mutation and loops
