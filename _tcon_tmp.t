@@ -1,9 +1,6 @@
 [T-]
-nums = [1,2,3]
-func test_arr(arr) {
-    len(val=arr) ~> out
-}
 [T0]
-test_arr(arr=nums) ~> r
+3 + 4 ~> r
 [T+]
-show shall(r)
+r + 1 >> x
+show shall(x)

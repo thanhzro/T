@@ -452,7 +452,12 @@ int run_file(const char *path) {
                 if(tl2>0){char line[256];snprintf(line,255,"show %s",t2);lines[count++]=strdup(line);}
             } else if(strncmp(buf,"show ",5)==0){
                 lines[count++]=strdup(buf);
-            } else if(strncmp(buf,"write(",6)==0){
+            } else if(strncmp(buf,"write(",6)==0 || strncmp(buf,"append(",7)==0){
+                lines[count++]=strdup(buf);
+            } else {
+                fprintf(stderr,"T+ warning: ignored: %s\n",buf);
+            }
+            if(0 && strncmp(buf,"write(",6)==0){
                 lines[count++]=strdup(buf);
             } else if(strncmp(buf,"append(",7)==0){
                 lines[count++]=strdup(buf);
