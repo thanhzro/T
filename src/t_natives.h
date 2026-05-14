@@ -244,6 +244,33 @@ char* nat_lower_auto(char**a,int n){
     for(int i=0;r[i];i++) r[i]=tolower((unsigned char)r[i]);
     return r;
 }
+
+void nat_range_step(BVal *stack, int argc, BVal *out){
+    double from=argc>0?stack[0].num:0;
+    double to=argc>1?stack[1].num:0;
+    double step=argc>2?stack[2].num:1;
+    if(step==0){out->type=VT_ARR;out->arr_len=0;return;}
+    int n=(int)((to-from)/step);
+    if(n<0)n=0;
+    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++){
+        arr[i].type=VT_NUM;
+        arr[i].num=from+i*step;
+    }
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
+
+void nat_range_c(BVal *stack, int argc, BVal *out){
+    if(argc<1) return;
+    int n=(int)stack[0].num;
+    if(n<0)n=0;
+    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
+    for(int i=0;i<n;i++){
+        arr[i].type=VT_NUM;
+        arr[i].num=i;
+    }
+    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
+}
 void nat_push_val(BVal *stack, int argc, BVal *out){
     /* stack[0]=arr, stack[1]=val */
     out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
@@ -516,6 +543,8 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"all_arr");f2->is_native=3;f2->native_m=nat_all_arr_c;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"is_error");f2->is_native=3;f2->native_m=nat_is_error_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lower");f2->is_native=2;f2->native_s=nat_lower_auto;f2->param_count=1;;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range_step");f2->is_native=4;f2->native_v=nat_range_step;f2->param_count=3;strcpy(f2->params[0],"from");strcpy(f2->params[1],"to");strcpy(f2->params[2],"step");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range");f2->is_native=4;f2->native_v=nat_range_c;f2->param_count=1;strcpy(f2->params[0],"n");}
     {TFunc*f=&vm->funcs[vm->func_count++];strcpy(f->name,"reverse");f->is_native=4;f->native_v=nat_reverse_c;f->param_count=1;strcpy(f->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"floor");f2->is_native=3;f2->native_m=nat_floor_c;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"round");f2->is_native=3;f2->native_m=nat_round_c;f2->param_count=1;strcpy(f2->params[0],"val");}
