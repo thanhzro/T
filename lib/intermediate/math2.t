@@ -28,7 +28,8 @@ func is_prime(n) {
     past(n) ~> N
     1 >> result
     Gate N (>= 2) >> ok
-    isNumber(val=ok) ~> valid
+    0 >> valid
+    Gate ok (is_num) >> valid
     result * valid >> result
     2 >> i
     range(n=0) ~> _steps
@@ -38,7 +39,8 @@ func is_prime(n) {
         Gate i2 (> N) >> done
         N % i >> r
         Gate r (== 0) >> is_factor
-        isNumber(val=is_factor) ~> factor_found
+        0 >> factor_found
+    Gate is_factor (is_num) >> factor_found
         1 - factor_found >> not_factor
         result * not_factor >> result
         i + 1 >> i

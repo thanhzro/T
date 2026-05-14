@@ -506,14 +506,8 @@ void register_all_natives(VM *vm) {
     REG_S2("concat",nat_concat,"a","b")
     REG_S1("exec_bc",nat_exec_s,"cmd")
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"line_count"); f->is_native=3; f->native_m=nat_line_count;
-    f->param_count=1; strcpy(f->params[0],"str");
     /* past(x) = identity - returns x as-is */
     f=&vm->funcs[vm->func_count++];
-    f->param_count=1; strcpy(f->params[0],"val");
-    /* toString - special: returns string from any type */
-    f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"toString"); f->is_native=2; f->native_s=NULL;
     f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
@@ -552,16 +546,10 @@ void register_all_natives(VM *vm) {
     REG_S1("sha256",nat_sha256_s,"str")
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"arr_len"); f->is_native=3; f->native_m=nat_arr_len_mix;
-    f->param_count=1; strcpy(f->params[0],"arr");
     f=&vm->funcs[vm->func_count++];
     f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"isNumber"); f->is_native=3; f->native_m=nat_isNumber_mix;
-    f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"isString"); f->is_native=3; f->native_m=nat_isString_mix;
-    f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
     f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
 

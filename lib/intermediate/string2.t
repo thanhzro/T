@@ -152,7 +152,8 @@ func is_palindrome(str) {
     len(val=lo) ~> l1
     len(val=rev) ~> l2
     Gate l1 (== l2) >> eq
-    isNumber(val=eq) ~> l_eq
+    0 >> l_eq
+    Gate eq (is_num) >> l_eq
     c1 * l_eq >> out
 }
 
@@ -243,7 +244,8 @@ func str_common_prefix(a, b) {
         slice(str=B, from=i, to=i+1) ~> cb
         indexOf(str=ca, sub=cb) ~> same
         Gate same (== 0) >> match
-        isNumber(val=match) ~> im
+        0 >> im
+    Gate match (is_num) >> im
         Gate im (== 0) >> done
         prefix + ca >> prefix
         i + 1 >> i

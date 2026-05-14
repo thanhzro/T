@@ -111,12 +111,15 @@ func groupBy(arr) {
         indexOf(str=prev_str, sub=cur_str) ~> si2
         si1 + si2 >> samesum
         Gate samesum (== 0) >> is_same
-        isNumber(val=is_same) ~> is_s
+        0 >> is_s
+    Gate is_same (is_num) >> is_s
         Gate is_s (== 0) >> should_flush
-        isNumber(val=should_flush) ~> sf
+        0 >> sf
+    Gate should_flush (is_num) >> sf
         len(val=cur_group) ~> glen
         Gate glen (== 0) >> is_empty
-        isNumber(val=is_empty) ~> ie
+        0 >> ie
+    Gate is_empty (is_num) >> ie
         1 - ie >> not_empty
         sf * not_empty >> do_flush
         push_arr(arr=result, sub=cur_group) ~> result2
@@ -194,11 +197,13 @@ func any_arr(arr) {
     past(arr) ~> A
     F(A) {
         Gate now (> 0) >> O1
-        isNumber(val=O1) ~> now
+        0 >> now
+    Gate O1 (is_num) >> now
     }
     sum(arr=A) ~> s
     Gate s (> 0) >> O1
-    isNumber(val=O1) ~> out
+    0 >> out
+    Gate O1 (is_num) >> out
 }
 
 func all_arr(arr) {

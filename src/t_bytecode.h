@@ -18,6 +18,7 @@ typedef enum {
     OP_CALL, OP_RETURN,
     OP_CONCAT, OP_TOSTR,
     OP_ITER_START, OP_ITER_NEXT, OP_ITER_END,
+    OP_TYPE_NUM, OP_TYPE_STR, OP_TYPE_ARR,
     OP_SHOW, OP_HALT
 } OpCode;
 
@@ -453,6 +454,18 @@ case OP_ITER_END:{
                 vm->top++;
                 break;
             }
+            case OP_TYPE_NUM:{
+                BVal v=vm->stack[--vm->top];
+                BVal r=make_num(v.type==VT_NUM?1:0);
+                push(vm,r); break;}
+            case OP_TYPE_STR:{
+                BVal v=vm->stack[--vm->top];
+                BVal r=make_num(v.type==VT_STR?1:0);
+                push(vm,r); break;}
+            case OP_TYPE_ARR:{
+                BVal v=vm->stack[--vm->top];
+                BVal r=make_num(v.type==VT_ARR?1:0);
+                push(vm,r); break;}
             case OP_SHOW:{
                 vm->top--;
                 BVal*v=&vm->stack[vm->top];

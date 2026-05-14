@@ -1,3 +1,8 @@
+func line_count(str) {
+    split(str=str, sep="\n") ~> _lines
+    len(val=_lines) ~> out
+}
+
 [T-]
 
 
@@ -125,7 +130,8 @@ func hex_char_to_num(ch) {
     code - zero >> digit
     code - A_off >> alpha
     Gate code (> nine) >> is_alpha
-    isNumber(val=is_alpha) ~> ia
+    0 >> ia
+    Gate is_alpha (is_num) >> ia
     [] >> opts
     push(arr=opts, val=digit) ~> opts
     push(arr=opts, val=alpha) ~> opts
@@ -372,7 +378,8 @@ func str_lpad(str, n, ch) {
     len(val=S) ~> slen
     N - slen >> pad_n
     Gate pad_n (> 0) >> need_pad
-    isNumber(val=need_pad) ~> np
+    0 >> np
+    Gate need_pad (is_num) >> np
     range(n=pad_n) ~> idx
     F(idx) { C >> now }
     join(arr=idx, sep="") ~> padding
@@ -403,11 +410,14 @@ func str_eq(a, b) {
     len(val=B) ~> lb
     la - lb >> diff
     Gate diff (== 0) >> len_eq
-    isNumber(val=len_eq) ~> le
+    0 >> le
+    Gate len_eq (is_num) >> le
     Gate i1 (== 0) >> p1
-    isNumber(val=p1) ~> ip1
+    0 >> ip1
+    Gate p1 (is_num) >> ip1
     Gate i2 (== 0) >> p2
-    isNumber(val=p2) ~> ip2
+    0 >> ip2
+    Gate p2 (is_num) >> ip2
     le * ip1 >> t1
     t1 * ip2 >> out
 }
@@ -422,7 +432,8 @@ func str_wrap_word(str, width) {
     past(width) ~> W
     len(val=S) ~> n
     Gate n (<= W) >> short
-    isNumber(val=short) ~> is_short
+    0 >> is_short
+    Gate short (is_num) >> is_short
     [] >> opts
     push(arr=opts, val=S) ~> opts
     slice(str=S, from=0, to=W) ~> cut

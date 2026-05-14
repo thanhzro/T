@@ -210,7 +210,8 @@ func arr_index_of(arr, val) {
         Gate result (>= n) >> done
         get(arr=A, idx=result) ~> cur
         Gate cur (== V) >> matched
-        isNumber(val=matched) ~> is_match
+        0 >> is_match
+    Gate matched (is_num) >> is_match
         Gate is_match (== 1) >> done
         result + 1 >> result
     }
@@ -265,9 +266,11 @@ func arr_swap(arr, i, j) {
     range(n=n) ~> idx
     F(idx) {
         Gate now (== I) >> is_i
-        isNumber(val=is_i) ~> ii
+        0 >> ii
+    Gate is_i (is_num) >> ii
         Gate now (== J) >> is_j
-        isNumber(val=is_j) ~> ij
+        0 >> ij
+    Gate is_j (is_num) >> ij
         [] >> opts
         get(arr=A, idx=now) ~> orig
         push(arr=opts, val=orig) ~> opts
