@@ -57,3 +57,4 @@ write_count.txt
 call_dbg.txt
 *_dbg.txt
 .env
+_tmp_*.t
