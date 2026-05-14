@@ -3,30 +3,27 @@ echo "========== T con Daily Report =========="
 echo ""
 
 # Step 1: Build
-gcc src/t_prog_compiler.c -lm -lpthread -o t_bc 2>/dev/null &
-GCC_PID=$!
+# Only recompile if source changed
+if [ src/t_prog_compiler.c -nt t_bc ] || [ src/t_bytecode.h -nt t_bc ] || [ src/t_natives.h -nt t_bc ]; then
+    gcc src/t_prog_compiler.c -lm -lpthread -o t_bc 2>/dev/null &
+    GCC_PID=$!
+else
+    GCC_PID=0
+fi
 
 # Run all slow steps in parallel
-wait $GCC_PID && echo "[1/6] Build: OK" || echo "[1/6] Build: FAIL"
+[ $GCC_PID -eq 0 ] && echo "[1/6] Build: cached" || (wait $GCC_PID && echo "[1/6] Build: OK" || echo "[1/6] Build: FAIL")
 # Start server if not running
 pgrep -f "t_bc --server" > /dev/null || (./t_bc --server > /dev/null 2>&1 & sleep 0.3)
 bash _run_units_fast.sh 2>/dev/null > _unit_cache.txt &
-bash _run_test.sh tests/accumulator.t > _p1.txt &
-bash _run_test.sh tests/sumavg.t > _p2.txt &
-bash _run_test.sh tests/basic.t > _p3.txt &
-bash _run_test.sh tests/filter.t > _p4.txt &
-bash _run_test.sh tests/advanced.t > _p5.txt &
-bash _run_tests.sh 2>/dev/null > _tests_cache.txt &
+bash _run_integration_fast.sh > _integration_cache.txt &
+bash _run_tests_fast.sh 2>/dev/null > _tests_cache.txt &
 wait
 
 echo "[2/6] Unit tests..."
 UPASS=$(grep -c "^PASS" _unit_cache.txt 2>/dev/null); UFAIL=$(grep -c "^FAIL" _unit_cache.txt 2>/dev/null); UTOT=$((UPASS+UFAIL)); echo "     PASS=$UPASS FAIL=$UFAIL Total=$UTOT"
 echo "[3/6] Integration tests..."
-echo "     accumulator: $(cat _p1.txt | tr '\n' ' ')"
-echo "     sumavg:      $(cat _p2.txt | tr '\n' ' ')"
-echo "     basic:       $(cat _p3.txt | tr '\n' ' ')"
-echo "     filter:      $(cat _p4.txt | tr '\n' ' ')"
-echo "     advanced:    $(cat _p5.txt | tr '\n' ' ')"
+cat _integration_cache.txt | sed 's/^/     /'
 echo "[4/6] Function tests..."
 echo "     $(tail -1 _tests_cache.txt)"
 echo "[5/6] T con learning..."
