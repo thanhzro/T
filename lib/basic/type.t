@@ -33,15 +33,12 @@ func is_arr(val) {
 func is_error(val) {
     past(val) ~> V
     isString(val=V) ~> is_str
-    0 >> ok
-    Gate is_str (== 1) >> ok
-    [] >> opts
-    push(arr=opts, val=0) ~> opts
+    0 >> out
+    Gate is_str (== 1) >> out
     indexOf(str=V, sub="!") ~> idx
+    0 >> is_err
     Gate idx (== 0) >> is_err
-    isNumber(val=is_err) ~> ie
-    push(arr=opts, val=ie) ~> opts
-    get(arr=opts, idx=ok) ~> out
+    is_err * is_str >> out
 }
 
 func unwrap(val, default) {

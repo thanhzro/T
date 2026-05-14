@@ -1,8 +1,6 @@
 [T-]
-nums = [3,1,4,1,5,9]
+import "lib/basic/std.t"
 [T0]
-sort(arr=nums) ~> sorted
-sorted[0] ~> first
-sorted[5] ~> last
+len(val=[1,2,3]) ~> r
 [T+]
-show shall(first, last)
+show shall(r)

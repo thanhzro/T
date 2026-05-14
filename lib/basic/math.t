@@ -258,8 +258,8 @@ func map_range(val, in_lo, in_hi, out_lo, out_hi) {
 func safe_div(a, b) {
     past(a) ~> A
     past(b) ~> B
-    Gate B (== 0) >> iz_check
-    isNumber(val=iz_check) ~> iz
+    0 >> iz
+    Gate B (== 0) >> iz
     1 - iz >> do_div
     A * do_div >> safe_a
     B + iz >> safe_b

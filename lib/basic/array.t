@@ -190,14 +190,9 @@ func any_arr(arr) {
 
 func all_arr(arr) {
     past(arr) ~> A
-    len(val=A) ~> n
-    F(A) {
-        Gate now (> 0) >> O1
-        isNumber(val=O1) ~> now
-    }
-    sum(arr=A) ~> s
-    Gate s (== n) >> O1
-    isNumber(val=O1) ~> out
+    min_arr(arr=A) ~> m
+    0 >> out
+    Gate m (> 0) >> out
 }
 
 func enumerate_arr(arr) {

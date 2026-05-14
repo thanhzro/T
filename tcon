@@ -1,0 +1,2 @@
+#!/bin/bash
+printf '[T-]\n[T0]\ntcon_query(query="%s") ~> r\n[T+]\nshow shall(r)\n' "$*" | ./t_bc /dev/stdin 2>/dev/null

@@ -125,3 +125,7 @@ T-spec: F(arr){} là loop - transform dùng now>>now, filter dùng Gate now>>res
 T-spec: dùng T lib trước khi viết C native - grep lib/ trước
 T-spec: arr[i] ~> r là syntax sugar cho get(arr=arr, idx=i) ~> r
 T-spec: T language tốc độ mặc định 0ms - nếu chậm là bug implementation không phải T
+C-to-Tlib: safe_div, is_error, all_arr, max_arr, min_arr can be replaced by T lib equivalents - check lib/ before keeping as C native
+tcon_learned: safe_div → removed C native causes fail - need T lib import in test
+C-native-removed: safe_div/all_arr/is_error fail without C native because check_runtime.py uses B=import std.t only - T lib funcs need std.t which is imported but array-in-func bug prevents all_arr from working via T lib
+inline-array-arg: arr=[1,0,1] in func call not parsed correctly - use T- variable instead: bits=[1,0,1] then all_arr(arr=bits)
