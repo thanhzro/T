@@ -116,3 +116,12 @@ T-spec: T0 assignment dùng >> không phải = ; T- dùng = cho declaration ; T0
 T-philosophy: no = in T0 - pipeline >> and ~> enforce immutable data flow - prevents accidental mutation and loops
 F-loop-T0: F(arr) loop works at T0 level - now keyword holds current element
 C-compile: variable must be declared before use - tilde/arrow pointer only valid inside compile_line scope
+recursive-func: recursive call in T func returns empty - call stack may overflow or not handle self-reference
+T-spec: T- chỉ có literal binding (=), import, func definition - không có logic
+T-spec: T0 chỉ dùng >> và ~> không dùng = 
+T-spec: T+ chỉ có show shall() và write() - không có logic
+T-spec: func call result dùng ~>, expression result dùng >>
+T-spec: F(arr){} là loop - transform dùng now>>now, filter dùng Gate now>>result
+T-spec: dùng T lib trước khi viết C native - grep lib/ trước
+T-spec: arr[i] ~> r là syntax sugar cho get(arr=arr, idx=i) ~> r
+T-spec: T language tốc độ mặc định 0ms - nếu chậm là bug implementation không phải T
