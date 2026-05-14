@@ -213,8 +213,63 @@ void compile_line(Chunk *chunk, const char *line) {
         }
         return;
     }
+
+    
+
+    /* arr[i] ~> target */
+    {
+        char *tilde_ai = strstr(p, "~>");
+        char *lb=strchr(p,'['), *rb=lb?strchr(lb,']'):NULL;
+        if(tilde_ai && lb && rb && lb < tilde_ai && !strchr(p,'(')) {
+            char arrname[64]={0}; strncpy(arrname,p,lb-p);
+            int al=strlen(arrname); while(al>0&&arrname[al-1]==' ')arrname[--al]=0;
+            char idxstr[64]={0}; strncpy(idxstr,lb+1,rb-lb-1);
+            char *target=tilde_ai+2; while(*target==' ')target++;
+            int iget=chunk_add_str(chunk,"get");
+            int iarr=chunk_add_str(chunk,arrname);
+            chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);
+            char *iend; double ival=strtod(idxstr,&iend);
+            if(iend!=idxstr&&*iend==0){
+                int iidx=chunk_add_num(chunk,ival);
+                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iidx);
+            } else {
+                int iidx=chunk_add_str(chunk,idxstr);
+                chunk_write(chunk,OP_LOAD); chunk_write(chunk,iidx);
+            }
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,iget); chunk_write(chunk,2);
+            int it=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            return;
+        }
+    }
     /* func(args) ~> target */
     char *tilde = strstr(p, "~>");
+    /* arr[i] ~> target - array index access */
+    if(tilde && !strchr(p,'(')) {
+        char *lb=strchr(p,'['), *rb=strchr(p,']');
+        if(lb && rb && lb < tilde) {
+            char arrname[64]={0}; strncpy(arrname,p,lb-p);
+            char *an=arrname+strlen(arrname)-1;
+            while(an>arrname&&*an==' ')*an--=0;
+            char idxstr[64]={0}; strncpy(idxstr,lb+1,rb-lb-1);
+            char *target=tilde+2; while(*target==' ')target++;
+            int iget=chunk_add_str(chunk,"get");
+            int iarr=chunk_add_str(chunk,arrname);
+            chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);
+            char *iend; double ival=strtod(idxstr,&iend);
+            if(iend!=idxstr&&*iend==0){
+                int iidx=chunk_add_num(chunk,ival);
+                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iidx);
+            } else {
+                int iidx=chunk_add_str(chunk,idxstr);
+                chunk_write(chunk,OP_LOAD); chunk_write(chunk,iidx);
+            }
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,iget); chunk_write(chunk,2);
+            int it=chunk_add_str(chunk,target);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            return;
+        }
+    }
     if(tilde && strchr(p, '(')) {
         char *tp=tilde; *tp=0;
         char *target=tp+2; while(*target==' ')target++;
