@@ -1,3 +1,15 @@
+func join(arr, sep) {
+    past(arr) ~> _jarr
+    past(sep) ~> _jsep
+    "" >> _jresult
+    F(_jarr) {
+        _jresult + _jsep >> _jresult
+        _jresult + now >> _jresult
+    }
+    len(val=_jsep) ~> _jsl
+    slice(str=_jresult, from=_jsl, to=99999) ~> out
+}
+
 func line_count(str) {
     split(str=str, sep="\n") ~> _lines
     len(val=_lines) ~> out
