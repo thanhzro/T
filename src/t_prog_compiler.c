@@ -472,19 +472,23 @@ int run_file(const char *path) {
             if(in_func || buf[0]=='}'){
                 lines[count++]=strdup(buf); continue;
             }
-            /* Outside func: only literal >> var OR var=value */
+            /* Outside func: only var=literal (no logic, no execution) */
             char *arr2=strstr(buf,">>");
             char *tilde2=strstr(buf,"~>");
-            if(arr2 && !tilde2 && !strchr(buf,'(')){
-                lines[count++]=strdup(buf);
-            } else if(!arr2&&!tilde2&&strchr(buf,'=')&&!strchr(buf,'(')){
+            if(!arr2&&!tilde2&&strchr(buf,'=')&&!strchr(buf,'(')){
                 char *eq2=strchr(buf,'=');
                 char vname[64]={0}; strncpy(vname,buf,eq2-buf);
                 char *vt=vname+strlen(vname)-1; while(vt>vname&&*vt==' ')*vt--=0;
                 char val2[256]={0}; strcpy(val2,eq2+1);
                 char *vp=val2; while(*vp==' ')vp++;
-                char nl2[320]; snprintf(nl2,319,"%s >> %s",vp,vname);
-                lines[count++]=strdup(nl2);
+                /* T- only allows literals: numbers, strings, arrays */
+                int is_literal = (vp[0]=='"' || vp[0]=='[' || (vp[0]>=-'0'&&vp[0]<='9') || vp[0]=='-');
+                if(is_literal){
+                    char nl2[320]; snprintf(nl2,319,"%s >> %s",vp,vname);
+                    lines[count++]=strdup(nl2);
+                } else {
+                    fprintf(stderr,"T- error: '%s' is not a literal - T- only allows literal values\n",vp);
+                }
             }
         }
     }
