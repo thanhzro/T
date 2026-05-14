@@ -243,6 +243,30 @@ case OP_NEQ:{
     vm->stack[vm->top].arr_len=0;
     vm->top++;
     break;}
+case OP_NEG:{
+    double a=vm->stack[--vm->top].num;
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=-a;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++; break;}
+case OP_PUSH_NIL:{
+    vm->stack[vm->top].type=VT_NUM;
+    vm->stack[vm->top].num=0;
+    vm->stack[vm->top].str=NULL;
+    vm->stack[vm->top].arr=NULL;
+    vm->stack[vm->top].arr_len=0;
+    vm->top++; break;}
+case OP_JUMP_IF_1:{
+    int offset=vm->chunk->code[vm->ip++];
+    double v=vm->stack[--vm->top].num;
+    if(v!=0) vm->ip+=offset;
+    break;}
+case OP_ITER_END:{
+    vm->iter_top--;
+    break;}
+
             case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
             case OP_JUMP:{int off=(int8_t)vm->chunk->code[vm->ip++];vm->ip+=off;break;}
             case OP_CALL:{

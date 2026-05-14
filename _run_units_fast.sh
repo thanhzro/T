@@ -1,18 +1,10 @@
 #!/bin/bash
-mkdir -p _tcon_tmp_files
-while IFS=$'\t' read lib code exp; do
-    (
-        T="_tcon_tmp_files/u_$BASHPID.t"
-        if [ "$lib" = "B" ]; then
-            IMP='import "lib/basic/std.t"'
-        else
-            IMP='import "lib/basic/std.t"
-import "lib/intermediate/std.t"'
-        fi
-        printf "[T-]\n%s\n[T0]\n%s\n[T+]\nshow shall(O1)\n" "$IMP" "$code" > "$T"
-        OUT=$(timeout 3 ./t_bc "$T" 2>/dev/null)
-        rm -f "$T"
-        [ "$OUT" = "$exp" ] && echo "PASS" || echo "FAIL: $code got=$OUT expected=$exp"
-    ) &
-done < _unit_tests.txt
-wait
+# Run all tests in 1 process
+./t_bc _all_tests.t 2>/dev/null > _all_actual.txt
+paste _all_actual.txt _all_expected.txt | awk -F'\t' '
+{
+    if($1==$2) PASS++
+    else { FAIL++; print "FAIL: got="$1" expected="$2 }
+}
+END { print "PASS="PASS" FAIL="FAIL" Total="PASS+FAIL }
+'

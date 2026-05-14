@@ -95,7 +95,7 @@ run_t(I, 'str_reverse(str="hello") ~> O1', 'olleh')
 
 
 # Runner tests via template
-template = open('_template.t').read()
+template = '[T-]\n{imports}\n[T0]\n{t0_code}\n[T+]\nshow shall(O1)\n'
 runner_tests = [
     ("abs(val=-5) ~> O1", "5"),
     ("pow(base=2, exp=8) ~> O1", "256"),
@@ -104,9 +104,9 @@ runner_tests = [
     #("is_prime(n=17) ~> O1", "1"),  # loop not in AST
 ]
 for code, expected in runner_tests:
-    prog = template.replace('PLACEHOLDER', code)
-    open('_t.t','w').write(prog)
-    r = subprocess.run(['./t','_t.t'], capture_output=True, text=True)
+    prog = template.format(imports='import "lib/basic/std.t"', t0_code=code)
+    open('_rt_test.t','w').write(prog)
+    r = subprocess.run(['./t_bc','_rt_test.t'], capture_output=True, text=True, timeout=5)
     got = r.stdout.strip()
     if got == expected: PASS += 1
     else:

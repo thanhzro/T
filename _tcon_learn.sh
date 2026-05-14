@@ -1,29 +1,21 @@
 #!/bin/bash
-FAILS=${FAILS:-$(bash _run_tests.sh 2>/dev/null | grep "FAIL.*mismatch")}
-
-# Process everything with awk - fast single pass
-{
-    echo "$FAILS"
-    [ -f _train_log.txt ] && cat _train_log.txt
-} | awk -v rules="$(cat ai_rules.txt)" '
-/FAIL [a-z_]+ →|FAIL [a-z_]+ output/ {
-    match($0, /FAIL ([a-z_]+)/, a)
-    func=a[1]
-    if(func && index(rules,"mismatch: "func)==0) {
-        match($0, /at: (.*)/, b)
-        rule="mismatch: "func" output differs t_bc vs AST - check "b[1]
-        print rule >> "ai_rules.txt"
-        rules=rules"\n"rule
-        print "T con learned: "rule
-    }
-}
-/^\[/ {
-    match($0, /\[(\w+)\]/, a); func=a[1]
-    sub(/.*→ */,""); rule=$0
-    nr="tcon_learned: "func" → "rule
-    if(func && index(rules,"tcon_learned: "func)==0) {
-        rules=rules"\n"nr
-    }
-}
-END { print "Rules total: " (system("wc -l < ai_rules.txt")+0) }
-'
+python3 - << 'PYEOF'
+import subprocess, os
+if not os.path.exists('_train_log.txt'): 
+    print("Rules total:", len(open('ai_rules.txt').readlines()))
+    exit()
+existing = open('ai_rules.txt').read()
+new_rules = []
+for line in open('_train_log.txt'):
+    line = line.strip()
+    if not line: continue
+    func = line.split(']')[0].lstrip('[') if '[' in line else ''
+    rule_text = line.split('→')[-1].strip() if '→' in line else ''
+    new_rule = f"tcon_learned: {func} → {rule_text}"
+    if f"tcon_learned: {func}" not in existing:
+        new_rules.append(new_rule)
+        existing += new_rule
+if new_rules:
+    open('ai_rules.txt','a').write('\n'.join(new_rules)+'\n')
+print("Rules total:", len(open('ai_rules.txt').readlines()))
+PYEOF

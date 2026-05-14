@@ -103,3 +103,11 @@ performance: use awk single-pass instead of grep in loop - 200x speedup for rule
 native-str-transform: upper/lower/trim need C implementation with toupper/tolower/isspace - TODO stub returns input unchanged
 string-literal-arg: inline string literals in func call args may not parse correctly - use variable assignment instead
 OP_NEQ: != operator always returns 0 - not implemented in bytecode compiler
+
+tcon_learned: upper → mismatch: upper output differs t_bc vs AST - check lib/basic/string.t:4:func upper(str) {
+tcon_learned: lower → mismatch: lower output differs t_bc vs AST - check lib/basic/string.t:17:func lower(str) {
+tcon_learned: replace → mismatch: replace output differs t_bc vs AST - check lib/basic/string.t:61:func replace(str, old, new) {
+tcon_learned: trim → mismatch: trim output differs t_bc vs AST - check lib/basic/string.t:69:func trim(str) {
+tcon_learned: join → mismatch: join output differs t_bc vs AST - check
+OP_NEG: negation opcode - implement as: double a=POP; PUSH(-a)
+OP_PUSH_NIL: push null - implement as: PUSH type=VT_NIL num=0 str=NULL
