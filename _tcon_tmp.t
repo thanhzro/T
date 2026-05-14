@@ -1,8 +1,8 @@
 [T-]
-func test(n) {
-    range_step(from=0, to=n, step=1) ~> out
-}
+nums = [3,1,4,1,5,9]
 [T0]
-test(n=5) ~> r
+sort(arr=nums) ~> sorted
+sorted[0] ~> first
+sorted[5] ~> last
 [T+]
-show shall(r)
+show shall(first, last)
