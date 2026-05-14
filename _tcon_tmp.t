@@ -1,6 +1,7 @@
 [T-]
+x = 10
 [T0]
-3 + 4 ~> r
+x * 2 >> r
+x >> r2
 [T+]
-r + 1 >> x
-show shall(x)
+show shall(r, r2)
