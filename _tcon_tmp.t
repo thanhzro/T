@@ -1,10 +1,6 @@
 [T-]
-x = 42
-s = "hello"
+import "lib/basic/std.t"
 [T0]
-0 >> is_n
-0 >> is_s
-Gate x (is_num) >> is_n
-Gate s (is_str) >> is_s
+range_step(from=0, to=10, step=2) ~> r
 [T+]
-show shall(is_n, is_s)
+show shall(r)

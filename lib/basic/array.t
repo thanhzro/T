@@ -1,3 +1,18 @@
+func range_step(from, to, step) {
+    past(from) ~> _rsF
+    past(to) ~> _rsT
+    past(step) ~> _rsS
+    [] >> _rsacc
+    range(n) ~> _rsidx
+    F(_rsidx) {
+        push(arr=_rsacc, val=_rsF) ~> _rsacc
+        _rsF + _rsS >> _rsF
+        0 >> done
+        Gate _rsF (>= _rsT) >> done
+    }
+    _rsacc >> out
+}
+
 func reverse(arr) {
     past(arr) ~> _rA
     len(val=_rA) ~> _rn
