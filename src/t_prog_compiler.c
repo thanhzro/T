@@ -611,9 +611,12 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
     char gate_val_str[64] = {0};
     int gate_is_str_lit = 0;
     const char *_bg=body[0]; while(*_bg==' '||*_bg=='\t')_bg++;
+    /* Detect Gate filter subject - "now" or "idx" */
+    char _gate_subj[16]={0};
     if(body_count==1 && strncmp(_bg,"Gate ",5)==0) {
         const char *p=_bg;
         char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=strstr(p,">>");
+        if(lp) {char *_sp=p+5; while(*_sp==' ')_sp++; int _sl=lp-_sp; if(_sl>0&&_sl<16){strncpy(_gate_subj,_sp,_sl);_gate_subj[_sl]=0;}}
         if(lp&&rp&&arr) {
             char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
             char val_str[64]={0};
@@ -641,8 +644,8 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         int inow=chunk_add_str(chunk,"now");
         chunk_write(chunk,OP_ITER_START); chunk_write(chunk,inow);
         int body_start=chunk->count;
-        /* Compile condition */
-        int inow2=chunk_add_str(chunk,"now");
+        /* Compile condition - load gate subject (now or idx) */
+        int inow2=chunk_add_str(chunk,_gate_subj[0]?_gate_subj:"now");
         chunk_write(chunk,OP_LOAD); chunk_write(chunk,inow2);
         if(strcmp(gate_op,"is_num")==0){chunk_write(chunk,OP_TYPE_NUM);}
         else if(strcmp(gate_op,"is_str")==0){chunk_write(chunk,OP_TYPE_STR);}
@@ -683,8 +686,26 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
     int inow = chunk_add_str(chunk, "now");
     chunk_write(chunk, OP_ITER_START); chunk_write(chunk, inow);
     int body_start = chunk->count;
-    for(int i=0;i<body_count;i++)
-        compile_line(chunk, body[i]);
+    for(int i=0;i<body_count;i++){
+        const char *_bl=body[i]; while(*_bl==' '||*_bl=='\t')_bl++;
+        if(strncmp(_bl,"F(",2)==0 && strchr(_bl,'{')){
+            char _fv[64]={0};
+            char *_lp=strchr(_bl,'('),*_rp=strchr(_bl,')');
+            if(_lp&&_rp){strncpy(_fv,_lp+1,_rp-_lp-1);}
+            i++;
+            const char **_fb=calloc(128,sizeof(char*)); int _fc=0;
+            while(i<body_count){
+                const char*_bt=body[i]; while(*_bt==' '||*_bt=='\t')_bt++;
+                if(_bt[0]=='}') break;
+                if(body[i][0]!=0) _fb[_fc++]=body[i];
+                i++;
+            }
+            compile_f_block(chunk,_fv,_fb,_fc);
+            free(_fb);
+        } else {
+            compile_line(chunk, body[i]);
+        }
+    }
     chunk_write(chunk, OP_ITER_NEXT);
     chunk_write(chunk, inow);
     chunk_write(chunk, (uint8_t)body_start);
@@ -741,7 +762,7 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
     int iout = chunk_add_str(&f->chunk, _retvar);
     chunk_write(&f->chunk, OP_LOAD); chunk_write(&f->chunk, iout);
     chunk_write(&f->chunk, OP_RETURN);
-    {FILE*_cd=fopen("chunk_dbg.txt","w");if(_cd){fprintf(_cd,"func=%s bc=%d cc=%d\n",name,body_count,f->chunk.count);fclose(_cd);}}
+
 }
 
 void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
@@ -782,8 +803,18 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             char arr_var[64]={0};
             char *lp=strchr(line,'('); char *rp=strchr(line,')');
             if(lp&&rp){strncpy(arr_var,lp+1,rp-lp-1);arr_var[rp-lp-1]=0;}
+            const char **body=calloc(256,sizeof(char*)); int bc=0;
+            /* Check for inline body: F(arr) { body } */
+            char *_ob=strchr(rp,'{'), *_cb=_ob?strrchr(_ob,'}'):NULL;
+            if(_ob&&_cb&&_cb>_ob+1){
+                char _inline[256]={0}; strncpy(_inline,_ob+1,_cb-_ob-1);
+                char *_ip=_inline; while(*_ip==' ')_ip++;
+                int _il=strlen(_ip); while(_il>0&&(_ip[_il-1]==' '))_ip[--_il]=0;
+                if(_il>0) body[bc++]=strdup(_ip);
+                i++;
+            } else {
             i++;
-            const char **body=calloc(256,sizeof(char*)); int bc=0; int bdepth=1;
+            int bdepth=1;
             while(i<n&&bdepth>0){
                 const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
                 int _ll=(int)strlen(lines[i]);
@@ -793,6 +824,7 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
             }
+            } /* end else for inline/multiline */
             /* i now past closing } */
             compile_f_block(c,arr_var,body,bc);
             continue;

@@ -10,14 +10,14 @@ static int _g_iter_is_arr[16];
 
 /* ===== OPCODES ===== */
 typedef enum {
-    OP_PUSH_NUM, OP_PUSH_STR, OP_PUSH_NIL, OP_PUSH_ARR,
+    OP_PUSH_NUM, OP_PUSH_STR, OP_PUSH_ARR,
     OP_LOAD, OP_STORE,
     OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_NEG,
     OP_EQ, OP_NEQ, OP_LT, OP_GT, OP_LE, OP_GE,
-    OP_JUMP, OP_JUMP_IF_0, OP_JUMP_IF_1,
+    OP_JUMP, OP_JUMP_IF_0,
     OP_CALL, OP_RETURN,
-    OP_CONCAT, OP_TOSTR,
-    OP_ITER_START, OP_ITER_NEXT, OP_ITER_END,
+    OP_CONCAT,
+    OP_ITER_START, OP_ITER_NEXT,
     OP_TYPE_NUM, OP_TYPE_STR, OP_TYPE_ARR,
     OP_SHOW, OP_HALT
 } OpCode;
@@ -257,23 +257,7 @@ case OP_NEG:{
     vm->stack[vm->top].arr=NULL;
     vm->stack[vm->top].arr_len=0;
     vm->top++; break;}
-case OP_PUSH_NIL:{
-    vm->stack[vm->top].type=VT_NUM;
-    vm->stack[vm->top].num=0;
-    vm->stack[vm->top].str=NULL;
-    vm->stack[vm->top].arr=NULL;
-    vm->stack[vm->top].arr_len=0;
-    vm->top++; break;}
-case OP_JUMP_IF_1:{
-    int offset=vm->chunk->code[vm->ip++];
-    double v=vm->stack[--vm->top].num;
-    if(v!=0) vm->ip+=offset;
-    break;}
-case OP_ITER_END:{
-    vm->iter_top--;
-    break;}
-
-            case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
+case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
             case OP_JUMP:{int off=(int8_t)vm->chunk->code[vm->ip++];vm->ip+=off;break;}
             case OP_CALL:{
                 int ni=vm->chunk->code[vm->ip++];
@@ -378,12 +362,19 @@ case OP_ITER_END:{
                 vm->top++;
                 break;
             }
-            case OP_TOSTR:{int ta=--vm->top;push(vm,bval_tostr(vm->stack[ta]));break;}
             case OP_ITER_START:{
                 vm->top--;
                 BVal *arr=&vm->stack[vm->top];
                 int n=arr->arr_len>0?arr->arr_len:(int)arr->num;
                 int inow=vm->chunk->code[vm->ip++];
+                /* Save outer now/idx before inner F() */
+                char _saved_now_key[32]; snprintf(_saved_now_key,31,"_now_%d",vm->iter_top);
+                char _saved_idx_key[32]; snprintf(_saved_idx_key,31,"_idx_%d",vm->iter_top);
+                BVal _sv_now={0},_sv_idx={0};
+                frame_get(&vm->frame,"now",&_sv_now);
+                frame_get(&vm->frame,"idx",&_sv_idx);
+                frame_set(&vm->frame,_saved_now_key,&_sv_now);
+                frame_set(&vm->frame,_saved_idx_key,&_sv_idx);
                 /* Store array ref */
                 vm->iter_count[vm->iter_top]=n;
                 vm->iter_idx[vm->iter_top]=0;
@@ -394,6 +385,8 @@ case OP_ITER_END:{
                 _g_iter_arr[vm->iter_top] = is_real_arr ? (void*)vm->stack[vm->top].arr : NULL;
 
                 vm->iter_top++;
+                /* Set idx = 0 */
+                {BVal _idx0=make_num(0);frame_set(&vm->frame,"idx",&_idx0);}
                 /* Set now = first element */
                 if(_g_iter_is_arr[vm->iter_top-1] && n>0){
                     frame_set(&vm->frame,vm->chunk->str_consts[inow],&_g_iter_arr[vm->iter_top-1][0]);
@@ -426,8 +419,18 @@ case OP_ITER_END:{
                 vm->iter_idx[top]++;
                 if(_early_exit || vm->iter_idx[top]>=vm->iter_count[top]){
                     vm->iter_top--;
+                    /* Restore outer now/idx */
+                    char _rn_key[32]; snprintf(_rn_key,31,"_now_%d",vm->iter_top);
+                    char _ri_key[32]; snprintf(_ri_key,31,"_idx_%d",vm->iter_top);
+                    BVal _rn={0},_ri={0};
+                    frame_get(&vm->frame,_rn_key,&_rn);
+                    frame_get(&vm->frame,_ri_key,&_ri);
+                    frame_set(&vm->frame,"now",&_rn);
+                    frame_set(&vm->frame,"idx",&_ri);
                 }else{
                     int idx=vm->iter_idx[top];
+                    /* Update idx in frame */
+                    {BVal _idxv=make_num((double)idx);frame_set(&vm->frame,"idx",&_idxv);}
                     if(_g_iter_is_arr[top] && _g_iter_arr[top]){
                         /* Array iteration - use actual element value */
                         frame_set(&vm->frame,vm->chunk->str_consts[inow],&((BVal*)_g_iter_arr[top])[idx]);

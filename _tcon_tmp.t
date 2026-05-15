@@ -1,6 +1,7 @@
 [T-]
-import "lib/basic/std.t"
 [T0]
-_trim_c(str="  ") ~> t
+65 >> x
+0 >> r
+Gate x (== 65 || == 90) >> r
 [T+]
-show shall(t)
+show shall(r)

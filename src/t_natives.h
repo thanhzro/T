@@ -33,50 +33,18 @@ char* nat_range_s(char**a,int n){
 
 
 
-double nat_sqrt_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return sqrt(stack[0].num);
-}
-double nat_floor_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return floor(stack[0].num);
-}
-double nat_pow_c(BVal *stack, int argc){
-    if(argc<2) return 0;
-    return pow(stack[0].num, stack[1].num);
-}
-double nat_round_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return round(stack[0].num);
-}
-double nat_ceil_c(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return ceil(stack[0].num);
-}
 
 
-double nat_indexOf_n(BVal *stack, int argc){
-    if(argc<2||!stack[0].str||!stack[1].str) return -1;
-    char *pos=strstr(stack[0].str,stack[1].str);
-    if(!pos) return -1;
-    return (double)(pos-stack[0].str);
-}
-char* nat_indexOf_s(char**a,int n){
-    if(n<2||!a[0]||!a[1]) return strdup("-1");
-    char *pos=strstr(a[0],a[1]);
-    if(!pos) return strdup("-1");
-    char buf[32]; snprintf(buf,31,"%d",(int)(pos-a[0]));
-    return strdup(buf);
-}
 
-double nat_max2_c(BVal *stack, int argc){
-    if(argc<2) return 0;
-    return stack[0].num > stack[1].num ? stack[0].num : stack[1].num;
-}
-double nat_min2_c(BVal *stack, int argc){
-    if(argc<2) return 0;
-    return stack[0].num < stack[1].num ? stack[0].num : stack[1].num;
-}
+
+
+
+
+
+
+
+
+
 
 void nat_slice_val(BVal *stack, int argc, BVal *out){
     if(argc<1){out->type=VT_STR;out->str=strdup("");return;}
@@ -113,34 +81,10 @@ void nat_chars_val(BVal *stack, int argc, BVal *out){
     out->type=VT_ARR; out->arr=arr; out->arr_len=n;
 }
 
-void nat_reverse_c(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){if(argc>0)*out=stack[0];return;}
-    int n=stack[0].arr_len;
-    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
-    for(int i=0;i<n;i++) arr[i]=stack[0].arr[n-1-i];
-    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
-}
 
-char* nat_join_s(char**a,int n){
-    /* a[0]=arr_as_str is not right - need BVal version */
-    return strdup("");
-}
-void nat_join_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR){out->type=VT_STR;out->str=strdup("");return;}
-    char *sep=argc>1&&stack[1].str?stack[1].str:"";
-    int seplen=strlen(sep);
-    int total=0;
-    for(int i=0;i<stack[0].arr_len;i++){
-        if(stack[0].arr[i].str) total+=strlen(stack[0].arr[i].str);
-        if(i<stack[0].arr_len-1) total+=seplen;
-    }
-    char *r=calloc(total+1,1); int pos=0;
-    for(int i=0;i<stack[0].arr_len;i++){
-        if(stack[0].arr[i].str){int l=strlen(stack[0].arr[i].str);memcpy(r+pos,stack[0].arr[i].str,l);pos+=l;}
-        if(i<stack[0].arr_len-1){memcpy(r+pos,sep,seplen);pos+=seplen;}
-    }
-    out->type=VT_STR; out->str=r;
-}
+
+
+
 
 
 char* nat_tcon_query(char**a,int n){
@@ -184,14 +128,8 @@ void nat_split_val(BVal *stack, int argc, BVal *out){
     free(s);
     out->type=VT_ARR; out->arr=arr; out->arr_len=n;
 }
-void nat_first_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return;
-    *out=stack[0].arr[0];
-}
-void nat_last_val(BVal *stack, int argc, BVal *out){
-    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return;
-    *out=stack[0].arr[stack[0].arr_len-1];
-}
+
+
 
 int _cmp_bval(const void *a, const void *b){
     double da=((BVal*)a)->num, db=((BVal*)b)->num;
@@ -209,41 +147,13 @@ void nat_sort_c(BVal *stack, int argc, BVal *out){
     out->type=VT_ARR; out->arr=arr; out->arr_len=n;
 }
 
-double nat_min_arr_c(BVal *stack, int argc){
-    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return 0;
-    double m=stack[0].arr[0].num;
-    for(int i=1;i<stack[0].arr_len;i++) if(stack[0].arr[i].num<m) m=stack[0].arr[i].num;
-    return m;
-}
-double nat_max_arr_c(BVal *stack, int argc){
-    if(argc<1||stack[0].type!=VT_ARR||stack[0].arr_len==0) return 0;
-    double m=stack[0].arr[0].num;
-    for(int i=1;i<stack[0].arr_len;i++) if(stack[0].arr[i].num>m) m=stack[0].arr[i].num;
-    return m;
-}
 
 
-char* nat_lower_auto(char**a,int n){
-    if(n<1||!a[0]) return strdup("");
-    char *r=strdup(a[0]);
-    for(int i=0;r[i];i++) r[i]=tolower((unsigned char)r[i]);
-    return r;
-}
 
-void nat_range_step(BVal *stack, int argc, BVal *out){
-    double from=argc>0?stack[0].num:0;
-    double to=argc>1?stack[1].num:0;
-    double step=argc>2?stack[2].num:1;
-    if(step==0){out->type=VT_ARR;out->arr_len=0;return;}
-    int n=(int)((to-from)/step);
-    if(n<0)n=0;
-    BVal *arr=(BVal*)calloc(n,sizeof(BVal));
-    for(int i=0;i<n;i++){
-        arr[i].type=VT_NUM;
-        arr[i].num=from+i*step;
-    }
-    out->type=VT_ARR; out->arr=arr; out->arr_len=n;
-}
+
+
+
+
 
 void nat_range_c(BVal *stack, int argc, BVal *out){
     /* Return number not array - VM handles as lazy counter */
@@ -302,26 +212,15 @@ void nat_get_val(BVal *stack, int argc, BVal *out){
     }
 }
 
-double nat_arr_len_mix(BVal *stack, int argc){
-    if(argc<1) return 0;
-    if(stack[0].type==VT_ARR) return stack[0].arr_len;
-    if(stack[0].type==VT_STR) return stack[0].str?strlen(stack[0].str):0;
-    return 0;
-}
+
 double nat_toNumber_mix(BVal *stack, int argc){
     if(argc<1) return 0;
     if(stack[0].type==VT_NUM) return stack[0].num;
     if(stack[0].str) return atof(stack[0].str);
     return 0;
 }
-double nat_isNumber_mix(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return stack[0].type==VT_NUM?1:0;
-}
-double nat_isString_mix(BVal *stack, int argc){
-    if(argc<1) return 0;
-    return stack[0].type==VT_STR?1:0;
-}
+
+
 
 
 typedef double (*NativeMixFn)(BVal *stack, int argc);
@@ -368,12 +267,7 @@ char* nat_split_first(char**a,int n){
 
 
 /* String natives */
-char* nat_upper(char**a,int n){
-    char *s=a[0]; int len=strlen(s);
-    char *r=malloc(len+1);
-    for(int i=0;i<=len;i++) r[i]=toupper((unsigned char)s[i]);
-    return r;
-}
+
 char* nat_lower(char**a,int n){
     char *s=a[0]; int len=strlen(s);
     char *r=malloc(len+1);
@@ -388,51 +282,17 @@ char* nat_trim(char**a,int n){
     while(l>0&&(r[l-1]==' '||r[l-1]=='\t'||r[l-1]=='\n')) r[--l]=0;
     return r;
 }
-char* nat_concat(char**a,int n){
-    char buf[4096];
-    snprintf(buf,sizeof(buf),"%s%s",a[0],a[1]);
-    return strdup(buf);
-}
-
-double nat_write_mix(BVal *stack, int argc){
-    if(argc<2) return 0;
-    char _cbuf[64]={0};
-    const char *content;
-    if(stack[0].type==VT_STR) content=stack[0].str?stack[0].str:"";
-    else{snprintf(_cbuf,63,"%g",stack[0].num);content=_cbuf;}
-    const char *fname = stack[1].type==VT_STR ? (stack[1].str?stack[1].str:"") : "";
-    if(!fname||!fname[0]) return 0;
-    FILE *f=fopen(fname,"w");
-    if(!f) return 0;
-    fprintf(f,"%s\n",content);
-    fclose(f);
-    return 1;
-}
-
-
-char* nat_exec_s(char**a,int n){
-    if(n<1||!a[0]) return strdup("");
-    FILE *p=popen(a[0],"r");
-    if(!p) return strdup("");
-    char *buf=(char*)malloc(8192);
-    int total=0,rd;
-    while((rd=fread(buf+total,1,8191-total,p))>0) total+=rd;
-    buf[total]=0; pclose(p);
-    while(total>0&&(buf[total-1]==10||buf[total-1]==13)) buf[--total]=0;
-    char *result=strdup(buf); free(buf);
-    return result;
-}
 
 
 
 
-double nat_line_count(BVal *stack, int argc){
-    if(argc<1||!stack[0].str) return 0;
-    char *s=stack[0].str; int n=0;
-    for(int i=0;s[i];i++) if(s[i]==10) n++;
-    if(s[0]&&s[strlen(s)-1]!=10) n++;
-    return n;
-}
+
+
+
+
+
+
+
 
 /* ===== REGISTER ALL NATIVES ===== */
 
@@ -469,18 +329,7 @@ char* nat_sha256_s(char**a,int n){
 
 
 
-void nat_reverse_unified(BVal *stack, int argc, BVal *out){
-    if(argc<1){out->type=VT_NUM;out->num=0;return;}
-    if(stack[0].type==VT_ARR){
-    } else {
-        /* string reverse */
-        const char *s=stack[0].str?stack[0].str:"";
-        int l=strlen(s);
-        char *r=(char*)malloc(l+1); r[l]=0;
-        for(int i=0;i<l;i++) r[i]=s[l-1-i];
-        out->type=VT_STR; out->str=r;
-    }
-}
+
 
 void nat_charcode(BVal *stack, int argc, BVal *out){
     if(argc<1||!stack[0].str||!stack[0].str[0]){out->type=VT_NUM;out->num=0;return;}
