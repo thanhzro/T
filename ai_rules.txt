@@ -240,3 +240,38 @@ FIX-CONFIRMED: T- string literal with () and >> now works - strchr(buf,'(') was 
 FIX: check paren only outside quotes using _hasparen loop
 MILESTONE: tokenize_line works correctly - T lexer step 1 complete
 MILESTONE: T- string literals now support () and >> inside quotes
+NEXT: T parser - parse tokenized lines into AST structure
+NEXT: parser needs to identify: [T-], [T0], [T+] sections, func defs, Gate, F(), >>, ~>
+MILESTONE: t_parser.t parse_line works - tokenizes T source lines correctly
+NEXT: parser needs classify_line to identify line type: section, func_def, gate, f_loop, assign_>>，assign_~>
+BUG-PATTERN: Gate x >> _type followed by "value" >> _type always overwrites - need conditional assign without overwrite
+CORRECT-PATTERN: use math trick or separate vars for each type check
+CORRECT-APPROACH: classify_line should use indexOf to check first token then use math to set type without overwrite
+CORRECT: classify_line uses indexOf on comma-separated type string to identify line type without overwrite
+CORRECT: get_line_type returns first token - caller decides meaning. Simple and clean.
+MILESTONE: parser v1 works - parse_line tokenizes, get_line_type returns first token as line type
+PATTERN: T parser design - simple functions, first token determines line type, caller decides meaning
+BUG: multi-line string in T- not supported - string literal must be single line
+CORRECT: read file with file_read instead of inline multi-line string
+QUESTION: does C support multi-line string in T- section? Need to check compiler handling of newlines in string literals
+CONFIRMED: \n in T- string literals works - split by \n gives correct lines array
+MILESTONE: T can read T source as string and split into lines - foundation for self-hosting parser
+MILESTONE: section tracking works - F() loop correctly identifies [T-] and [T0] markers
+NEXT: collect lines into each section array using conditional push
+INSIGHT: T has limited conditional patterns - only Gate+fractal F() for conditionals, no if/else
+INSIGHT: self-hosting parser will be complex but possible with current primitives
+INSIGHT: need more infrastructure before T compile T - specifically: mutable state tracking across F() iterations
+MILESTONE: conditional push works - push to arr1 based on condition using range(n=flag) + F() pattern
+GOAL: T compile T = T con gets real brain = game gets easier
+NEXT: collect lines into sections array
+BUG: section collector returns empty - nested F() corrupts _tm array - need simpler approach
+INSIGHT: too complex logic in F() body causes issues - simplify to one operation per iteration
+BREAKTHROUGH: section splitting works using indexOf+slice - find section markers then slice source string
+PATTERN: split T source by section: indexOf("[T0]")=>t0_pos, slice(0,t0_pos)=>tm_src, split by \n
+MILESTONE: T- and T0 sections correctly extracted as arrays of lines
+MILESTONE: split_sections works - returns T- lines correctly using indexOf+slice approach
+NEXT: split_sections needs to return all 3 sections not just T-
+MILESTONE: all 3 sections parsed correctly - get_tminus, get_tzero, get_tplus work
+PROGRESS: T compile T ~30% complete
+GPT-REVIEW: T compiler is real but not clean - string/array literal parsing, Gate in func body, OP_* inconsistencies are recurring patterns
+GPT-REVIEW: layers to separate: bytecode format, VM dispatch, native layer
