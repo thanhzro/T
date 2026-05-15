@@ -338,8 +338,17 @@ void compile_line(Chunk *chunk, const char *line) {
             char *v=tmp; while(*v==' ')v++;
             int vl=strlen(v); while(vl>0&&v[vl-1]==' ')v[--vl]=0;
             char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
-            char op_str[8],val_str[64];
-            sscanf(inside,"%s %s",op_str,val_str);
+            char op_str[8]={0},val_str[64]={0};
+            sscanf(inside,"%7s",op_str);
+            /* parse val_str - handle quoted strings with spaces */
+            char *_vp=inside+strlen(op_str); while(*_vp==' ')_vp++;
+            if(*_vp==34){ /* quoted string */
+                _vp++; int _vi=0;
+                while(*_vp && !(*_vp==34) && _vi<63) val_str[_vi++]=*_vp++;
+                val_str[_vi]=0;
+            } else {
+                sscanf(_vp,"%63s",val_str);
+            }
             char *tgt=arr+2; while(*tgt==' ')tgt++;
             int iv=chunk_add_str(chunk,v);
             chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv);
@@ -347,8 +356,14 @@ void compile_line(Chunk *chunk, const char *line) {
             else if(strcmp(op_str,"is_str")==0){chunk_write(chunk,OP_TYPE_STR);}
             else if(strcmp(op_str,"is_arr")==0){chunk_write(chunk,OP_TYPE_ARR);}
             else {
+                /* Check if val came from quoted string literal */
+                char *_raw_vp=inside+strlen(op_str); while(*_raw_vp==' ')_raw_vp++;
+                int _is_str_lit=(*_raw_vp==34);
                 char *_end2; double dval=strtod(val_str,&_end2);
-                if(_end2==val_str||*_end2!=0){
+                if(_is_str_lit){
+                    int iv3=chunk_add_str(chunk,val_str);
+                    chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,iv3);
+                } else if(_end2==val_str||*_end2!=0){
                     int iv3=chunk_add_str(chunk,val_str);
                     chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv3);
                 } else {
@@ -593,14 +608,19 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
     char gate_tgt[64] = {0};
     char gate_op[8] = {0};
     double gate_val = 0;
+    char gate_val_str[64] = {0};
+    int gate_is_str_lit = 0;
     const char *_bg=body[0]; while(*_bg==' '||*_bg=='\t')_bg++;
     if(body_count==1 && strncmp(_bg,"Gate ",5)==0) {
         const char *p=_bg;
         char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=strstr(p,">>");
         if(lp&&rp&&arr) {
             char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
-            char val_str[64];
-            sscanf(inside,"%s %s",gate_op,val_str);
+            char val_str[64]={0};
+            sscanf(inside,"%s",gate_op);
+            char *_gvp=inside+strlen(gate_op); while(*_gvp==' ')_gvp++;
+            if(*_gvp==34){gate_is_str_lit=1;_gvp++;int _gi=0;while(*_gvp&&*_gvp!=34&&_gi<63)val_str[_gi++]=*_gvp++;val_str[_gi]=0;strncpy(gate_val_str,val_str,63);}
+            else{sscanf(_gvp,"%63s",val_str);}
             gate_val=atof(val_str);
             char *tgt=arr+2; while(*tgt==' ')tgt++;
             strncpy(gate_tgt,tgt,63);
@@ -628,8 +648,13 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         else if(strcmp(gate_op,"is_str")==0){chunk_write(chunk,OP_TYPE_STR);}
         else if(strcmp(gate_op,"is_arr")==0){chunk_write(chunk,OP_TYPE_ARR);}
         else {
-        int iv2=chunk_add_num(chunk,gate_val);
-        chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+        if(gate_is_str_lit){
+            int iv2=chunk_add_str(chunk,gate_val_str);
+            chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,iv2);
+        } else {
+            int iv2=chunk_add_num(chunk,gate_val);
+            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+        }
         if(strcmp(gate_op,">")==0)  chunk_write(chunk,OP_GT);
         else if(strcmp(gate_op,"<")==0)  chunk_write(chunk,OP_LT);
         else if(strcmp(gate_op,"==")==0) chunk_write(chunk,OP_EQ);

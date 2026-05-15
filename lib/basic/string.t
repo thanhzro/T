@@ -7,7 +7,8 @@ func join(arr, sep) {
         _jresult + now >> _jresult
     }
     len(val=_jsep) ~> _jsl
-    slice(str=_jresult, from=_jsl, to=99999) ~> out
+    len(val=_jresult) ~> _jrl
+    slice(str=_jresult, from=_jsl, to=_jrl) ~> out
 }
 
 func line_count(str) {
@@ -28,7 +29,7 @@ func upper(str) {
         fromChar(val=O4) ~> now
     }
     join(arr=P2, sep="") ~> O5
-    return O5
+    O5 >> out
 }
 
 func lower(str) {
@@ -41,7 +42,7 @@ func lower(str) {
         fromChar(val=O4) ~> now
     }
     join(arr=P2, sep="") ~> O5
-    return O5
+    O5 >> out
 }
 
 func toString(val) {
@@ -84,27 +85,8 @@ func replace(str, old, new) {
 }
 
 func trim(str) {
-    past(str) ~> A1
-    len(val=A1) ~> L
-    0 >> start
-    range(n) ~> _steps
-    F(_steps) {
-        slice(str=A1, from=start, to=start+1) ~> ch
-        start + 1 >> start
-        0 >> done
-        Gate ch (!= " ") >> done
-    }
-    start - 1 >> real_start
-    L - 1 >> end
-    range(n) ~> _steps
-    F(_steps) {
-        slice(str=A1, from=end, to=end+1) ~> ch2
-        end - 1 >> end
-        0 >> done
-        Gate ch2 (!= " ") >> done2
-    }
-    end + 2 >> real_end
-    slice(str=A1, from=real_start, to=real_end) ~> out
+    past(str) ~> _ts
+    _trim_c(str=_ts) ~> out
 }
 
 func to_hex(str) {
@@ -229,7 +211,7 @@ func startsWith(str, prefix) {
     past(prefix) ~> P2
     indexOf(str=P1, sub=P2) ~> O1
     Gate O1 (== 0) >> O2
-    return O2
+    O2 >> out
 }
 
 func endsWith(str, suffix) {
@@ -240,7 +222,7 @@ func endsWith(str, suffix) {
     O1 - O2 >> O3
     indexOf(str=P1, sub=P2) ~> O4
     Gate O4 (== O3) >> O5
-    return O5
+    O5 >> out
 }
 
 func repeat(str, n) {
@@ -251,7 +233,7 @@ func repeat(str, n) {
     F(O1) {
         result + P1 >> result
     }
-    return result
+    result >> out
 }
 
 func str_chars(str) {
@@ -461,4 +443,24 @@ func str_repeat_sep(str, n, sep) {
     range(n=ni) ~> idx
     F(idx) { S >> now }
     join(arr=idx, sep=P) ~> out
+}
+
+func indexOf(str, sub) {
+    past(str) ~> _S
+    past(sub) ~> _B
+    len(val=_B) ~> _sl
+    len(val=_S) ~> _slen
+    -1 >> _found
+    range(n=_slen) ~> _idx
+    F(_idx) {
+        Gate _found (> -1) >> done
+        now + _sl >> _e
+        slice(str=_S, from=now, to=_e) ~> _c
+        0 >> _m
+        Gate _c (== _B) >> _m
+        1 - _m >> _k
+        _found * _k >> _o
+        now * _m >> _nw
+        _o + _nw >> _found
+    }
 }

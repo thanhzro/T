@@ -247,7 +247,9 @@ void nat_range_step(BVal *stack, int argc, BVal *out){
 
 void nat_range_c(BVal *stack, int argc, BVal *out){
     /* Return number not array - VM handles as lazy counter */
-    int n=(argc>=1&&stack[0].num>0)?(int)stack[0].num:2147483647;
+    int n;
+    if(argc<1) n=2147483647; /* no arg = infinite */
+    else n=(int)stack[0].num; /* arg=0 means 0 iterations */
     out->type=VT_NUM; out->num=n; out->arr=NULL; out->arr_len=0;
 }
 
@@ -479,40 +481,36 @@ void nat_reverse_unified(BVal *stack, int argc, BVal *out){
         out->type=VT_STR; out->str=r;
     }
 }
-void register_all_natives(VM *vm) {
-    TFunc *f;
-    #define REG_S1(nm, fn, p0) \
-        f=&vm->funcs[vm->func_count++]; \
-        strcpy(f->name,nm); f->is_native=2; f->native_s=fn; \
-        f->param_count=1; strcpy(f->params[0],p0);
-    #define REG_S2(nm, fn, p0, p1) \
-        f=&vm->funcs[vm->func_count++]; \
-        strcpy(f->name,nm); f->is_native=2; f->native_s=fn; \
-        f->param_count=2; strcpy(f->params[0],p0); strcpy(f->params[1],p1);
-    #define REG1(nm, fn, p0) \
-        f=&vm->funcs[vm->func_count++]; \
-        strcpy(f->name,nm); f->is_native=1; f->native=fn; \
-        f->param_count=1; strcpy(f->params[0],p0);
-    #define REG2(nm, fn, p0, p1) \
-        f=&vm->funcs[vm->func_count++]; \
-        strcpy(f->name,nm); f->is_native=1; f->native=fn; \
-        f->param_count=2; strcpy(f->params[0],p0); strcpy(f->params[1],p1);
 
-    /* Range - returns string encoded array */
-    REG_S1("range_bc", nat_range_s, "n")
-    REG_S1("upper", nat_upper, "str")
-    REG_S1("lower", nat_lower, "str")
-    REG_S1("trim",  nat_trim,  "str")
-    REG_S2("concat",nat_concat,"a","b")
-    REG_S1("exec_bc",nat_exec_s,"cmd")
-    f=&vm->funcs[vm->func_count++];
-    /* past(x) = identity - returns x as-is */
-    f=&vm->funcs[vm->func_count++];
-    f->param_count=1; strcpy(f->params[0],"val");
-    f=&vm->funcs[vm->func_count++];
-    strcpy(f->name,"write_file_t"); f->is_native=3; f->native_m=nat_write_mix;
-    f->param_count=2; strcpy(f->params[0],"content"); strcpy(f->params[1],"fname");
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"indexOf");f2->is_native=3;f2->native_m=nat_indexOf_n;f2->param_count=2;strcpy(f2->params[0],"str");strcpy(f2->params[1],"sub");}
+void nat_charcode(BVal *stack, int argc, BVal *out){
+    if(argc<1||!stack[0].str||!stack[0].str[0]){out->type=VT_NUM;out->num=0;return;}
+    out->type=VT_NUM;
+    out->num=(double)(unsigned char)stack[0].str[0];
+}
+void nat_fromchar(BVal *stack, int argc, BVal *out){
+    if(argc<1){out->type=VT_STR;out->str=strdup("");return;}
+    char buf[2]={(char)(int)stack[0].num,0};
+    out->type=VT_STR; out->str=strdup(buf);
+}
+
+void nat_trim_v(BVal *stack, int argc, BVal *out){
+    if(argc<1||!stack[0].str){out->type=VT_STR;out->str=strdup("");return;}
+    char *s=stack[0].str;
+    while(*s==' '||*s=='\t'||*s=='\n'||*s=='\r') s++;
+    if(*s==0){out->type=VT_STR;out->str=strdup("");return;} /* all spaces */
+    char *e=s+strlen(s)-1;
+    while(e>s&&(*e==' '||*e=='\t'||*e=='\n'||*e=='\r')) e--;
+    int n=e-s+1; if(n<0)n=0;
+    char *r=malloc(n+1); strncpy(r,s,n); r[n]=0;
+    out->type=VT_STR; out->str=r;
+}
+void register_all_natives(VM *vm) {
+    TFunc*f;
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"_trim_c");f2->is_native=4;f2->native_v=nat_trim_v;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"charCode");f2->is_native=4;f2->native_v=nat_charcode;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fromChar");f2->is_native=4;f2->native_v=nat_fromchar;f2->param_count=1;strcpy(f2->params[0],"val");}
+    #define REG_S1(_nm,fn,p0) {TFunc*_rf=&vm->funcs[vm->func_count++];strcpy(_rf->name,_nm);_rf->is_native=2;_rf->native_s=fn;_rf->param_count=1;strcpy(_rf->params[0],p0);}
+    #define REG_S2(_nm,fn,p0,p1) {TFunc*_rf=&vm->funcs[vm->func_count++];strcpy(_rf->name,_nm);_rf->is_native=2;_rf->native_s=fn;_rf->param_count=2;strcpy(_rf->params[0],p0);strcpy(_rf->params[1],p1);}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"slice");f2->is_native=4;f2->native_v=nat_slice_val;f2->param_count=3;strcpy(f2->params[0],"str");strcpy(f2->params[1],"from");strcpy(f2->params[2],"to");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"chars");f2->is_native=4;f2->native_v=nat_chars_val;f2->param_count=1;strcpy(f2->params[0],"str");}
     REG_S1("tcon_query",nat_tcon_query,"query")
