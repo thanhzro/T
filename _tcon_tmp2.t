@@ -1,5 +1,8 @@
 [T-]
+import "lib/basic/std.t"
+import "lib/advanced/t_lexer.t"
+line = "Gate x (> 3) >> result"
 [T0]
-tcon_query(query="!= operator always returns 0 not working bytecode") ~> r
+tokenize_line(line=line) ~> r
 [T+]
 show shall(r)

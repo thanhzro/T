@@ -1,13 +1,8 @@
 [T-]
 import "lib/basic/std.t"
-func test(arr) {
-    past(arr) ~> _A
-    [] >> _filtered
-    F(_A) { Gate now (!= "") >> _filtered }
-    _filtered >> out
-}
-arr = ["a", "", "b"]
+import "lib/advanced/t_lexer.t"
+src_line = "Gate x (> 3) >> result"
 [T0]
-test(arr=arr) ~> r
+tokenize_line(line=src_line) ~> tokens
 [T+]
-show shall(r)
+show shall(tokens)

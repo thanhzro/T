@@ -13,6 +13,17 @@
 #include <pthread.h>
 #include <unistd.h>
 
+static char* find_arrow_outside_quotes(const char *s) {
+    int in_q=0;
+    for(int i=0;s[i];i++){if(s[i]=='"')in_q=!in_q;if(!in_q&&s[i]=='>'&&s[i+1]=='>')return(char*)s+i;}
+    return NULL;
+}
+static char* find_tilde_outside_quotes(const char *s) {
+    int in_q=0;
+    for(int i=0;s[i];i++){if(s[i]=='"')in_q=!in_q;if(!in_q&&s[i]=='~'&&s[i+1]=='>')return(char*)s+i;}
+    return NULL;
+}
+
 #define TCON_SOCKET "/data/data/com.termux/files/home/t-lang/tbc_server.sock"
 
 
@@ -151,7 +162,7 @@ void compile_line(Chunk *chunk, const char *line) {
 
     /* a != b >> var */
     char *neq = strstr(p, "!=");
-    char *arr_neq = strstr(p, ">>");
+    char *arr_neq = find_arrow_outside_quotes(p);
     if(neq && arr_neq && neq < arr_neq && !strchr(p,'(')) {
         char lhs[64]={0}; strncpy(lhs,p,neq-p);
         char *lt=lhs+strlen(lhs)-1; while(lt>lhs&&*lt==' ')*lt--=0;
@@ -332,7 +343,7 @@ void compile_line(Chunk *chunk, const char *line) {
 
     /* Gate x (op val) >> target */
     if(strncmp(p, "Gate ", 5) == 0) {
-        char *lp=strchr(p,'('), *rp=strchr(p,')'), *arr=strstr(p,">>");
+        char *lp=strchr(p,'('), *rp=strchr(p,')'), *arr=find_arrow_outside_quotes(p);
         if(lp&&rp&&arr) {
             char tmp[64]; strncpy(tmp,p+5,lp-p-5); tmp[lp-p-5]=0;
             char *v=tmp; while(*v==' ')v++;
@@ -566,9 +577,13 @@ int run_file(const char *path) {
                 lines[count++]=strdup(buf); continue;
             }
             /* Outside func: only var=literal (no logic, no execution) */
-            char *arr2=strstr(buf,">>");
-            char *tilde2=strstr(buf,"~>");
-            if(!arr2&&!tilde2&&strchr(buf,'=')&&!strchr(buf,'(')){
+            char *arr2=find_arrow_outside_quotes(buf);
+            char *tilde2=find_tilde_outside_quotes(buf);
+            if(!arr2&&!tilde2&&strchr(buf,'=')){
+                /* Check ( only outside quotes */
+                int _hasparen=0; int _inq=0;
+                for(char *_cp=buf;*_cp;_cp++){if(*_cp=='"'||*_cp==39)_inq=!_inq;if(!_inq&&*_cp=='(')_hasparen=1;}
+                if(!_hasparen){
                 char *eq2=strchr(buf,'=');
                 char vname[64]={0}; strncpy(vname,buf,eq2-buf);
                 char *vt=vname+strlen(vname)-1; while(vt>vname&&*vt==' ')*vt--=0;
@@ -583,6 +598,7 @@ int run_file(const char *path) {
                     fprintf(stderr,"T- error: '%s' is not a literal - T- only allows literal values\n",vp);
                 }
             }
+            } /* end !_hasparen */
         }
     }
     fclose(f);
@@ -615,7 +631,7 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
     char _gate_subj[16]={0};
     if(body_count==1 && strncmp(_bg,"Gate ",5)==0) {
         const char *p=_bg;
-        char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=strstr(p,">>");
+        char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=find_arrow_outside_quotes(p);
         if(lp) {char *_sp=p+5; while(*_sp==' ')_sp++; int _sl=lp-_sp; while(_sl>0&&_gate_subj[0]==0&&_sp[_sl-1]==' ')_sl--; if(_sl>0&&_sl<16){strncpy(_gate_subj,_sp,_sl);_gate_subj[_sl]=0;} int _tsl=strlen(_gate_subj); while(_tsl>0&&_gate_subj[_tsl-1]==' ')_gate_subj[--_tsl]=0;}
         if(lp&&rp&&arr) {
             char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
@@ -738,14 +754,25 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
             char fv[64]={0};
             char *lp2=strchr(_bl,'('),*rp2=strchr(_bl,')');
             if(lp2&&rp2){strncpy(fv,lp2+1,rp2-lp2-1);}
-            bi++;
             const char **fb=calloc(128,sizeof(char*)); int fc=0;
-            while(bi<body_count){
-            const char*_bt=body[bi]; while(*_bt==' '||*_bt=='\t')_bt++; if(_bt[0]=='}') break;
-                if(body[bi][0]!=0) fb[fc++]=body[bi];
+            /* Check inline body: F(arr) { body } on same line */
+            char *_ob=rp2?strchr(rp2,'{'):NULL;
+            char *_cb=_ob?strrchr(_ob,'}'):NULL;
+            if(_ob&&_cb&&_cb>_ob+1){
+                char _inline[256]={0}; strncpy(_inline,_ob+1,_cb-_ob-1);
+                char *_ip=_inline; while(*_ip==' ')_ip++;
+                int _il=strlen(_ip); while(_il>0&&_ip[_il-1]==' ')_ip[--_il]=0;
+                if(_il>0) fb[fc++]=strdup(_ip);
                 bi++;
+            } else {
+                bi++;
+                while(bi<body_count){
+                const char*_bt=body[bi]; while(*_bt==' '||*_bt=='\t')_bt++; if(_bt[0]=='}') break;
+                    if(body[bi][0]!=0) fb[fc++]=body[bi];
+                    bi++;
+                }
+                if(bi<body_count) bi++;
             }
-            if(bi<body_count) bi++; /* skip } */
             compile_f_block(&f->chunk,fv,fb,fc);
         } else {
             compile_line(&f->chunk, bl);
@@ -757,7 +784,7 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
     const char *_retvar = "out"; /* fallback */
     for(int _ri=body_count-1;_ri>=0;_ri--){
         const char *_rl=body[_ri];
-        const char *_rr=strstr(_rl,">>");
+        const char *_rr=find_arrow_outside_quotes(_rl);
         const char *_rt=strstr(_rl,"~>");
         const char *_ra=_rr?_rr:_rt;
         if(_ra){

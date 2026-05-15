@@ -176,3 +176,67 @@ self-hosting: file_read đọc T source, split("\n") thành lines, mỗi line l�
 self-hosting: lexer bước 1 = split by space, lọc empty = tokenize_line
 self-hosting: T lexer không cần C - dùng split+F()+Gate thuần T
 BUG-FIX: OP_NEQ was using .num not string compare - Gate now(!='') always returned 0 - fixed with strcmp
+BUG: Gate filter F(arr){Gate now(!="")>>target} in func body returns [] even with pre-init target
+BUG: trace shows _filtered=0 in frame dump - target being reset to 0 not []
+BUG: compile_f_block Gate filter - target init issue in func body vs T0 level
+DEBUG: use ./t_bc file.t --trace to see frame dump at end showing var values
+pattern: [] >> arr in func body works correctly for push operations
+BUG: compile_f_block Gate filter line 638-639 OP_LOAD target in func body - VT_NIL when not pre-set causes filter fail
+pattern: Gate filter target must be pre-initialized as [] before F() in func body
+fix-needed: compile_f_block Gate filter should check if target exists before deciding to init or load
+BUG: Gate filter JUMP_IF_0 offset=4 wrong - OP_JUMP(2bytes)+OP_PUSH_ARR(2bytes)+OP_STORE(2bytes)=6 not 4
+debug: tracing Gate filter in func body to verify jump logic
+debug: func body trace shows OP_CALL(19) then HALT(27) - Gate filter F() block not compiled in func body
+root-cause: compile_func calls compile_f_block but body lines may not include Gate line correctly
+root-cause: compile_func detects F() block correctly but body collection stops at } - single-line F(){Gate...} may not split correctly
+root-cause: compile_func body collection - F() body lines collected from bi+1, but single-line F(){Gate now(!='')>>filtered} has body ON SAME LINE as F() declaration - body not extracted
+fix: compile_func must detect inline F(){body} on same line like T0 level does
+fix-applied: compile_func now detects inline F(){body} on same line
+fix-confirmed: compile_func inline F(){Gate now(!='')>>target} works after detecting inline body on same line as F() declaration
+tcon-learned: inline F body fix in compile_func enables Gate filter in func body
+milestone: 48/48 pass after compile_func inline F body fix
+BUG: tokenize_line returns [] - Gate filter in func body still failing for split result
+confirmed: Gate filter works in T0 with split result - issue only in func body
+fix-confirmed: tokenize_line works with inline F(){Gate} in func body after compile_func inline fix
+BUG: tokenize_line from t_lexer.t returns [] but same code inline works - import issue or func redefinition
+root-cause: t_lexer.t has OLD version with 2 separate F() loops instead of single inline Gate filter
+BUG-UNRESOLVED: tokenize_line still returns [] from import even after fix
+debug: frame dump shows empty - tokenize_line func not found or returning nothing
+KEY-FINDING: frame dump shows _parts=0 and line=0 - past(line) not working, params not passed correctly to func
+KEY-FINDING: but out=2 and final output=[hello,world] shows func DID return correctly
+KEY-FINDING: _toks=2 means array with 2 elements - tokenize_line actually works!
+BUG: tokenize_line works with string literal but fails with T- variable - past(line) gets 0 when line is T- var
+confirmed: past() works with T- variable when param name differs from T- var name
+ROOT-CAUSE: param name same as T- var name causes conflict - tokenize_line(line=line) fails because param 'line' shadows T- var 'line'
+WORKAROUND: use different name for T- var - myline instead of line
+BUG-DEEP: (> 3) in string causes split issue - parentheses and special chars
+BUG-CRITICAL: split() with string containing > character returns empty - special char > breaks split
+confirmed: single > works fine in string. >> causes the issue
+ROOT-CAUSE: >> inside T- string literal parsed as T operator - compiler strips >> from string value
+BUG: strstr(p,'>>') finds >> inside string literals - need to skip quoted strings when searching for >> operator
+BUG: strstr(buf,">>") at line 569 finds >> inside string literals like "a >> b" causing T- parse failure
+FIX-NEEDED: skip quoted strings when searching for >> operator in T- parser
+PATTERN: use find_arrow_outside_quotes() instead of strstr(buf,">>")
+BUG: NULL undefined when adding helper before #include - must add after includes
+FIX-CONFIRMED: find_arrow_outside_quotes() skips >> inside string literals - T- var = "a >> b" now works
+FIX-CONFIRMED: add helper functions after last #include not before
+DEBUG: tokenize_line still fails with (> 3) in string - need to check if split handles () correctly
+BUG: T- string "Gate x (> 3) >> result" still returns [] from split - >> still being parsed despite fix
+DEBUG: find_arrow_outside_quotes may not be applied to all strstr(">>") locations
+BUG: line 165 strstr(p,">>") in compile_line also needs fix - processes T- lines and finds >> in string literals
+BUG-PERSISTENT: "Gate x (> 3) >> result" still returns [] after fixing all strstr(">>") - must be another location parsing >> in string
+FIX-APPLIED: find_arrow_outside_quotes replaces strstr at lines 165,346,629,782
+NEXT-DEBUG: check T- literal parser - how it processes var = "string with >>"
+T-limitation: Gate only worked with literals before - now works with variables too after OP_EQ fix
+BUG: line 99 find_arrow(buf) at line 401 also finds >> in strings - old find_arrow function not quote-aware
+DEBUG: line 401 uses find_arrow() not find_arrow_outside_quotes() - this is in T0 section
+find_arrow() at line 99 IS already quote-aware! Not the issue. Problem must be in T- literal parser elsewhere.
+DEBUG: check how T- "var = literal" is parsed when literal contains >>
+DEBUG: T- parser at line 582 checks strchr(buf,'=') - but "Gate x (> 3) >> result" has no = so passes
+DEBUG: arr2=find_arrow_outside_quotes finds >> correctly now - check what happens next
+ROOT-CAUSE-FOUND: T- var=literal with >> in value: val2=256 bytes only! "Gate x (> 3) >> result" is 30 chars but val2 is copied from eq2+1 which points AFTER = sign. The value "Gate x (> 3) >> result" is stored fine but snprintf nl2 may truncate or fail
+REAL-BUG: is_literal check: vp[0]=='"' - string literal starts with " - CORRECT. But strchr(buf,'(') check at line 582 - "Gate x (> 3) >> result" HAS ( so !strchr(buf,'(') is FALSE - entire block SKIPPED!
+FIX-CONFIRMED: T- string literal with () and >> now works - strchr(buf,'(') was blocking strings with parentheses
+FIX: check paren only outside quotes using _hasparen loop
+MILESTONE: tokenize_line works correctly - T lexer step 1 complete
+MILESTONE: T- string literals now support () and >> inside quotes
