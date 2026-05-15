@@ -170,3 +170,9 @@ BUG-PATTERN: func returning "out" conflicts with F() accumulator - use different
 T-SPEC: indexOf pure T: len sub ~>_sl; -1>>found; F(range(n)){Gate found(>-1)>>done; now+_sl>>e; slice(from=now,to=e)~>c; 0>>m; Gate c(==sub)>>m; 1-m>>k; found*k>>o; now*m>>nw; o+nw>>found}
 T-SPEC: trim uses _trim_c C native - all-spaces returns empty string
 T-SPEC: Gate string filter: F(arr){Gate now(!="")>>keep} works after OP_NEQ string fix
+self-hosting: T compiler viết bằng T cần: file_read, split, indexOf, chars, get, len, push, slice
+self-hosting: tokenize_line dùng split(sep=" ") lọc empty strings bằng Gate now(!="")>>tokens
+self-hosting: file_read đọc T source, split("\n") thành lines, mỗi line là 1 token group
+self-hosting: lexer bước 1 = split by space, lọc empty = tokenize_line
+self-hosting: T lexer không cần C - dùng split+F()+Gate thuần T
+BUG-FIX: OP_NEQ was using .num not string compare - Gate now(!='') always returned 0 - fixed with strcmp

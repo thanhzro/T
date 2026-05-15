@@ -240,15 +240,13 @@ case OP_GE:{
     vm->top++;
     break;}
 case OP_NEQ:{
-    double b=vm->stack[--vm->top].num;
-    double a=vm->stack[--vm->top].num;
-    vm->stack[vm->top].type=VT_NUM;
-    vm->stack[vm->top].num=(a!=b)?1:0;
-    vm->stack[vm->top].str=NULL;
-    vm->stack[vm->top].arr=NULL;
-    vm->stack[vm->top].arr_len=0;
-    vm->top++;
-    break;}
+    BVal _bv=vm->stack[--vm->top];
+    BVal _av=vm->stack[--vm->top];
+    int _neq=0;
+    if(_av.type==VT_STR && _bv.type==VT_STR)
+        _neq=(_av.str&&_bv.str)?strcmp(_av.str,_bv.str)!=0:(_av.str!=_bv.str);
+    else _neq=(_av.num!=_bv.num)?1:0;
+    push(vm,make_num(_neq));break;}
 case OP_NEG:{
     double a=vm->stack[--vm->top].num;
     vm->stack[vm->top].type=VT_NUM;

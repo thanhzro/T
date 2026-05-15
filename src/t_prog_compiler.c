@@ -616,7 +616,7 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
     if(body_count==1 && strncmp(_bg,"Gate ",5)==0) {
         const char *p=_bg;
         char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=strstr(p,">>");
-        if(lp) {char *_sp=p+5; while(*_sp==' ')_sp++; int _sl=lp-_sp; if(_sl>0&&_sl<16){strncpy(_gate_subj,_sp,_sl);_gate_subj[_sl]=0;}}
+        if(lp) {char *_sp=p+5; while(*_sp==' ')_sp++; int _sl=lp-_sp; while(_sl>0&&_gate_subj[0]==0&&_sp[_sl-1]==' ')_sl--; if(_sl>0&&_sl<16){strncpy(_gate_subj,_sp,_sl);_gate_subj[_sl]=0;} int _tsl=strlen(_gate_subj); while(_tsl>0&&_gate_subj[_tsl-1]==' ')_gate_subj[--_tsl]=0;}
         if(lp&&rp&&arr) {
             char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
             char val_str[64]={0};
@@ -634,9 +634,14 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         }
     }
     if(is_gate_filter) {
-        /* Initialize target as empty array */
+        /* Load target - if not exist, init as empty array */
         int itgt=chunk_add_str(chunk,gate_tgt);
-        chunk_write(chunk,OP_PUSH_ARR); chunk_write(chunk,0); /* empty array */
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,itgt);
+        chunk_write(chunk,OP_TYPE_ARR);
+        chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,4);
+        /* already array - skip init */
+        chunk_write(chunk,OP_JUMP); chunk_write(chunk,4);
+        chunk_write(chunk,OP_PUSH_ARR); chunk_write(chunk,0);
         chunk_write(chunk,OP_STORE); chunk_write(chunk,itgt);
         /* Load array and start iter */
         int iarr=chunk_add_str(chunk,arr_var);
@@ -665,8 +670,10 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         else if(strcmp(gate_op,">=")==0) chunk_write(chunk,OP_GE);
         else if(strcmp(gate_op,"<=")==0) chunk_write(chunk,OP_LE);
         }
-        /* Jump over push if false */
-        chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,9);
+        /* Jump over push if false - patch offset after emit */
+        int _jmp_pos=chunk->count;
+        chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,0); /* placeholder */
+        int _push_start=chunk->count;
         /* push(arr=target, val=now) */
         int ipush=chunk_add_str(chunk,"push");
         int itgt2=chunk_add_str(chunk,gate_tgt);
@@ -675,6 +682,8 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         chunk_write(chunk,OP_LOAD); chunk_write(chunk,inow3); /* val */
         chunk_write(chunk,OP_CALL); chunk_write(chunk,ipush); chunk_write(chunk,2);
         chunk_write(chunk,OP_STORE); chunk_write(chunk,itgt2);
+        /* Patch jump offset */
+        chunk->code[_jmp_pos+1]=(uint8_t)(chunk->count-_push_start);
         /* ITER_NEXT */
         chunk_write(chunk,OP_ITER_NEXT);
         chunk_write(chunk,inow);
