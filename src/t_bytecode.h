@@ -226,10 +226,14 @@ case OP_GE:{
     vm->top++;
     break;}
             case OP_EQ:{
-    double b=vm->stack[--vm->top].num;
-    double a=vm->stack[--vm->top].num;
+    BVal _bv=vm->stack[--vm->top];
+    BVal _av=vm->stack[--vm->top];
+    int _eq=0;
+    if(_av.type==VT_STR && _bv.type==VT_STR)
+        _eq=(_av.str&&_bv.str)?strcmp(_av.str,_bv.str)==0:(_av.str==_bv.str);
+    else _eq=(_av.num==_bv.num)?1:0;
     vm->stack[vm->top].type=VT_NUM;
-    vm->stack[vm->top].num=(a==b)?1:0;
+    vm->stack[vm->top].num=_eq;
     vm->stack[vm->top].str=NULL;
     vm->stack[vm->top].arr=NULL;
     vm->stack[vm->top].arr_len=0;

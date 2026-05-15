@@ -145,3 +145,8 @@ T-SPEC: T-first - check T lib trước khi viết C native
 T-SPEC: pipeline thuần khiết - không dùng exec() không dùng bash trong lib
 write-native: nat_write_mix stack[0] can be VT_NUM not VT_STR - must convert num to string before writing to file
 write-native: always handle both VT_NUM and VT_STR in native functions that expect string content
+BUG-FIX: OP_EQ only compared .num not .str - string equality always returned 1 - fixed with strcmp
+T-pattern: indexOf pure T using math trick: found = found*(1-m) + now*m avoids nested F() scope issues
+T-pattern: Gate string compare now works: Gate _c (== sub) >> _m after OP_EQ string fix
+T-pattern: F() loop with done flag - set 0>>done before Gate to avoid undefined pattern
+T-limitation: Gate only worked with literals before - now works with variables too after OP_EQ fix
