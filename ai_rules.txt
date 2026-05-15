@@ -150,3 +150,23 @@ T-pattern: indexOf pure T using math trick: found = found*(1-m) + now*m avoids n
 T-pattern: Gate string compare now works: Gate _c (== sub) >> _m after OP_EQ string fix
 T-pattern: F() loop with done flag - set 0>>done before Gate to avoid undefined pattern
 T-limitation: Gate only worked with literals before - now works with variables too after OP_EQ fix
+tcon_learned: sqrt → mismatch: sqrt output differs t_bc vs AST - check lib/basic/math.t:204:func sqrt_n(val) {
+fix: OP_EQ was only comparing .num not .str - "hello"=="world" returned 1 - fixed with strcmp
+fix: OP_NEQ same bug - fixed with strcmp  
+fix: Gate string literal parsing - sscanf split " " (space) into just '"' losing the space - fixed with manual quote parser
+fix: Gate compare with string literal now uses OP_PUSH_STR not OP_PUSH_NUM
+fix: compile_f_block Gate filter also needed string literal support via gate_is_str_lit flag
+fix: range(n=0) was returning 2147483647 (infinite) - fixed to return 0 iterations
+fix: _trim_c native registration was lost multiple times - now stable
+fix: trim("  ") all-spaces case - nat_trim_v now checks *s==0 after advancing pointer
+pattern: indexOf pure T using math trick - found = found*(1-m) + now*m
+pattern: charCode/fromChar C natives needed for upper/lower - char ASCII conversion
+pattern: Gate filter with string: F(arr) { Gate now (!= "") >> keep } works after OP_NEQ fix
+T-axioms: get, len, push, split, chars, slice, sort, range, toNumber, file_read, write_file_t, _trim_c, charCode, fromChar
+BUG-PATTERN: Gate (== "literal with space") fails because sscanf splits on space - use manual quote parser
+BUG-PATTERN: range(n=0) returns infinite - always check n>0 before setting 2147483647
+BUG-PATTERN: C native registration lost when doing regex replace - always verify with grep after
+BUG-PATTERN: func returning "out" conflicts with F() accumulator - use different var name
+T-SPEC: indexOf pure T: len sub ~>_sl; -1>>found; F(range(n)){Gate found(>-1)>>done; now+_sl>>e; slice(from=now,to=e)~>c; 0>>m; Gate c(==sub)>>m; 1-m>>k; found*k>>o; now*m>>nw; o+nw>>found}
+T-SPEC: trim uses _trim_c C native - all-spaces returns empty string
+T-SPEC: Gate string filter: F(arr){Gate now(!="")>>keep} works after OP_NEQ string fix
