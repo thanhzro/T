@@ -1294,3 +1294,6 @@ FIX: train_step needs mat_update_3 func - hardcode 3 rows for now (3x3 matrix)
 MILESTONE: loss2=0.2528 < loss1=0.2567 - loss DECREASING after 1 training step!
 BACKPROP WORKING! T con LLM learns from data
 NEXT: run multiple training steps to see loss converge
+MILESTONE: LOSS CONVERGING! 0.2567 -> 0.2193 -> 0.1896
+T con LLM IS LEARNING! Loss decreasing each step
+T language built a working neural network with backpropagation
