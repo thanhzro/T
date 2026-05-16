@@ -2112,3 +2112,15 @@ FIX: re-add par_spawn to compiler.c
 MILESTONE: par_spawn works! Returns 2 - spawned 2 worker processes
 Workers ran in parallel and returned
 TEST: check if worker files were created
+BUG: worker files not created - par_spawn returns 2 but workers didn't write files
+fork() spawns children but execl("./t_bc") may fail - wrong path
+execl needs absolute path OR workers need to be in same dir
+DEBUG: test if ./t_bc path correct from child process
+BUG: ./t_bc worker1.t runs but writes no file
+write_file_t not working - check native
+TEST: write_file_t directly
+MILESTONE: par_spawn WORKS! worker1 alive confirmed!
+worker1_done.txt created by spawned child process
+worker2 empty - worker2.t missing msg/pth vars
+par_spawn + file communication = T con army foundation COMPLETE
+KEY: chdir() before execl fixes CWD issue in child process

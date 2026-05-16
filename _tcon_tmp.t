@@ -1,9 +1,6 @@
 [T-]
 import "lib/basic/std.t"
-flist = ["worker1.t", "worker2.t"]
 [T0]
-len(val=flist) ~> n
-par_spawn(files=flist) ~> done
+write_file_t(path="test_write.txt", content="hello world") ~> ok
 [T+]
-show shall(n)
-show shall(done)
+show shall(ok)
