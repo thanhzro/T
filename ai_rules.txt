@@ -2187,3 +2187,7 @@ NEXT: fix items 34-40 orphan slots, then items 1-27 broken imports
 BUG: orphan detection infinite loop - same line 560 forever
 Script broken - git restore natives.h to before orphan removal
 FIX: inspect line 560 manually then fix surgically
+FIXED: items 28-40 - removed 3 md5/sha256 duplicates + 4 orphan slots
+595 -> 581 lines, 48/48 still pass
+NEXT: fix items 1-27 broken imports in lib/advanced/std.t
+APPROACH: remove broken imports OR create stub files
