@@ -1,7 +1,7 @@
 [T-]
-arr = ["abc", "def"]
+import "lib/basic/std.t"
+src = "hello,world"
 [T0]
-[] >> result
-F(arr) { Gate now (== "abc") >> result }
+split(str=src, sep=",") ~> arr
 [T+]
-show shall(result)
+show shall(arr)

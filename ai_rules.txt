@@ -389,3 +389,66 @@ STAGE: self-hosting 30% - lexer done, section parser done, Gate filter fixed
 NEXT-STAGE: parse T- func definitions, build symbol table, codegen
 BUG: debug fprintf(stderr) left in production code at line 654 - prints FILTER info for every F() Gate filter call
 FIX: remove debug print from compile_f_block
+CONFIRMED: debug print removed from production. Repo state matches expected after v11.3 fixes.
+BUG: Gate now (!= "[T-]") returns [] - brackets in string comparison still failing
+DEBUG: test Gate with bracket string directly
+BUG: Gate now (!= "[T-]") returns [[T-] - incomplete - bracket ] in string causes Gate parse to stop early
+ROOT-CAUSE: gate_val_str parsing - the ] char causes issue in T- array literal parsing or Gate value parsing
+BUG: Gate filter with "[T-]" string in single-line body returns nothing/empty even without array literal
+ROOT-CAUSE: gate_val_str = "[T-]" but ] char may terminate string parsing in compile_f_block gate val parser
+DEBUG: check what gate_val_str contains when parsing Gate now (!= "[T-]")
+CONFIRMED: gate_val_str = "[T-]" correctly parsed with brackets. is_str=1. But result still empty.
+CONFIRMED: first wrong filter op=[==] val=[] is_str=0 from lib again - lib function triggering filter
+ROOT-CAUSE: lib function filter with op==[==] val=[] overwrites result before correct filter runs
+FIX: the wrong filter (op==, val empty, is_str=0) still triggers is_gate_filter despite our fix
+BUG: lib function with Gate now(==A2) - A2 is variable, not literal - but first DBG shows op=[==] val=[] is_str=0 - this means gate_val_str="" and gate_is_str_lit=0 and _is_num_lit=0 - should NOT trigger is_gate_filter
+BUG: but it still triggers - means the if condition is wrong or there are TWO is_gate_filter=1 lines
+MYSTERY: only one is_gate_filter=1 but still triggers for op=[==] val=[] is_str=0
+DEBUG: _is_num_lit check - atof("") in C returns 0.0 and _gend==gate_val_str so _is_num_lit=0
+DEBUG: but what is gate_val_str when val=[] - is gate_val_str="" or "A2"?
+ROOT-CAUSE-FOUND: fprintf debug at line 656 is OUTSIDE the if block - missing braces!
+is_gate_filter=1; has no braces, fprintf is always executed regardless of condition
+BUT MORE IMPORTANT: fprintf outside if means debug always prints but is_gate_filter=1 should still be conditional
+WAIT: the DBG shows op=[==] val=[] is_str=0 AND is_gate_filter triggers - means condition IS true
+atof("") returns 0, _gend==gate_val_str? In C atof("") _gend points to start = gate_val_str so _is_num_lit=0
+BUT: gate_val_str="" - strtod("",&_gend) - _gend==gate_val_str - _is_num_lit=0 - CORRECT not trigger
+UNLESS: gate_val_str is NOT empty - it's "A2" the variable name from sscanf!
+BUG: still empty. gate_val_str now has "A2" so _is_num_lit check: strtod("A2") - _gend==gate_val_str(A not digit) - _is_num_lit=0. Condition still false. But filter still wrong.
+REAL-DEBUG: add print inside condition to see what triggers
+CONFIRMED: only ONE trigger - Gate now(!="[T-]") - correct filter, no wrong lib filter
+MEANS: lib filter bug is gone after strncpy fix. Now only one filter triggers correctly.
+BUG: filter triggers correctly but result still empty - push section must fail for "[T-]" comparison
+DEBUG: OP_EQ/NEQ with "[T-]" string - strcmp must work. Check if now value contains "[T-]" correctly
+BUG: Signal 11 crash in split function - split(str=src, sep=",") crashing
+DEBUG: src string with "[T-]" may have null or bad ptr
+BUG: split returns nothing even for simple "hello,world" - split function broken after recent changes
+DEBUG: check if _trim_c registration or strncpy fix broke something
+BUG: split with T- variable returns empty but split with inline string literal works
+ROOT-CAUSE: T- var "hello,world,test" assigned then split(str=src) - src may not pass correctly to split
+PATTERN: split works with inline literal split(str="hello world") but not T- variable src
+BUG: split(str=src) with T- variable causes infinite loop - not empty result
+ROOT-CAUSE: strncpy fix to gate_val_str for non-string case broke something in split native
+ROLLBACK: revert the strncpy(gate_val_str,val_str,63) change
+BUG: split(str=T-var) returns empty - this is pre-existing bug, not from recent changes
+BUG: split works with inline literal but not T- variable assignment
+ROOT-CAUSE: T- var = "hello,world" - comma in string may still cause T- parser issue
+CONFIRMED: split works with space separator and T- variable. Comma in T- string "hello,world" causes parse issue.
+ROOT-CAUSE: comma in T- string literal - T- parser may treat comma as separator when parsing array or something
+CONFIRMED: src = "hello,world" stored correctly - len=11, show correct
+BUG: split(str=src, sep=",") with comma separator on comma-containing string causes issue
+ROOT-CAUSE: sep="," - when T- var contains comma AND sep is comma - split may enter infinite loop
+CONFIRMED: split works when sep is T- variable. split(str=src, sep=",") inline comma sep causes issue.
+ROOT-CAUSE: inline sep="," in function call - the comma may be parsed as argument separator not string value
+BUG: split(str=src, sep=",") - compiler parses "," as end of sep arg and start of next arg
+ROOT-CAUSE-CONFIRMED: split(str=src, sep=",") infinite loop - inline string literal "," in function call causes compiler to misparse - comma inside quotes treated as arg separator
+FIX-NEEDED: compile_line function call parser must handle comma inside string literal args
+WORKAROUND: always use T- variable for string args containing commas: comma = ","
+ROOT-CAUSE: strtok(tmp,",") at line 116,120 splits function args by comma - does not skip commas inside string literals
+FIX: replace strtok comma split with quote-aware arg parser
+BUG: line 116 strtok splits array literal elements by comma - not function args
+LINE 814 strtok splits func definition params by comma - also problematic
+ACTUAL BUG: need to find where function CALL args are split by comma
+FOUND: arg parser at line 318 uses bracket-aware split - checks depth for [] but NOT for quotes ""
+FIX: add quote-aware check in arg split loop - skip comma inside "" strings
+FIX-CONFIRMED: quote-aware arg parser - comma inside "" string literals no longer treated as arg separator
+FIX: split(str=src, sep=",") now works correctly

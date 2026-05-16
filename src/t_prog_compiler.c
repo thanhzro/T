@@ -317,9 +317,11 @@ void compile_line(Chunk *chunk, const char *line) {
                 if(!*ap) break;
                 /* find next comma not inside [] */
                 char tok2[256]={0}; int ti=0; int depth=0;
-                while(*ap && !((*ap==','&&depth==0))){
-                    if(*ap=='[')depth++;
-                    else if(*ap==']')depth--;
+                int _inq=0;
+                while(*ap && !((*ap==','&&depth==0&&!_inq))){
+                    if(*ap=='"') _inq=!_inq;
+                    if(!_inq&&*ap=='[')depth++;
+                    else if(!_inq&&*ap==']')depth--;
                     tok2[ti++]=*ap++;
                 }
                 if(*ap==',') ap++;
