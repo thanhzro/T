@@ -1,8 +1,11 @@
 [T-]
 import "lib/basic/std.t"
-import "lib/advanced/t_lexer.t"
-line = "Gate x (> 3) >> result"
+flatmat = [1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 4]
 [T0]
-tokenize_line(line=line) ~> r
+get(arr=flatmat, idx=0) ~> v0
+get(arr=flatmat, idx=4) ~> v4
+get(arr=flatmat, idx=5) ~> v5
 [T+]
-show shall(r)
+show shall(v0)
+show shall(v4)
+show shall(v5)

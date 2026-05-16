@@ -415,6 +415,26 @@ void nat_filter_not_starts(BVal *stack, int argc, BVal *out){
     }
     out->type=VT_ARR; out->arr=res; out->arr_len=cnt;
 }
+static void native_mat_mmv(BVal *stack, int argc, BVal *out) {
+    if(argc < 3){*out=make_num(0);return;}
+    BVal mat_v = stack[0];
+    BVal n_val = stack[1];
+    BVal vec_v = stack[2];
+    int n = (int)n_val.num;
+    fprintf(stderr,"DBG n=%d mat_len=%d vec_len=%d mat[4]=%g\n",n,(int)mat_v.arr_len,(int)vec_v.arr_len,mat_v.arr_len>4?mat_v.arr[4].num:-99);
+    if(n<=0||!mat_v.arr||!vec_v.arr){*out=make_arr(0);return;}
+    *out = make_arr(n);
+    for(int i=0;i<n;i++){
+        double dot=0;
+        for(int j=0;j<n;j++){
+            double mv = (i*n+j < (int)mat_v.arr_len) ? mat_v.arr[i*n+j].num : 0;
+            double vv = (j < (int)vec_v.arr_len) ? vec_v.arr[j].num : 0;
+            dot += mv * vv;
+        }
+        out->arr[i] = make_num(dot);
+    }
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -437,6 +457,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_mmv");f2->is_native=4;f2->native_v=native_mat_mmv;f2->param_count=3;strcpy(f2->params[0],"src");strcpy(f2->params[1],"sz");strcpy(f2->params[2],"inp");}
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"len"); f->is_native=3; f->native_m=nat_len_mix;
     f->param_count=1; strcpy(f->params[0],"val");
@@ -473,3 +494,5 @@ void register_all_natives(VM *vm) {
     #undef REG_S1
     #undef REG_S2
 }
+
+

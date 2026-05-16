@@ -1684,3 +1684,304 @@ xb=[0,1,0,0] -> 2 ✓
 xc=[0,0,1,0] -> 3 ✓
 xd=[0,0,0,1] -> 0 ✓
 T con LLM FULLY WORKING! Neural network trained and inferencing correctly in T language
+NEXT: scale from 4-dim to 64-dim
+NEED: linear_rows_64, mat_update_64, argmax64
+APPROACH: Python generate these functions automatically
+NEXT: test linear_rows_64 with 64-dim input
+BUT: TFunc params[8][64] - max 8 params per function!
+linear_rows_64 needs 66 params (r0..r63 + bv + x) - WAY over limit
+FIX: pass rows as array not individual params
+REDESIGN: linear_rows_v2(rows_arr, bv, x) - rows as 2D array
+BUG: BValArr undeclared - native func uses wrong struct name
+FIX: use BVal.arr->vals[i].num instead of BValArr
+BUG: mat_mul_vec returns nothing - no output no error
+T- multiline array literal may not parse correctly
+[0.5, 0.3, 0.1, 0.1,
+ 0.1, 0.6, ...] - newline inside array literal broken
+FIX: single line array or check native registration
+BUG: mat_mul_vec crashes silently - even len(mat) returns nothing
+Program exits before any output
+ROOT: native func crashes VM before T+ section runs
+FIX: check if ml_t.t import causes crash - test without it
+BUG: mat_mul_vec returns [1,0,0,0] = input x not matrix multiply result
+AND: ml_t.t import causes crash - something in ml_t.t breaks VM
+ROOT: mat_mul_vec native - params order wrong in registration
+Registration: mat, n, x but stack pops in reverse: x first, then n, then mat
+Stack LIFO: last pushed = first popped
+So stack[--argc] gives x first (correct), n second (correct), mat third (correct)
+BUG: mat.arr[i*n+j] - mat is T array where arr is BVal* directly not nested
+T array: mat.arr = BVal* where mat.arr[0].num=1, mat.arr[1].num=2 etc
+But result [1,0,0,0] = x itself = mat.arr[i*n+j] accessing wrong memory
+n=4, i=0: dot = mat.arr[0]*x[0] + mat.arr[1]*x[1] + ... = 1*1+2*0+3*0+4*0 = 1
+i=1: dot = mat.arr[4]*x[0] + ... = 5*1 = 5 not 0
+WAIT: expected [1,5,9,13] but got [1,0,0,0]
+n=4 literal in T0 - passed as num=4 correct
+BUT x=[1,0,0,0] - x.arr[0]=1, x.arr[1]=0 etc
+RESULT [1,0,0,0] = x itself - means dot product always returns x[i] not sum
+BUG: x.arr[j].num where j goes 0..n-1 but i*n+j overflows arr_len
+BUG: still [1,0,0,0] - n=4 passed as literal in T0 but native receives wrong value
+In T0: mat_mul_vec(mat=mat, n=4, x=xv) - n=4 is literal number
+Stack order: mat pushed first, n=4 pushed second, x pushed last
+Pop order: x first (stack[--argc]), n second, mat third
+BUT: n=4 literal - does T0 pass literal 4 as num correctly?
+DEBUG: print n value inside native
+ADD: fprintf(stderr) to native to debug
+BUG: DEBUG fprintf not printing - native not called at all!
+mat_mul_vec registered but not found by VM - name lookup fails
+OR: ml_t.t import shadows mat_mul_vec with T func of same name
+CHECK: does ml_t.t define mat_mul_vec somewhere?
+NOT in ml_t.t or std.t - native not being called
+BUG: _tcon_tmp.t imports std.t only - mat_mul_vec should be native
+DEBUG: check if native registered with correct name
+BUG: mat_mul_vec(mat=x, n=2, x=x) returns [1,2,3,4] = input not Wx
+param name "x" conflicts! func has param "x" AND T- var "x"
+SAME BUG as before: param name same as T- var name causes conflict
+FIX: rename param x to "vec" in registration and native
+BUG: still [1,0,0,0] - n=4 literal in T0 may be parsed wrong
+n=4 as literal int passed to native - but native reads n_val.num
+WAIT: mat=[1,2,...,16] arr_len=16, n=4
+i=0: dot = mat[0]*xv[0] + mat[1]*xv[1] + mat[2]*xv[2] + mat[3]*xv[3]
+   = 1*1 + 2*0 + 3*0 + 4*0 = 1 ✓
+i=1: dot = mat[4]*xv[0] + mat[5]*xv[1]...
+   = 5*1 = 5... should work
+UNLESS: arr_len check fails - mat.arr_len=16, i*n+j max = 3*4+3=15 < 16 OK
+DEBUG: add mat_update_flat native too and check sgd on flat
+ACTUALLY: result [1,0,0,0] = xv itself - native pops args in WRONG ORDER
+Stack push order for mat_mul_vec(mat=mat, n=4, vec=xv):
+mat pushed first → n pushed → xv pushed last
+Pop: stack[--argc] = xv (last in, first out)
+BUT native code: x=stack[--argc], n=stack[--argc], mat=stack[--argc]
+So x=xv ✓, n=4 ✓, mat=mat ✓ - order correct
+THEN: out->arr[i] = make_num(dot) but make_arr(n) returns arr with n zeros
+AND out->arr[i] assignment - is arr allocated?
+make_arr(n) allocates n BVals via calloc - correct
+out->arr[i] = make_num(dot) should work
+BUG: result still [1,0,0,0] = xv
+HYPOTHESIS: native pops order wrong for NativeValFn
+Check how other NativeValFn like sgd_update pops its args
+sgd_update uses F(_w) loop - T func not native C
+mat_mul_vec should work same way
+BUG: mat_mul_vec result [1,0,0,0] - check HOW NativeValFn receives args
+Look at how dot_product (T func) works vs native
+Try: add mat_mul_vec as T func instead of C native - use dot_product inside
+BUG: mat_mul_vec T func returns nothing - F(_rows) push scope issue
+push inside F() doesnt update outer _out
+SAME push scope bug as before
+FIX: mat is array of rows - use get(arr=mat, idx=i) then dot_product
+But cant loop without F() and F() has push scope issue
+SOLUTION: for 64-dim, hardcode 64 dot_products like linear_rows_4
+Generate mat_mul_vec_64 with 64 explicit dot_product calls
+BUG: mat_mul_vec_8 crashes silently - even before T+ output
+CRASH during compilation not execution - compiler segfault on large func body
+TEST: try mat_mul_vec_4 first to find size limit
+BUG: even mat_mul_vec_4 crashes - T array literal mat=[r0,r1,r2,r3] broken
+T- array of arrays may not work - nested array push issue
+TEST: does T- array literal with array values work?
+BUG: T- array of arrays crashes completely - no output at all
+mat=[r0,r1] where r0,r1 are arrays - T- cannot handle array values in array literal
+T- array literal only supports numbers and strings, not other arrays
+FIX: build matrix in T0 using push - but push scope issue
+ALTERNATIVE: use flat array [1,0,0,0,0,2,0,0] and index with i*n+j
+USE: native mat_mul_vec with flat array - but native has bug
+REAL FIX: fix native mat_mul_vec - the issue was param name "vec" conflict
+Test without conflicting param name
+BUG: native mat_mul_vec still crashes - even with flat array and no array-of-arrays
+CRASH in native C code itself - segfault in native_mat_mul_vec
+FIX: add null check and bounds check in native
+BUG: still crashes silently - native not being called at all
+PROOF: even with null check and return, no output
+CAUSE: ml_t.t import itself crashes - ml_t.t has too many functions now
+ml_t.t has linear_rows_64 (66 params) which exceeds TFunc params[8][64]
+Compiler segfaults when parsing linear_rows_64 with 66 params
+FIX: remove linear_rows_64 from ml_t.t
+PROGRESS: no more crash! Returns [1,1,1,1] not [1,2,3,4]
+ml_t.t import was crashing - linear_rows_64 with 66 params caused segfault
+NOW: mat_mul_vec returns [1,1,1,1] - all 1s
+flatmat=[1,0,0,0, 0,2,0,0, 0,0,3,0, 0,0,0,4], inp=[1,1,1,1]
+Expected: [1*1+0+0+0, 0+2*1+0+0, 0+0+3*1+0, 0+0+0+4*1] = [1,2,3,4]
+Getting [1,1,1,1] = each row dot inp gives 1 not diagonal values
+BUG: mat indexing - mat_v.arr[i*n+j] where mat is flat [1,0,0,0,0,2,0,0...]
+i=0,j=0: arr[0]=1 ✓, j=1: arr[1]=0, j=2: arr[2]=0, j=3: arr[3]=0
+dot = 1*1+0*1+0*1+0*1 = 1 ✓
+i=1,j=0: arr[4]=0, j=1: arr[5]=2, j=2: arr[6]=0, j=3: arr[7]=0
+dot = 0*1+2*1+0*1+0*1 = 2 ✓
+SHOULD work! But returns 1,1,1,1
+PROBLEM: native uses argc-1, argc-2, argc-3 but stack was already modified
+BUG: stack pointer wrong - use --argc approach
+BUG: still [1,1,1,1] - native indexing wrong despite correct stack pop
+vec=[1,1,1,1], result all 1 means each dot product = 1
+Row 0: [1,0,0,0] dot [1,1,1,1] = 1 ✓ correct!
+Row 1: [0,2,0,0] dot [1,1,1,1] = 2 ✗ getting 1
+BUG: vec_v.arr[j] - all elements look like 1
+OR: mat_v.arr[4]=0 but getting 1
+HYPOTHESIS: n=4 from T0 literal - but native gets wrong n
+n=4 literal passed as num, but maybe n_val is actually vec and vec_v is n
+SWAP: try swapping n and vec in pop order
+expected: [1,2,3,4]cat
+DBG not printed - native_mat_mul_vec not called at all!
+ml_t.t defines mat_mul_vec T func that shadows native
+T func always takes priority over native
+FIX: remove mat_mul_vec T func from ml_t.t completely
+THEN native will be called
+mat_mul_vec not in ml_t.t - T func was removed
+BUT native still not called - something else shadows it
+CHECK: is there a mat_mul_vec in std.t?
+mat_mul_vec not in any lib - native should be called
+BUT DBG not printed means native not reached
+HYPOTHESIS: T0 line "mat_mul_vec(mat=flatmat, n=4, vec=inp)" - param "vec" conflict?
+"vec" is registered param name but also T- var "inp" is passed as vec=inp
+T- var "inp" not "vec" so no conflict
+OR: T compiler sees mat_mul_vec as unknown func and outputs EMPTY_COORD silently
+TEST: check if show shall works after mat_mul_vec call
+PROGRESS: native IS called! ilen=4, mlen=16 correct, out=[1,1,1,1] wrong
+DBG should print but doesn't - fprintf removed accidentally?
+Native runs but computation wrong
+flatmat=[1,0,0,0,0,2,0,0,0,0,3,0,0,0,0,4] arr_len=16, n=4, inp=[1,1,1,1]
+Row 1 should be mat[4..7]=[0,2,0,0] dot [1,1,1,1] = 2
+Getting 1 - means mat[4]=1 not 0
+BUG: flatmat arr stores values wrong - T- array [1,0,0,0,0,2,...] 
+get(arr=flatmat,idx=4) should return 0 not 1
+TEST: verify flatmat indexing
+CONFIRMED: flatmat indexing correct - get(idx=4)=0, get(idx=5)=2
+BUG is in native C indexing or pop order
+flatmat arr_len=16, n=4, vec=[1,1,1,1]
+Current pop order: mat=stack[--argc], n=stack[--argc], vec=stack[--argc]
+T0 call: mat_mul_vec(mat=flatmat, n=4, vec=inp)
+Push order: mat pushed, n pushed, vec pushed last
+Pop: vec first, n second, mat third = CORRECT
+THEN: n=4, mat_v=flatmat, vec_v=inp
+i=1: dot=mat[4]*vec[0]+mat[5]*vec[1]+mat[6]*vec[2]+mat[7]*vec[3]
+   = 0*1 + 2*1 + 0*1 + 0*1 = 2 SHOULD BE 2
+BUT getting 1 - means mat_v in native is actually INP not FLATMAT!
+mat_v.arr[4]=0 but inp.arr[4] doesnt exist (inp only 4 elements)
+SWAP: mat and vec are swapped in native
+inp=[1,1,1,1]: dot(inp,inp)=1*1+1*1+1*1+1*1=4? No getting 1
+WAIT: maybe n=1 not 4
+n=1: only i=0, j=0: mat[0]*vec[0]
+If mat_v=inp=[1,1,1,1] and n=1: out=[inp[0]]==[1] but arr_len set to 1
+CONCLUSION: n_val is actually being read as vec and vice versa
+pop order wrong: need mat first pop, then vec, then n
+ALL orderings tried, all give [1,1,1,1]
+REAL ROOT-CAUSE: n is always 1 regardless of pop order
+When n=1: loop runs once, i=0, j=0: dot=mat[0]*vec[0]=1*1=1
+Output [1,1,1,1] impossible with n=1... unless n=4 but wrong indexing
+ACTUALLY: output has 4 elements so n=4 IS correct
+i=0: mat[0..3] dot vec[0..3] = 1*1+0*1+0*1+0*1 = 1
+i=1: mat[4..7] dot vec[0..3] = 0*1+2*1+0*1+0*1 = 2???
+BUT getting 1 for ALL rows
+CONCLUSION: mat_v IS inp=[1,1,1,1] not flatmat
+Every row: inp[0..3] dot vec[0..3] = 1+1+1+1=4? No, 1
+ONLY EXPLANATION: mat_v=inp=[1,1,1,1], vec_v=flatmat, n=4
+Row 0: inp[0]*flatmat[0]+inp[1]*flatmat[1]+inp[2]*flatmat[2]+inp[3]*flatmat[3]
+= 1*1 + 1*0 + 1*0 + 1*0 = 1 ✓ matches!
+Row 1: inp[4] out of bounds = 0*... = 0? No still 1
+WAIT: if bounds check fails and returns 0, then dot=0 not 1
+FIX: remove bounds check - let it compute freely
+BUG: fprintf debug not printing - native function not executing the loop
+n=4 correct (output has 4 elements) but loop body never runs??
+OR: native_mat_mul_vec is NOT the function being called
+Another function named mat_mul_vec exists somewhere
+CHECK: compile.c - how function lookup works - T func vs native priority
+vm_find_func returns FIRST match by name
+T funcs registered in ml_t.t BEFORE natives in register_all_natives
+So if ml_t.t imports std.t which has mat_mul_vec T func... no it doesnt
+BUT: T funcs from ml_t.t are compiled and added to vm->funcs FIRST
+Then register_all_natives adds natives AFTER
+vm_find_func returns FIRST match = T func wins over native
+BUT we confirmed mat_mul_vec not in any .t file
+ALTERNATIVE: maybe the issue is register order
+natives registered FIRST in vm setup, then T file compiled adds T funcs
+T funcs added AFTER natives = T func found first
+WAIT: check when register_all_natives is called vs when T file compiled
+CONFIRMED: register_all_natives at line 629, compile_program at line 630
+Natives registered FIRST, then T funcs compiled and added
+vm_find_func returns first match = NATIVE found first!
+So native IS being called but loop debug not printing
+CONCLUSION: native loop runs but fprintf not visible
+OR: make_arr(n) returns wrong size
+TEST: remove debug fprintf, just add simple test
+CONFIRMED: no stderr output - native_mat_mul_vec NOT being called at all!
+Despite register check, a DIFFERENT mat_mul_vec function runs and returns [1,1,1,1]
+ml_t.t mat_mul_vec T func must still exist somewhere
+PROOF: [1,1,1,1] = mat_mul_vec T func behavior (F() push scope returns input)
+grep -c to count occurrences in ml_t.t
+FOUND IT! tail shows duplicate fragment at end of ml_t.t:
+"    _out >> out\n}\n\n\n    _out >> out\n}"
+Regex cleanup removed func header but left orphan body fragment
+This orphan code causes T compiler to malfunction
+FIX: clean up ml_t.t end
+BUG: still [1,1,1,1] and no stderr - native still not called
+Orphan cleanup didnt fix it
+LAST RESORT: rename native to mat_mmv to avoid any conflict
+AND test with completely fresh file without ml_t.t
+CONFIRMED: native mat_mmv not called - no stderr
+mat_mmv with fresh name still not called
+T COMPILER must be treating mat_mmv(mat=flatmat, n=4, vec=inp) as something else
+HYPOTHESIS: T0 parser sees "mat_mmv(mat=..." and handles differently
+"mat" is a T keyword? No...
+"n=4" - n might be special? No...
+CHECK: does T0 handle func(param=val, n=literal) correctly?
+n=4 literal passed as named param
+TFunc param name "n" - is "n" reserved?
+TEST: rename param from n to sz
+BUG: mat_mmv(src=flatmat, sz=4, inp=inp) - param "inp" same as T- var "inp"
+CLASSIC T PARAM CONFLICT - same as r0=r0 bug before
+FIX: rename T- var from inp to xvec
+STILL [1,1,1,1] and no stderr - native never called
+PROOF: result is always [1,1,1,1] = xvec regardless of flatmat
+T compiler is NOT calling mat_mmv native - it's returning xvec somehow
+THEORY: T0 with 3 named params and tilde - compile_tilde_line parses wrong
+mat_mmv returns LAST argument as result without calling function
+FIX: test with just 1 param to verify native called
+CONFIRMED: out=[9,8,7,6]=xvec - mat_mmv returns last arg (inp=xvec) without calling native
+T0 compiler treats mat_mmv as unknown func and returns last arg
+OP_CALL not generated - instead last param value stored to out
+CHECK: how T0 handles unknown func calls - does it silently pass through?
+FIX: check if mat_mmv registration actually succeeded
+BUG: native_mat_mmv defined but NOT registered in register_all_natives!
+Registration was for "mat_mul_vec" renamed to "mat_mmv" in string
+But the registration line was checking for "mat_mul_vec" string which was renamed
+CHECK: is there a registration line for mat_mmv?
+CONFIRMED: no registration line for mat_mmv at all!
+The rename replaced "mat_mul_vec" with "mat_mmv" in the C function name
+BUT the registration line {TFunc*f2=...strcpy(f2->name,"mat_mul_vec")...} 
+was renamed to "mat_mmv" in the name string but the ENTIRE registration line
+must have been lost somehow
+FIX: add registration line manually
+BUG: native_mat_mmv undeclared - registration before function definition
+C requires function defined before used
+FIX: move registration after function definition OR add forward declaration
+SIMPLER: ensure native_mat_mmv is in file before registration line
+NATIVE CALLED! DBG shows n=16 mat_len=0 vec_len=4
+n=16 not 4 - sz=4 being read as mat, flatmat being read as sz
+n=(int)mat_v.num not n_val.num - mat_v.num=16 (arr_len stored in num field)
+CONFIRMED: pop order wrong - mat_v is actually sz_val (n=16=arr_len of flatmat)
+FIX: correct pop order - sz first popped, then src, then inp
+Registration order: src, sz, inp -> push order: src, sz, inp -> pop: inp, sz, src
+PROGRESS: n=4 correct now! But mat_len=0 vec_len=16
+mat_v and vec_v still swapped - mat is vec (len=16) and vec is mat (len=0)
+FIX: swap mat_v and vec_v pop order
+n_val first, then swap mat and vec
+PROGRESS: n=4, mat_len=16 correct! But vec_len=0
+xvec=[1,1,1,1] is being passed but arr_len=0
+BUG: xvec passed as inp param - vec_v.arr_len=0 means arr not allocated
+T- var xvec=[1,1,1,1] - arr_len should be 4
+OR: sz=4 literal passed as BVal with num=4 but no arr - that's n_val (correct)
+BUT vec_v is popped AFTER n_val and BEFORE mat_v in current order
+n_val=sz=4 (num), vec_v=next=xvec (arr_len=4?), mat_v=flatmat (arr_len=16)
+WAIT: vec_len=0 means vec_v is sz not xvec
+sz=4 as BVal: num=4, arr=NULL, arr_len=0 - matches vec_len=0!
+FIX: pop n LAST not first
+Order must be: mat first, vec second, n third (popped last=n)
+FOUND: fn->native_v(&vm->stack[base], argc, &out)
+base = vm->top - argc
+stack[base] = FIRST pushed arg = src=flatmat
+stack[base+1] = sz=4
+stack[base+2] = inp=xvec
+argc=3
+So stack[0]=flatmat, stack[1]=sz=4, stack[2]=xvec
+CORRECT pop: stack[0]=mat, stack[1]=n, stack[2]=vec
+USE: stack[0], stack[1], stack[2] directly NOT --argc
+MILESTONE: mat_mmv works! [1,2,3,4] correct!
+KEY: native receives stack[0..argc-1] where 0=first param, NOT reverse order
+Remove debug prints and commit
