@@ -1109,3 +1109,53 @@ OPCODES: 1=EQ, 2=NEQ, 3=GE, 4=LE, 5=GT, 6=LT
 MILESTONE: compile_gate works! [LOAD x, LOAD 0, 5, JUMP_IF_0 END, STORE result]
 NOTE: 5=GT numeric code - good enough for codegen, VM maps number to opcode
 DECISION: keep numeric opcode codes for now - cleaner than string mapping
+INSIGHT: T compile T architecture simple because T IS a simple language
+simple language = simple compiler = self-hosting achievable in days not months
+NEXT: write_output - write compiled instructions to file using write_file
+Then bootstrap: run t_compiler.t on itself
+BUG: write_output shows \n literal not newline, file not created
+BUG1: "\n" in T string = literal backslash-n not newline char
+BUG2: write_file_t not writing file - maybe path issue
+CHECK: does write_file_t work?
+BUG: write_file_t returns content but doesn't write to file - or writes to wrong location
+BUG: show shall(ok) shows "hello world" = write_file_t returns content not success status
+CHECK: write_file_t native behavior - returns content or status?
+BUG: write_file_t is hardcoded in compile_line not a C native - special case handling
+CHECK: how write_file_t is handled in compile_line
+CONFIRMED: write_file_t is a special inline handler not a registered native
+write_file_t(path=path, content=content) ~> ok compiles directly to OP_CALL write_file_t
+CHECK: what does write_file_t actually do in VM - is it registered as native?
+BUG: write_file_t only in compile_line but not in VM - OP_CALL write_file_t at runtime finds no func!
+write_file_t must be registered as C native to work
+FIX: add write_file_t as C native
+MILESTONE: write_file_t C native works! hello world written to file
+NEW-AXIOM: write_file_t(path, content) - write string to file
+NEXT: fix \n in write_output - need real newline char
+BUG: "\n" in T string is literal \n not newline
+FIX: need C native or use chars(str="\n") to get real newline
+CHECK: does fromChar(code=10) give newline?
+CONFIRMED: fromChar(code=10) gives real newline - use this in write_output
+FIX: update write_output to use fromChar(code=10) for newline separator
+BUG: write_output still uses old version - fromChar inside func body fails
+BUG: F(_instrs) body accesses _nl from outer func scope - but F() creates new scope
+_nl not visible inside F() body
+FIX: pass _nl as separator in split or use different approach
+SIMPLER: join all instrs with separator outside F loop using different pattern
+BUG: file still shows literal \n - _out accumulation not working in F() body
+ROOT-CAUSE: F() body _out + now >> _out - F() has own _out scope, outer _out never updated
+SAME nested F() scope problem - accumulator inside F() only updates local _out
+FIX: use split/join approach - join array with newline separator as C native
+OR: add join_lines as simple C native
+NEW-AXIOM: join(arr, sep) - join array elements with separator
+FIX: update write_output to use join with newline
+BUG: join still uses literal \n - fromChar(code=10) inside func may not work
+TEST: join with fromChar outside func directly
+CONFIRMED: join with fromChar(10) works outside func - each on own line
+BUG: inside write_output func, fromChar result not passed correctly to join
+ROOT-CAUSE: write_output func body - fromChar(code=10)~>_nl then join(sep=_nl) 
+BUT: _nl inside func body may be stale from func call context
+FIX: pass newline as parameter to write_output, compute outside
+MILESTONE: write_output works! Each opcode on own line
+LESSON: fromChar inside func body doesn't work - pass as parameter instead
+T compile T: lexer, parser, codegen, write_output all DONE
+FINAL STEP: bootstrap - run t_compiler.t on a real T file

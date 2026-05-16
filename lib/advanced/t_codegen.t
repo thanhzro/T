@@ -142,3 +142,11 @@ func compile_gate(line) {
     push(arr=_instrs, val=_i3) ~> _instrs
     _instrs >> out
 }
+
+func write_output(instrs, path, nl) {
+    past(instrs) ~> _instrs
+    past(path) ~> _path
+    past(nl) ~> _nl
+    join(arr=_instrs, sep=_nl) ~> _content
+    write_file_t(path=_path, content=_content) ~> out
+}

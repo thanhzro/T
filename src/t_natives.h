@@ -377,9 +377,37 @@ void nat_sqrt_v(BVal *stack, int argc, BVal *out){
     out->type=VT_NUM; out->num=sqrt(stack[0].num);
     out->str=NULL; out->arr=NULL; out->arr_len=0;
 }
+
+void nat_write_file(BVal *stack, int argc, BVal *out){
+    if(argc<2||!stack[0].str||!stack[1].str){out->type=VT_NUM;out->num=0;return;}
+    const char *path=stack[0].str;
+    const char *content=stack[1].str;
+    FILE *f=fopen(path,"w");
+    if(!f){out->type=VT_NUM;out->num=0;return;}
+    fputs(content,f);
+    fclose(f);
+    out->type=VT_NUM; out->num=1; out->str=NULL; out->arr=NULL; out->arr_len=0;
+}
+
+void nat_join(BVal *stack, int argc, BVal *out){
+    if(argc<2||stack[0].type!=VT_ARR){out->type=VT_STR;out->str=strdup("");return;}
+    BVal *arr=stack[0].arr; int n=stack[0].arr_len;
+    const char *sep=stack[1].str?stack[1].str:"";
+    char buf[65536]={0}; int pos=0;
+    for(int i=0;i<n;i++){
+        const char *s=arr[i].str?arr[i].str:"";
+        int sl=strlen(s);
+        if(pos+sl<65535){memcpy(buf+pos,s,sl);pos+=sl;}
+        if(i<n-1){int sep_l=strlen(sep);if(pos+sep_l<65535){memcpy(buf+pos,sep,sep_l);pos+=sep_l;}}
+    }
+    buf[pos]=0;
+    out->type=VT_STR; out->str=strdup(buf); out->arr=NULL; out->arr_len=0;
+}
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_starts");f2->is_native=4;f2->native_v=nat_filter_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"write_file_t");f2->is_native=4;f2->native_v=nat_write_file;f2->param_count=2;strcpy(f2->params[0],"path");strcpy(f2->params[1],"content");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sqrt");f2->is_native=4;f2->native_v=nat_sqrt_v;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exp");f2->is_native=4;f2->native_v=nat_exp_v;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"_trim_c");f2->is_native=4;f2->native_v=nat_trim_v;f2->param_count=1;strcpy(f2->params[0],"str");}

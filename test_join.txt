@@ -1,0 +1,3 @@
+LOAD x
+ADD
+STORE r
