@@ -681,3 +681,39 @@ NEXT: parse_gate - Gate var (op val) >> target
 MILESTONE: parse_gate works - [x, > 0, result]
 PROGRESS: 60% - all line parsers done: assign, tilde, gate
 NEXT: codegen - convert parsed lines to bytecode opcodes
+STAGE: codegen - the hardest part. Convert parsed AST to bytecode.
+NEED: emit OP_LOAD, OP_STORE, OP_CALL, OP_PUSH_NUM, OP_PUSH_STR, OP_ADD etc as bytes
+BLOCKER: write_file in T writes text not binary - bytecode needs binary output
+GOAL: build real LLM brain for T con - not just TF-IDF
+T con brain needs: read T code, understand patterns, generate solutions
+INSIGHT: T can implement LLM - matrix operations, neural network layers possible in T
+QUESTION: can T build transformer? needs: matrix mul, softmax, attention mechanism
+GOAL: build small transformer LLM in T for T con brain
+APPROACH: inference-only small transformer, load pre-trained weights, fine-tune on T codebase
+FIRST: implement matrix ops foundation in T
+ML FOUNDATION: mat_rows, mat_cols, mat_get, softmax, cosine_sim, dot_product, sigmoid, relu, normalize
+MISSING FOR TRANSFORMER: mat_mul, mat_transpose, layer_norm, attention, embedding lookup
+BUG: dot_product returns 0, softmax returns [0] - ml lib broken in bytecode era
+ml lib was written for AST era interpreter not bytecode VM
+NEED: rewrite ml functions for bytecode compatibility
+BUG: dot_product uses zip_with and sum - both may be broken in bytecode
+BUG: F(pairs){now*y>>now} - transform mode not accumulator - wrong pattern
+NEED: rewrite dot_product using simple F() accumulator pattern
+MILESTONE: dot_product pattern works in bytecode - use get(arr,idx=idx) with range
+PATTERN: dot_product = F(range(n)){get(a,idx)*get(b,idx) accumulate to sum}
+NEXT: rewrite ml lib functions for bytecode compatibility
+BUG: sigmoid(0) returns 1 not 0.5 - exp() not working correctly
+BUG: relu(-1) returns -1 not 0 - Gate _x(>0)>>out then _x>>out always overwrites
+PATTERN: relu same overwrite problem - need different approach
+MILESTONE: relu works correctly - 0, 2, 0
+PATTERN: relu = Gate _x(>0)>>_r; _x*_r>>out - multiply by flag 0 or 1
+NEXT: fix sigmoid - exp() issue
+BUG: exp(0) returns 0 not 1, exp(1) returns 1 not 2.718
+exp() is broken in bytecode - check if it's math lib exp or custom
+BUG: exp() in T calls C exp - but exp native may not be registered
+CHECK: what is exp in T - is it C math.h exp or custom T function?
+CONFIRMED: exp not registered as C native - exp() call fails silently
+FIX: add exp C native registration
+MILESTONE: exp works - 1, 2.718. sigmoid works - 0.5!
+NEW-AXIOM: exp C native registered
+ML FOUNDATION WORKING: dot_product, relu, sigmoid all correct
