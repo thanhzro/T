@@ -162,3 +162,16 @@ func ffn(x, w1, b1, w2, b2) {
     }
     linear(x=_h_relu, weights=_w2, bias=_b2) ~> out
 }
+
+func load_weights(path) {
+    past(path) ~> _p
+    file_read(path=_p) ~> _raw
+    split(str=_raw, sep=",") ~> _tokens
+    [] >> _weights
+    F(_tokens) {
+        _trim_c(str=now) ~> _t
+        toNumber(val=_t) ~> _w
+        push(arr=_weights, val=_w) ~> _weights
+    }
+    _weights >> out
+}
