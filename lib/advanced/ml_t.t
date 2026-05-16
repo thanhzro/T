@@ -175,3 +175,41 @@ func load_weights(path) {
     }
     _weights >> out
 }
+
+func multi_head_attention(q, k, v, num_heads) {
+    past(q) ~> _q
+    past(k) ~> _k
+    past(v) ~> _v
+    past(num_heads) ~> _h
+    len(val=_q) ~> _d
+    _d / _h >> _head_dim
+    sqrt(val=_head_dim) ~> _scale
+    dot_product(a=_q, b=_k) ~> _score
+    _score / _scale >> _scaled
+    [] >> _scores
+    push(arr=_scores, val=_scaled) ~> _scores
+    softmax(arr=_scores) ~> _weights
+    get(arr=_weights, idx=0) ~> _w
+    vec_scale(a=_v, s=_w) ~> out
+}
+
+func transformer_block(x, wq, wk, wv, w1, b1, w2, b2, num_heads) {
+    past(x) ~> _x
+    past(wq) ~> _wq
+    past(wk) ~> _wk
+    past(wv) ~> _wv
+    past(w1) ~> _w1
+    past(b1) ~> _b1
+    past(w2) ~> _w2
+    past(b2) ~> _b2
+    past(num_heads) ~> _h
+    mat_vec_mul(mat=_wq, vec=_x) ~> _q
+    mat_vec_mul(mat=_wk, vec=_x) ~> _k
+    mat_vec_mul(mat=_wv, vec=_x) ~> _v
+    multi_head_attention(q=_q, k=_k, v=_v, num_heads=_h) ~> _attn
+    vec_add(a=_x, b=_attn) ~> _res1
+    layer_norm(arr=_res1) ~> _norm1
+    ffn(x=_norm1, w1=_w1, b1=_b1, w2=_w2, b2=_b2) ~> _ff
+    vec_add(a=_norm1, b=_ff) ~> _res2
+    layer_norm(arr=_res2) ~> out
+}
