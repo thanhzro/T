@@ -403,8 +403,21 @@ void nat_join(BVal *stack, int argc, BVal *out){
     buf[pos]=0;
     out->type=VT_STR; out->str=strdup(buf); out->arr=NULL; out->arr_len=0;
 }
+
+void nat_filter_not_starts(BVal *stack, int argc, BVal *out){
+    if(argc<2||stack[0].type!=VT_ARR||!stack[1].str){out->type=VT_ARR;out->arr=NULL;out->arr_len=0;return;}
+    BVal *arr=stack[0].arr; int n=stack[0].arr_len;
+    char *pre=stack[1].str; int pl=strlen(pre);
+    BVal *res=calloc(n,sizeof(BVal)); int cnt=0;
+    for(int i=0;i<n;i++){
+        if(arr[i].type==VT_STR&&arr[i].str&&(pl==0||strncmp(arr[i].str,pre,pl)!=0))
+            res[cnt++]=arr[i];
+    }
+    out->type=VT_ARR; out->arr=res; out->arr_len=cnt;
+}
 void register_all_natives(VM *vm) {
     TFunc*f;
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_starts");f2->is_native=4;f2->native_v=nat_filter_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"join");f2->is_native=4;f2->native_v=nat_join;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"sep");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"write_file_t");f2->is_native=4;f2->native_v=nat_write_file;f2->param_count=2;strcpy(f2->params[0],"path");strcpy(f2->params[1],"content");}

@@ -1159,3 +1159,100 @@ MILESTONE: write_output works! Each opcode on own line
 LESSON: fromChar inside func body doesn't work - pass as parameter instead
 T compile T: lexer, parser, codegen, write_output all DONE
 FINAL STEP: bootstrap - run t_compiler.t on a real T file
+LESSON: "dễ nhất" trong T không bao giờ thực sự dễ - luôn có hidden bugs
+write_output tưởng dễ nhưng: write_file_t not native, \n literal, fromChar scope, join not native
+4 bugs trong "bước dễ nhất"
+FINAL STEP: build t_compiler.t - full T compile T pipeline
+INPUT: T source file
+OUTPUT: compiled instructions file
+PIPELINE: read_file -> tokenize -> get_sections -> parse_funcs -> compile_t0 -> write_output
+BUG: output.bc empty - all_instrs push inside F() doesn't update outer scope
+SAME nested F() scope problem - push result inside F() is local
+ROOT-CAUSE: F(t0_lines){push(arr=all_instrs,val=_ai)~>all_instrs} - all_instrs inside F() is local
+FIX: use Gate filter pattern for collection, or use F() outside with pre-collected data
+CORRECT: compile each line then collect separately
+ROOT-CAUSE: compile_assign returns array of instructions - pushing array into array = nested array
+F() scope issue persists - all_instrs push in F() body is local scope
+SOLUTION: compile_assign outside F(), process each line individually in T0
+APPROACH: process t0_lines one by one - get each line by index, compile, collect
+MILESTONE: output.bc has correct opcodes! LOAD x, LOAD +, LOAD 1, STORE r
+t0_clean shows [[T0], x + 1 >> r] - [T0] marker still included, need to filter
+NEXT: filter [T0] from t0_clean, then compile each line dynamically
+BUG: t0_code=[T0], so get(idx=0)="[T0]" not "x+1>>r"
+Gate _keep(==1)>>t0_code then now>>t0_code - now>>t0_code ALWAYS runs overwriting
+SAME overwrite pattern - use Gate filter directly instead of conditional
+FIX: use get_tzero which already returns T0 lines, filter [T] prefix with arr_filter_starts not prefix
+arr_filter_starts filters by prefix - use it to EXCLUDE [T lines
+BUG: t0_code still has [T0] - Gate now(!="[T0]") not working because [T0] contains ] which has bracket issue
+T- string "[T0]" - ] terminates string parsing in some contexts
+FIX: filter differently - use arr_filter_starts to keep only lines NOT starting with [
+Actually: arr_filter_starts keeps lines STARTING with prefix - can't exclude
+FIX: get_tzero already should exclude [T0] marker - check what it returns
+BUG: get_tzero returns [T0] marker as first element - need to fix get_tzero or filter after
+FIX: filter using indexOf - lines starting with [ that contain T are markers
+SIMPLER: slice from index 1 to skip [T0] marker
+CONFIRMED: slice(from=1) skips [T0] marker correctly - [x + 1 >> r] clean
+FIX: update t_compiler.t to use slice(from=1) to skip marker
+BUG: t0_code=[] empty - slice on array uses str param which is wrong for arrays
+slice(str=t0_lines) - slice works on strings not arrays!
+FIX: need array slice not string slice - get elements by index range
+WORKAROUND: F(t0_lines) with idx tracking to skip first element
+BUG: F() with idx - "idx" variable name inside F() may not work - it's "now" for value and idx for index
+BUG: Gate _i(>0)>>_skip then now>>_skip - now>>_skip ALWAYS runs overwriting
+SIMPLEST FIX: use get_tzero which gives T0 lines, then just filter [T0] string using indexOf
+indexOf("[T") returns 0 for marker lines - Gate filter those out
+BUG: t0_code still empty - two Gate filters in same F() both try to write to t0_code
+Gate _keep(==1)>>t0_code then Gate now(!="")>>t0_code - second Gate overwrites first with empty
+SIMPLEST: just use single Gate filter - filter by indexOf result directly
+SINGLE GATE: F(t0_lines){ Gate now(!="") >> t0_code } then filter markers separately
+BUG: Gate _mp(!= 0) pushes _mp value (the position number) not "now"
+In multi-line F() body Gate sets target=value not pushes now
+Gate filter single-line pushes now - Gate in multi-line assigns value
+CORRECT: use single-line Gate filter for collecting
+ROOT-CAUSE: Gate now(!="[T0]") - "[T0]" contains ] which may terminate string comparison
+T- string "[T0]" has ] - causes parser issue in Gate condition string literal
+WORKAROUND: compare differently - check indexOf for "[T0]" pattern
+ALTERNATIVE: use charCode of first char - "[" has charCode 91
+Filter: lines starting with "[" should be excluded
+FIX: arr_filter_starts keeps lines with prefix - need lines NOT starting with [
+APPROACH: collect lines where first char is NOT [
+BUG: Gate _bp(!= 0) in multiline F() assigns _bp value not pushes now
+SAME BUG: multiline F() Gate assigns value, single-line Gate pushes now
+CRITICAL RULE: Gate filter ONLY works in SINGLE-LINE F() body
+FIX: indexOf check must be in separate F() with single-line Gate
+TWO-STEP: step1=collect non-empty, step2=filter non-bracket BOTH as single-line Gate
+BUT: indexOf result needed for comparison - can't do indexOf in single-line Gate
+REAL-FIX: add arr_filter_not_starts(arr, prefix) C native - exclude by prefix
+NEW-AXIOM: arr_filter_not_starts(arr, prefix) - exclude array elements by prefix
+FIX: use arr_filter_not_starts to exclude [T marker lines
+BUG: t0_code=[] - arr_filter_not_starts fails silently
+bracket="[" as T- var but arr_filter_not_starts(prefix=bracket) - bracket is T0 var not T-
+T- var "bracket" vs T0 assignment "bracket = "[""
+FIX: t0_nonempty filtering - test arr_filter_not_starts directly
+BUG: arr_filter_not_starts returns [] for all elements - bug in C implementation
+bracket="[" - prefix length 1, strncmp(arr[i].str,"[",1) - should filter [T0] keeping x+1>>r
+DEBUG: test arr_filter_starts first to see if base works
+ROOT-CAUSE: bracket = "[" in T0 uses T- syntax! T0 assignment must use >> not =
+FIX: "[" >> bracket in T0 section
+CONFIRMED: arr_filter_not_starts works! [[T0]] and [x+1>>r, show r] correct
+ROOT-CAUSE-FIXED: T0 assignment must use >> not = (= is T- syntax)
+UPDATE: t_compiler.t to use >> for bracket assignment
+CONFIRMED: arr_filter_not_starts works! [[T0]] and [x+1>>r, show r] correct
+ROOT-CAUSE-FIXED: T0 assignment must use >> not = (= is T- syntax)
+UPDATE: t_compiler.t to use >> for bracket assignment
+BUG: t0_nonempty still empty even with correct bracket >> assignment
+DEBUG: test get_tzero and F() gate filter with real file_read
+CONFIRMED: get_tzero returns [[T0], x+1>>r] - 2 elements but len shows 1
+BUG: len(val=t0_lines)=1 not 2 - len on array of arrays returns wrong value
+OR: t0_lines is being treated as a 1-element array containing a string with newlines
+ROOT-CAUSE: get_tzero returns array where elements contain newlines - not split by line
+get_tzero uses split by \n but file_read newlines may not match
+ROOT-CAUSE-FINAL: get_tzero returns 1 element containing "[T0]\nx + 1 >> r\n" as single string
+get_tzero splits by section markers but keeps internal newlines intact
+t0_lines[0] = "[T0]\nx + 1 >> r\n" not separate lines
+FIX: after get_tzero, split the first element by newline to get individual lines
+MILESTONE: t0_code=[x + 1 >> r] correctly extracted from file!
+PIPELINE: file_read -> get_tzero -> get(idx=0) -> split(nl) -> filter_not_starts -> filter_empty -> t0_code
+MILESTONE: T compile T WORKING! output.bc = LOAD x, LOAD +, LOAD 1, STORE r
+T reads T source, extracts T0, compiles to bytecode instructions, writes output file
+BOOTSTRAP ACHIEVED - T compiler written in T compiles T programs
