@@ -113,3 +113,52 @@ func layer_norm(arr) {
     }
     _result >> out
 }
+
+func mat_vec_mul(mat, vec) {
+    past(mat) ~> _m
+    past(vec) ~> _v
+    [] >> _result
+    F(_m) {
+        dot_product(a=now, b=_v) ~> _d
+        push(arr=_result, val=_d) ~> _result
+    }
+    _result >> out
+}
+
+func attention(q, k, v) {
+    past(q) ~> _q
+    past(k) ~> _k
+    past(v) ~> _v
+    len(val=_q) ~> _d
+    sqrt(val=_d) ~> _scale
+    dot_product(a=_q, b=_k) ~> _score
+    _score / _scale >> _scaled
+    [] >> _scores
+    push(arr=_scores, val=_scaled) ~> _scores
+    softmax(arr=_scores) ~> _weights
+    get(arr=_weights, idx=0) ~> _w
+    vec_scale(a=_v, s=_w) ~> out
+}
+
+func linear(x, weights, bias) {
+    past(x) ~> _x
+    past(weights) ~> _w
+    past(bias) ~> _b
+    mat_vec_mul(mat=_w, vec=_x) ~> _out
+    vec_add(a=_out, b=_b) ~> out
+}
+
+func ffn(x, w1, b1, w2, b2) {
+    past(x) ~> _x
+    past(w1) ~> _w1
+    past(b1) ~> _b1
+    past(w2) ~> _w2
+    past(b2) ~> _b2
+    linear(x=_x, weights=_w1, bias=_b1) ~> _h
+    [] >> _h_relu
+    F(_h) {
+        relu(x=now) ~> _r
+        push(arr=_h_relu, val=_r) ~> _h_relu
+    }
+    linear(x=_h_relu, weights=_w2, bias=_b2) ~> out
+}

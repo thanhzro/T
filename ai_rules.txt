@@ -734,3 +734,124 @@ CONFIRMED: sqrt not registered. Add sqrt C native.
 MILESTONE: layer_norm works! [-1.34, -0.45, 0.45, 1.34] mean=0
 NEW-AXIOM: sqrt C native registered
 ML PROGRESS: dot_product, relu, sigmoid, softmax, layer_norm, vec_sum, vec_mean all working
+GOAL: build working LLM today - T is swarm language not heavy like Python
+T swarm = Par() parallel execution = distributed inference
+NEXT: attention mechanism - core of transformer
+MILESTONE: attention works! [0.5, 0.3, 0.2, 0.8] weighted vector output
+NEXT: linear layer = mat_mul + bias, then full transformer block
+BUG: ffn returns [0] - mat_vec_mul with nested array may fail
+DEBUG: test mat_vec_mul directly
+BUG: mat_vec_mul F(mat) with nested arrays - now = row array, dot_product(a=now, b=vec) fails
+ROOT-CAUSE: T- array literal [[1,0,1],[0,1,0]] - nested arrays may not parse correctly
+DEBUG: test nested array access
+BUG: nested array [[1,2],[3,4]] - len=1 not 2, row0=[] row1=0 - nested array literal parsing broken
+ROOT-CAUSE: T- parser does not handle nested arrays [[...],[...]] correctly
+DEEP-BUG: array literal parser stops at first ] treating it as end of outer array
+BUG: array literal parser line 112 uses strchr(expr,']') - finds FIRST ] not matching ]
+FIX: need depth-aware ] finder for nested arrays [[1,2],[3,4]]
+FIX: array literal parser now depth-aware - handles nested arrays [[1,2],[3,4]]
+PROGRESS: len=2 now correct! But row0=[] row1=[] - elements empty
+BUG: nested array elements [1,2] being pushed as empty arrays
+DEBUG: check if [1,2] is compiled correctly as inner array element
+CONFIRMED: simple array [1,2,3] works fine
+BUG: nested array [[1,2],[3,4]] - inner [1,2] element being treated as empty array
+DEBUG: when compile_expr recurses for inner [1,2] element it should work
+CHECK: is _inner buffer 512 enough? [[1,0,1],[0,1,0],[1,1,0]] = 30 chars, yes
+DEBUG: print what _inner contains after extraction
+BUG: r0=[] len=0 - inner [1,2] compiled as empty array
+ROOT-CAUSE: when compile_expr recurses with "[1, 2]" as token - the token extraction may have spaces
+DEBUG: add print to see what token is passed to compile_expr for inner array
+ROOT-CAUSE-FOUND: inner element is "[[1, 2]]" with double brackets! Not "[1, 2]"
+BUG: depth-aware split extracts "[1, 2]" but then trim adds extra [ from the outer
+FIX: the _inner for [[1,2],[3,4]] is "[1, 2],[3, 4]" - splitting at comma gives "[1, 2]" correctly
+BUT: ARR_ELEM shows [[1, 2]] meaning outer [ is being included
+ROOT-CAUSE: _inner = expr+1 to _rb-1 - but _rb points to LAST ] not first closing ]
+FIX: depth tracker finds outer ] correctly but strncpy includes the inner array brackets wrong
+PYTHON CORRECT: inner='[1, 2], [3, 4]' parts=['[1, 2]', '[3, 4]'] - logic is right
+BUG IN C: ARR_ELEM shows [[1, 2]] not [1, 2] - C code has extra [ somewhere
+DEBUG: C _inner extraction may be wrong - check what _inner contains
+ROOT-CAUSE-FOUND: _inner is always empty - _rb is NULL - depth tracker not finding matching ]
+BUG: const char *_rb=NULL in loop but _rb is local to for loop scope issue? No...
+BUG: _depth starts at 0, first [ increments to 1, matching ] decrements to 0 and breaks - correct
+WAIT: compile_expr called with "[[1, 2], [3, 4]]" - but T- parser may strip outer brackets before calling
+CHECK: what is expr when compile_expr is called for nested array
+ROOT-CAUSE-FINAL: expr="[[]]" not "[[1,2],[3,4]]" - T- parser transforms literal before compile_expr
+T- parser: mat = [[1,2],[3,4]] -> transforms to "[[]] >> mat" losing inner content
+BUG: T- literal transformation strips inner array content
+ROOT-CAUSE: val2[256] too small! "[[1, 2], [3, 4]]" = 18 chars but nested matrix [[1,0,1],[0,1,0],[1,1,0]] = 30+ chars
+WAIT: 256 should be enough for small matrices
+REAL-BUG: strchr(buf,'=') finds first = sign - but in mat = [[1,2],[3,4]] the = is correct
+BUG: val2=eq2+1 copies value but nl2[320] snprintf "%s >> %s" - val may get truncated
+CHECK: what is buf for nested array line
+FOUND: vp="[[[1, 2], [3, 4]]]" - triple brackets! Extra [] wrapper added
+BUG: T- line is "mat = [[1, 2], [3, 4]]" but vp shows triple bracket
+ROOT-CAUSE: buf contains "mat = [[1, 2], [3, 4]]" but after eq2+1 gets "[[[1, 2], [3, 4]]]"
+WAIT: that means buf = "mat = [[[1, 2], [3, 4]]]" with extra [] - why?
+CHECK: T- line transformation adds extra [] somewhere
+CONFIRMED: buf="mat = [[1, 2], [3, 4]]" correct
+BUF has extra ] at end from fgets? No, looks correct
+vp should be "[[1, 2], [3, 4]]" not "[[[1, 2], [3, 4]]]"
+BUG: strchr(buf,'=') - finds = correctly. eq2+1 = "[[1, 2], [3, 4]]"
+val2[256] strcpy(val2, eq2+1) - eq2+1 points to " [[1, 2], [3, 4]]" with leading space
+vp = val2 + skip spaces = "[[1, 2], [3, 4]]" - CORRECT
+SO WHY vp shows triple bracket?
+ANSWER: the LITERAL debug runs MULTIPLE TIMES - first time correct, compile_expr called with [[1,2],[3,4]]
+then compile_expr recurses for inner "[1, 2]" which starts with [ so enters array branch again
+ARR_ELEM "[[1, 2]]" - the tok has extra brackets from wrong split!
+BUG PERSISTS: r0=[] len=0 - inner elements still empty after buffer fix
+ROOT-CAUSE: _inner is empty string - depth tracker code not working
+DEBUG: add minimal C test to verify depth tracker logic
+Python logic correct: rb_idx=15 inner='[1, 2], [3, 4]' parts=['[1, 2]', '[3, 4]']
+BUG IN C: _rb pointer is NULL - C depth tracker broken
+CHECK: C code uses const char* _p=expr - but _rb declared as const char* outside loop
+The issue: _rb is declared before loop but assigned inside - should work in C99+
+REAL-BUG: C loop increments _p after checking - may skip last char
+DEBUG: try without any imports to isolate nested array issue
+BUG: len=2 correct but r0=[] - nested array outer count correct but elements empty
+DEBUG: check what the transformed line looks like before compile_line
+ADD: print the transformed nl2 line
+NL2 shows correct: "[[1, 2], [3, 4]] >> mat"
+BUG: compile_line processes this correctly finding >> but compile_expr gets wrong string
+DEBUG: check what lhs is extracted from "[[1, 2], [3, 4]] >> mat"
+BUG: line 178 lhs[64] - only 64 bytes! "[[1, 2], [3, 4]]" = 18 chars OK but larger matrices fail
+CHECK: line 414 char *arrow = find_arrow(buf) - what happens with "[[1, 2], [3, 4]] >> mat"
+BUG FOUND: line 421 char a[64],b[64] - buf is modified by *arrow=0 at line 416
+*arrow=0 sets the >> position to null terminator - buf becomes "[[1, 2], [3, 4]] " with null at >>
+BUT: expr=buf = "[[1, 2], [3, 4]] " - trailing space trimmed = "[[1, 2], [3, 4]]" - CORRECT
+compile_expr should get "[[1, 2], [3, 4]]" - why does it get "[[]]"?
+CHECK: further down - does a[64],b[64] split expr?
+FOUND: strstr(expr," + ") at line 441 - "[[1, 2], [3, 4]]" has " + " ? NO! But wait...
+"[[1, 2], [3, 4]]" does NOT have " + " - so this branch should be skipped
+BUG MUST BE: compile_expr is being called with WRONG string from somewhere else
+ADD: print at very start of compile_expr to see ALL calls
+FOUND: CEXPR shows "[[1, 2], [3, 4]]" surrounded by extra [] = "[[[1, 2], [3, 4]]]"
+ROOT-CAUSE: nl2 = "[[1, 2], [3, 4]] >> mat" but somehow gets extra [] wrapper
+WAIT: CEXPR shows "[[[1, 2], [3, 4]]]" but NL2 showed "[[1, 2], [3, 4]] >> mat" correct
+BUG: between nl2 storage and compile_line processing, extra [] added
+CHECK: T- preload adds [] wrapper? Or compile_line wraps arrays?
+MYSTERY SOLVED: expr="[[1, 2], [3, 4]]" is CORRECT - that IS the value! It has double brackets because outer array contains inner arrays.
+CEXPR shows "[[[1, 2], [3, 4]]]" = Python adds [] around print - NO WAIT: fprintf shows exact string
+REAL: expr = "[[1, 2], [3, 4]]" which IS correct. _depth tracker should work.
+BUT: then compile_expr recurses with "[1, 2]" and "[3, 4]" - CEXPR shows "[[1, 2]]" and "[[3, 4]]" with EXTRA []!
+ROOT-CAUSE: the split tok includes extra [] - _tok accumulates "[" before inner element
+FIX: trim leading [ from tok? NO - "[1, 2]" is correct token
+WAIT: CEXPR shows "[[1, 2]]" not "[1, 2]" - extra outer [] in recursion
+DEBUG: inner split produces "[1, 2]" but it's being wrapped in [] somehow
+FOUND: tok before append: "[[1, 2]]" - tok has DOUBLE bracket! Because d++ when hitting [ of inner array, then ] decrements but comma fires when d==0... 
+WAIT: inner = "[1, 2], [3, 4]" - first char is [, d becomes 1
+Then "1, 2]" - comma at d=1 NOT 0, so not split here
+Then ] makes d=0, comma next ", " fires at d=0... NO: ", [3,4]" - comma comes AFTER ] 
+SO: tok = "[1, 2]" when comma fires at d=0 - CORRECT in Python!
+BUT Python print shows "[[1, 2]]" because of print format f'[{t}]' adding []!
+PYTHON OUTPUT CORRECT: tok is "[1, 2]" the f-string just wraps in [] for display
+C OUTPUT: CEXPR shows "[[1, 2]]" - this is the ACTUAL string with double bracket
+ROOT: C _tok has extra [ at start somehow
+INSIGHT: CEXPR debug format "CEXPR:[%s]" adds [] around - "[[1,2]]" means expr IS "[1,2]" CORRECT
+compile_expr called with correct values - bug must be in RUNTIME OP_PUSH_ARR for nested arrays
+CHECK: OP_PUSH_ARR handler in VM - does it correctly store array of arrays?
+ROOT-CAUSE-FOUND: OP_PUSH_ARR line "items[i].arr=NULL; items[i].arr_len=0;" - ALWAYS sets arr=NULL!
+When inner array [1,2] is popped from stack, its .arr pointer is DISCARDED!
+FIX: copy .arr and .arr_len from stack to items[i]
+MILESTONE: nested arrays work! [[1,2],[3,4]] - len=2, row0=[1,2], r0n=2
+ROOT-CAUSE-FIXED: OP_PUSH_ARR was discarding .arr pointer of inner arrays - now copies with memcpy
+RULE: OP_PUSH_ARR must copy full BVal including .arr for nested arrays

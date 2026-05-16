@@ -1,10 +1,10 @@
 [T-]
-import "lib/basic/std.t"
-import "lib/advanced/ml_t.t"
-arr = [2, 4, 6, 8]
+mat = [[1, 2], [3, 4]]
 [T0]
-layer_norm(arr=arr) ~> normed
-vec_mean(arr=normed) ~> mean_after
+len(val=mat) ~> n
+get(arr=mat, idx=0) ~> r0
+len(val=r0) ~> r0n
 [T+]
-show shall(normed)
-show shall(mean_after)
+show shall(n)
+show shall(r0)
+show shall(r0n)

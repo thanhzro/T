@@ -446,10 +446,13 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 BVal *items=(BVal*)calloc(n,sizeof(BVal));
                 for(int i=n-1;i>=0;i--){
                     vm->top--;
-                    items[i].type=vm->stack[vm->top].type;
-                    items[i].num=vm->stack[vm->top].num;
-                    items[i].str=vm->stack[vm->top].str?strdup(vm->stack[vm->top].str):NULL;
-                    items[i].arr=NULL; items[i].arr_len=0;
+                    items[i]=vm->stack[vm->top];
+                    if(vm->stack[vm->top].str) items[i].str=strdup(vm->stack[vm->top].str);
+                    if(vm->stack[vm->top].arr){
+                        items[i].arr=(BVal*)malloc(vm->stack[vm->top].arr_len*sizeof(BVal));
+                        memcpy(items[i].arr,vm->stack[vm->top].arr,vm->stack[vm->top].arr_len*sizeof(BVal));
+                        items[i].arr_len=vm->stack[vm->top].arr_len;
+                    }
                 }
                 vm->stack[vm->top].type=VT_ARR;
                 vm->stack[vm->top].num=n;

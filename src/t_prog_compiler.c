@@ -108,17 +108,28 @@ static char* find_arrow(char *s) {
 void compile_expr(Chunk *c, const char *expr) {
     /* Empty array literal [] */
     if(expr[0]=='['){
-        char _inner[256]={0};
-        char *_rb=strchr(expr,']');
+        /* Find matching ] with depth tracking */
+        int _depth=0; const char *_p=expr; const char *_rb=NULL;
+        for(;*_p;_p++){if(*_p=='[')_depth++;else if(*_p==']'){_depth--;if(_depth==0){_rb=_p;break;}}}
+        char _inner[512]={0};
         if(_rb) strncpy(_inner,expr+1,_rb-expr-1);
         int _cnt=0;
-        char _tmp[256]; strcpy(_tmp,_inner);
-        char *_tok=strtok(_tmp,",");
-        while(_tok){
-            while(*_tok==' ')_tok++;
-            if(*_tok){compile_expr(c,_tok);_cnt++;}
-            _tok=strtok(NULL,",");
+        /* Split by comma with depth awareness */
+        char *_ip=_inner; char _tok[256]={0}; int _ti=0; int _d2=0;
+        while(*_ip){
+            if(*_ip=='[')_d2++;
+            else if(*_ip==']')_d2--;
+            if(*_ip==','&&_d2==0){
+                _tok[_ti]=0; char *_t=_tok; while(*_t==' ')_t++;
+                int _tl=strlen(_t); while(_tl>0&&_t[_tl-1]==' ')_t[--_tl]=0;
+                if(*_t){compile_expr(c,_t);_cnt++;}
+                _ti=0; memset(_tok,0,256);
+            } else { if(_ti<255)_tok[_ti++]=*_ip; }
+            _ip++;
         }
+        _tok[_ti]=0; char *_t=_tok; while(*_t==' ')_t++;
+        int _tl=strlen(_t); while(_tl>0&&_t[_tl-1]==' ')_t[--_tl]=0;
+        if(*_t){compile_expr(c,_t);_cnt++;}
         chunk_write(c,OP_PUSH_ARR); chunk_write(c,_cnt);
         return;
     }
@@ -589,12 +600,12 @@ int run_file(const char *path) {
                 char *eq2=strchr(buf,'=');
                 char vname[64]={0}; strncpy(vname,buf,eq2-buf);
                 char *vt=vname+strlen(vname)-1; while(vt>vname&&*vt==' ')*vt--=0;
-                char val2[256]={0}; strcpy(val2,eq2+1);
+                char val2[1024]={0}; strncpy(val2,eq2+1,1023);
                 char *vp=val2; while(*vp==' ')vp++;
                 /* T- only allows literals: numbers, strings, arrays */
                 int is_literal = (vp[0]=='"' || vp[0]=='[' || (vp[0]>=-'0'&&vp[0]<='9') || vp[0]=='-');
                 if(is_literal){
-                    char nl2[320]; snprintf(nl2,319,"%s >> %s",vp,vname);
+                    char nl2[1200]; snprintf(nl2,1199,"%s >> %s",vp,vname);
                     lines[count++]=strdup(nl2);
                 } else {
                     fprintf(stderr,"T- error: '%s' is not a literal - T- only allows literal values\n",vp);
