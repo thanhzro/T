@@ -485,3 +485,23 @@ SOLUTION: use slice() for array slicing - no nested F() needed for func body ext
 PATTERN: find start/end indices with F() then slice(str=arr, from=start, to=end+1)
 MILESTONE: func body extraction works! slice(arr, start, end+1) after index tracking with F()
 PATTERN: find_index + slice = powerful array section extraction without nested F()
+MILESTONE v11.5: index tracking + slice pattern unlocks complex array operations without nested F()
+STAGE: ~40% T compile T complete
+QUESTION: is nested F() truly unusable or just needs VM fix?
+TEST: simple nested F() that worked before
+CONFIRMED: nested F() works for save/restore pattern - outer var saved before inner F(), used after
+PATTERN: save outer var BEFORE inner F(), use saved var AFTER inner F() exits - works correctly
+PATTERN: _x>>_saved then F(_once){_x>>_saved} then push(val=_saved) - _saved correct after inner F()
+INSIGHT: nested F() issue was skill/pattern problem not VM bug - wrong usage pattern caused corruption
+CORRECT-PATTERN: save vars before nested F(), use saved vars after - never use outer vars inside nested F() body
+BUG: _saved>>result still wrong - [[T-] shows only first element partially
+ROOT-CAUSE: _saved is set inside inner F() but after inner F() exits outer F() iterates and _saved may not persist correctly to _saved>>result line
+DEBUG: the issue is _saved>>result ALWAYS runs even when _keep=0 (range(0) = no iterations = _saved unchanged from previous)
+FIX: need to NOT run _saved>>result when _keep=0 - but that requires another nested F()
+REAL-FIX: use different approach - push_if pattern needs rethink
+BUG: Gate now(!="[T-]") still returns [[T-] - bracket issue in Gate filter string compare
+ROOT-CAUSE: "[T-]" contains ] which terminates array literal parsing in T- line "arr = [...]"
+FIX: do not put [T-] inside T- array literal - use split from string instead
+CONFIRMED: Gate now(!="[T-]") works when array comes from split not from T- array literal
+ROOT-CAUSE: T- array literal ["[T-]",...] - ] inside string terminates array parsing
+RULE: never put strings containing ] in T- array literals - use split from string instead
