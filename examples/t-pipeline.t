@@ -2,7 +2,6 @@
 import "lib/basic/std.t"
 import "lib/intermediate/array.t"
 import "lib/advanced/format.t"
-import "lib/advanced/file2.t"
 
 [T0]
 exec(cmd="./t examples/t-ai-testgen.t") ~> gen_out

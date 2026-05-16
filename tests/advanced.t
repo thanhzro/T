@@ -3,7 +3,6 @@ import "lib/basic/std.t"
 import "lib/advanced/math3.t"
 import "lib/advanced/string3.t"
 import "lib/advanced/validate.t"
-import "lib/advanced/crypto.t"
 
 [T0]
 round(val=3.7) ~> O1

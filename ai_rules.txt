@@ -2191,3 +2191,9 @@ FIXED: items 28-40 - removed 3 md5/sha256 duplicates + 4 orphan slots
 595 -> 581 lines, 48/48 still pass
 NEXT: fix items 1-27 broken imports in lib/advanced/std.t
 APPROACH: remove broken imports OR create stub files
+FIXED: items 2-25 - removed 24 broken imports from std.t
+48/48 pass, codebase cleaner
+REMAINING DEBT:
+- Item 1: Makefile wrong paths (low priority)
+- Items 26-27: tests/advanced.t and examples/t-pipeline.t broken imports
+- Items 41-66: lib/archived/ not connected (cleanup only)
