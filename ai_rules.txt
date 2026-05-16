@@ -2038,3 +2038,36 @@ BUG: Gate O1(>=65&&<=90)>>now sets now=1 not preserves original
 FIX: lower T func is broken - use nat_lower C native directly
 nat_lower defined but NOT registered - lower only exists as broken T func
 FIX: register nat_lower as native "lower" to override broken T func
+ARCHITECTURE DECISION:
+Par() = nền tảng của hệ thống
+Par() unlock F() parallel execution
+Thứ tự implement: Par() → F(arr,idx) → =>
+Par() trong VM = pthread hoặc fork
+pthread already imported for server mode
+Par() implementation plan:
+- Compiler: detect Par() { } block → emit OP_PAR_BEGIN, OP_PAR_END
+- VM: OP_PAR_BEGIN spawns pthread for each statement block inside
+- Each thread gets isolated frame copy
+- OP_PAR_END joins all threads
+- Results merged back to main frame
+Par() implementation approach:
+SIMPLEST: Par() { block1 \n block2 } 
+→ compiler splits on newline into separate sub-programs
+→ each sub-program runs in pthread with shared frame (mutex protected)
+→ variables written by each thread go to shared frame
+→ Par() returns when all threads done
+START: add OP_PAR to bytecode, detect Par() { } in compiler
+IMPLEMENTING: Par() operator - parallel execution foundation
+Compiler: OP_PAR_BEGIN + body lines + OP_PAR_END emitted
+Next: VM handler for OP_PAR_BEGIN - spawn pthread per body line
+BUG: pthread and compile_line undeclared in t_bytecode.h
+t_bytecode.h included before pthread.h and compile_line defined
+FIX: Par() handler belongs in t_prog_compiler.c not t_bytecode.h
+Move Par() handler to compiler where pthread and compile_line are available
+BUG: pthread and compile_line undeclared in t_bytecode.h
+t_bytecode.h included before pthread.h and compile_line defined
+FIX: Par() handler belongs in t_prog_compiler.c not t_bytecode.h
+Move Par() handler to compiler where pthread and compile_line are available
+MILESTONE: Par() compiles and 48/48 tests pass!
+Par() currently sequential (scaffolding) - runs each line in isolated VM
+NEXT: test Par() works correctly, then make truly parallel with pthread

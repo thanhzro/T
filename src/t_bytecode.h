@@ -19,7 +19,8 @@ typedef enum {
     OP_CONCAT,
     OP_ITER_START, OP_ITER_NEXT,
     OP_TYPE_NUM, OP_TYPE_STR, OP_TYPE_ARR,
-    OP_SHOW, OP_HALT
+    OP_SHOW, OP_HALT,
+    OP_PAR_BEGIN, OP_PAR_END
 } OpCode;
 
 /* ===== VALUE ===== */
@@ -124,6 +125,7 @@ typedef struct { Frame frame; int return_ip; Chunk *return_chunk; } CallFrame;
 typedef struct {
     BVal stack[STACK_MAX]; int top;
     Chunk *chunk; int ip;
+    pthread_mutex_t frame_lock;
     Frame frame;
     CallFrame calls[CALL_MAX]; int call_depth;
     TFunc *funcs; int func_count; int func_capacity;
@@ -476,7 +478,9 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 BVal v=vm->stack[--vm->top];
                 BVal r=make_num(v.type==VT_ARR?1:0);
                 push(vm,r); break;}
-            case OP_SHOW:{
+            
+                
+                case OP_SHOW:{
                 vm->top--;
                 BVal*v=&vm->stack[vm->top];
                 /* Check if name was pushed before value */

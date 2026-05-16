@@ -1,9 +1,12 @@
 [T-]
 import "lib/basic/std.t"
-import "lib/intermediate/std.t"
 [T0]
-lower(str="ello") ~> out
-upper(str="h") ~> up
+Par() {
+    1 >> aa
+    2 >> bb
+    3 >> cc
+}
 [T+]
-show shall(up)
-show shall(out)
+show shall(aa)
+show shall(bb)
+show shall(cc)

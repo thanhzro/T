@@ -863,6 +863,43 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             compile_func(vm,fname,params,nparams,body,bc);
             continue;
         }
+        
+        if(strncmp(line,"Par()",5)==0 && strchr(line,'{')){
+            /* Collect Par() body lines */
+            const char **body=calloc(256,sizeof(char*)); int bc=0;
+            char *_ob=strchr(line,'{'), *_cb=_ob?strrchr(_ob,'}'):NULL;
+            if(_ob&&_cb&&_cb>_ob+1){
+                /* inline Par() { ... } */
+                char _inline[512]={0}; strncpy(_inline,_ob+1,_cb-_ob-1);
+                /* split by newline */
+                char *tok=strtok(_inline,"\n");
+                while(tok&&bc<255){body[bc++]=strdup(tok);tok=strtok(NULL,"\n");}
+                i++;
+            } else {
+                i++;
+                int bdepth=1;
+                while(i<n&&bdepth>0){
+                    const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
+                    if(_tp[0]=='{')bdepth++;
+                    if(_tp[0]=='}')bdepth--;
+                    if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
+                    i++;
+                }
+            }
+            /* Emit OP_PAR_BEGIN, body count, then each line */
+            chunk_write(c,OP_PAR_BEGIN);
+            chunk_write(c,(uint8_t)bc);
+            for(int bi=0;bi<bc;bi++){
+                /* compile each Par body line as separate chunk index */
+                int si=chunk_add_str(c,body[bi]);
+                chunk_write(c,(uint8_t)si);
+            }
+            chunk_write(c,OP_PAR_END);
+            for(int bi=0;bi<bc;bi++) free((void*)body[bi]);
+            free(body);
+            continue;
+        }
+
         if(strncmp(line,"F(",2)==0 && strchr(line,'{')){
             char arr_var[64]={0};
             char *lp=strchr(line,'('); char *rp=strchr(line,')');
