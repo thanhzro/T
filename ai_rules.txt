@@ -887,3 +887,5 @@ Current work = architecture skeleton, not trained model
 PHILOSOPHY: T architecture is the standard - other architectures are approximations
 T swarm = natural parallel inference = no artificial threading needed
 TOKENIZER: char_tokenize works [h,e,l,l,o, ,T]
+PROGRESS: LLM 80% - tokenizer, embedding, transformer_block, load_weights all done
+REMAINING: inference loop (generate next token), training data prep, weight initialization

@@ -229,3 +229,28 @@ func embed(token_id, embedding_table) {
     past(embedding_table) ~> _emb
     get(arr=_emb, idx=_id) ~> out
 }
+
+func lm_forward(tokens, emb_table, wq, wk, wv, w1, b1, w2, b2, num_heads) {
+    past(tokens) ~> _toks
+    past(emb_table) ~> _emb
+    past(wq) ~> _wq
+    past(wk) ~> _wk
+    past(wv) ~> _wv
+    past(w1) ~> _w1
+    past(b1) ~> _b1
+    past(w2) ~> _w2
+    past(b2) ~> _b2
+    past(num_heads) ~> _h
+    get(arr=_toks, idx=0) ~> _last_tok
+    get(arr=_emb, idx=_last_tok) ~> _x
+    transformer_block(x=_x, wq=_wq, wk=_wk, wv=_wv, w1=_w1, b1=_b1, w2=_w2, b2=_b2, num_heads=_h) ~> _hidden
+    softmax(arr=_hidden) ~> _logits
+    len(val=_logits) ~> _n
+    0 >> _max_val
+    0 >> _max_idx
+    0 >> _i
+    F(_logits) {
+        _i + 1 >> _i
+    }
+    _logits >> out
+}
