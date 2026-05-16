@@ -525,3 +525,10 @@ SOLUTION: add C native arr_filter_starts(arr, prefix) - 10 lines C, solves probl
 DESIGN-PRINCIPLE: C and T should complement each other - C for primitives, T for logic
 arr_filter_starts is a legitimate C axiom - filtering by prefix is a primitive operation
 expected: [func add(a, b) {, func mul(a, b) {]cat
+PHILOSOPHY: every language ultimately depends on lower layer - T depends on C, C depends on assembly, assembly depends on silicon
+GOAL: minimize C to essential primitives only - current 14+1=15 axioms is reasonable
+BALANCE: T for logic/composition, C for I/O/memory/primitives - this is correct architecture
+MILESTONE: func_defs extracted correctly from T- section using arr_filter_starts
+NEXT: build symbol table - for each func def extract name and params
+MILESTONE: symbol table complete! names=[add,mul] params_list=[[a,b],[a,b]]
+PROGRESS: T compile T ~50% complete
