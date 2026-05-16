@@ -254,3 +254,56 @@ func lm_forward(tokens, emb_table, wq, wk, wv, w1, b1, w2, b2, num_heads) {
     }
     _logits >> out
 }
+
+func mse_loss(pred, target) {
+    past(pred) ~> _p
+    past(target) ~> _t
+    vec_add(a=_p, b=_t) ~> _diff
+    dot_product(a=_diff, b=_diff) ~> _sq
+    len(val=_p) ~> _n
+    _sq / _n >> out
+}
+
+func sigmoid_grad(x) {
+    past(x) ~> _x
+    sigmoid(x=_x) ~> _s
+    1 - _s >> _one_minus
+    _s * _one_minus >> out
+}
+
+func vec_sub(a, b) {
+    past(a) ~> _a
+    past(b) ~> _b
+    len(val=_a) ~> _n
+    range(n=_n) ~> _idx
+    [] >> _result
+    F(_idx) {
+        get(arr=_a, idx=idx) ~> _ax
+        get(arr=_b, idx=idx) ~> _bx
+        _ax - _bx >> _d
+        push(arr=_result, val=_d) ~> _result
+    }
+    _result >> out
+}
+
+func linear_grad(x, grad_out, weights) {
+    past(x) ~> _x
+    past(grad_out) ~> _g
+    past(weights) ~> _w
+    mat_vec_mul(mat=_w, vec=_g) ~> grad_input
+    grad_input >> out
+}
+
+func sgd_update(weights, grad, lr) {
+    past(weights) ~> _w
+    past(grad) ~> _g
+    past(lr) ~> _lr
+    vec_scale(a=_g, s=_lr) ~> _delta
+    [] >> _new_w
+    F(_w) {
+        get(arr=_delta, idx=idx) ~> _d
+        now - _d >> _nw
+        push(arr=_new_w, val=_nw) ~> _new_w
+    }
+    _new_w >> out
+}

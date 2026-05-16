@@ -1,15 +1,10 @@
 [T-]
 import "lib/basic/std.t"
-import "lib/advanced/t_parser.t"
+import "lib/advanced/ml_t.t"
+w = [0.5, 0.3, 0.2]
+grad = [0.1, 0.05, 0.02]
+lr = 0.01
 [T0]
-file_read(path="input.t") ~> src
-get_tzero(src=src) ~> t0_section
-get(arr=t0_section, idx=0) ~> t0_str
-fromChar(code=10) ~> nl
-split(str=t0_str, sep=nl) ~> t0_lines
-"[" >> bracket
-arr_filter_not_starts(arr=t0_lines, prefix=bracket) ~> t0_nonempty
-[] >> t0_code
-F(t0_nonempty) { Gate now (!= "") >> t0_code }
+sgd_update(weights=w, grad=grad, lr=lr) ~> new_w
 [T+]
-show shall(t0_code)
+show shall(new_w)

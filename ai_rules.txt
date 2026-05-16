@@ -1256,3 +1256,23 @@ PIPELINE: file_read -> get_tzero -> get(idx=0) -> split(nl) -> filter_not_starts
 MILESTONE: T compile T WORKING! output.bc = LOAD x, LOAD +, LOAD 1, STORE r
 T reads T source, extracts T0, compiles to bytecode instructions, writes output file
 BOOTSTRAP ACHIEVED - T compiler written in T compiles T programs
+BUG-PATTERN: = in T0 section is T- syntax - T0 assignment must use >>
+= sign in T0 is silently ignored or treated as T- literal
+RULE: T0 never uses = for assignment, always use >> or ~>
+CONFIRMED: t_compiler.t now uses only >> and ~> in T0 section - no = assignments
+"!=" is comparison operator not assignment - that's fine
+t_compiler.t is syntactically correct
+NEXT: backpropagation - algorithm for training neural network weights
+backprop = chain rule calculates gradient of loss w.r.t. each weight
+INSIGHT: T temporal architecture maps PERFECTLY to backprop
+Forward pass: T- (weights) -> T0 (compute) -> T+ (output)
+Backprop: T+ (loss) -> T0 (gradients) -> T- (update weights)
+T is literally designed for this!
+Par() = parallel batch training = massive speedup
+MILESTONE: mse_loss=1.09 sigmoid_grad=0.235 - both correct!
+NEXT: backprop linear layer - gradient of output w.r.t weights
+grad_w = input * output_grad (outer product)
+grad_input = weights^T * output_grad
+MILESTONE: SGD update works! [0.499, 0.2995, 0.1998] - weights reduced correctly
+BACKPROP FOUNDATION: mse_loss, sigmoid_grad, vec_sub, linear_grad, sgd_update all working
+NEXT: full training loop - forward + loss + backprop + update
