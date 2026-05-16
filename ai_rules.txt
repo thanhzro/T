@@ -384,3 +384,8 @@ SIMPLIFY: Gate filter should NEVER auto-init - user must write [] >> target befo
 FIX-CONFIRMED: Gate filter works when caller pre-inits target with [] >> result before F()
 RULE: Gate filter NEVER auto-inits target - user MUST write [] >> target before F(){Gate...}
 LESSON: auto-init code was causing wrong bytecode layout corrupting push section
+MILESTONE v11.3: Gate filter pre-init required, string literals work, section parser works
+STAGE: self-hosting 30% - lexer done, section parser done, Gate filter fixed
+NEXT-STAGE: parse T- func definitions, build symbol table, codegen
+BUG: debug fprintf(stderr) left in production code at line 654 - prints FILTER info for every F() Gate filter call
+FIX: remove debug print from compile_f_block

@@ -651,7 +651,6 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
             int _is_num_lit = (_gend!=gate_val_str && *_gend==0);
             if(gate_is_str_lit || _is_num_lit || strcmp(gate_op,"is_num")==0 || strcmp(gate_op,"is_str")==0 || strcmp(gate_op,"is_arr")==0)
                 is_gate_filter=1;
-            fprintf(stderr,"FILTER op=[%s] val=[%s] is_str=%d\n",gate_op,gate_val_str,gate_is_str_lit);
         }
     }
     if(is_gate_filter) {
