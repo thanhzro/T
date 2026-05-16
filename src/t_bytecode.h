@@ -349,9 +349,11 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 int tb=--vm->top;
                 int ta=--vm->top;
                 char _cbuf[4096];
+                BVal _bva=bval_tostr(vm->stack[ta]);
+                BVal _bvb=bval_tostr(vm->stack[tb]);
                 snprintf(_cbuf,sizeof(_cbuf),"%s%s",
-                    vm->stack[ta].str?vm->stack[ta].str:"",
-                    vm->stack[tb].str?vm->stack[tb].str:"");
+                    _bva.str?_bva.str:"",
+                    _bvb.str?_bvb.str:"");
                 vm->stack[vm->top].type=VT_STR;
                 vm->stack[vm->top].num=0;
                 vm->stack[vm->top].str=strdup(_cbuf);

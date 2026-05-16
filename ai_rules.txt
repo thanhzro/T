@@ -1038,3 +1038,37 @@ REAL-BUG: target var getting LOAD before STORE - last token should be skipped in
 MILESTONE: compile_assign works! [LOAD x, LOAD +, LOAD 1, STORE r]
 NOTE: LOAD + is placeholder - operator resolution needed later
 NEXT: handle operators in compile_assign - + -> ADD, - -> SUB, * -> MUL, / -> DIV
+PROGRESS CHECK v12.8: T compile T status
+PROGRESS CHECK v12.8: T compile T status
+QUESTION: adding Par() syntax later - how hard after T compile T?
+Par() needs: VM thread support, isolated frames, result merge
+INSIGHT: new syntax always needs C VM change for new opcodes - unavoidable
+But T compiler (t_compiler.t) handles syntax parsing in T - only VM primitives need C
+DESIGN: C = opcodes (primitives), T = syntax (composition)
+NEXT: compile_tilde - func call ~> target codegen
+parse_tilde returns [fname, target, [args]] - need emit LOAD args, CALL fname, STORE target
+PROGRESS: compile_tilde works! [LOAD src, LOAD x, CALL split , STORE result]
+BUG: CALL split (space) not CALL split 2 - argc is number not string, emit_call concat fails
+FIX: toNumber not needed - argc already number, need toString for concat
+BUG: toStr not available - need toString or num_to_str
+CHECK: what string conversion functions available in lib
+FOUND: toString(val) in lib/basic/string.t - use this for number to string
+FIX: toStr -> toString
+BUG: CALL split {A1} - toString returns template placeholder {A1} not actual number
+toString in bytecode era may use template syntax not actual conversion
+FIX: use direct number concatenation pattern - numbers concat as strings in T
+TEST: simple number concat
+BUG: "CALL f " + ns where ns=2(number) - concat stops at number, returns "CALL f" without 2
+ROOT-CAUSE: OP_CONCAT handles string+string but not string+number
+FIX: need to convert number to string before concat - bval_tostr() in VM
+CHECK: is there a native that converts number to string properly?
+ROOT-CAUSE: OP_CONCAT uses .str only - if stack[tb].str is NULL (number), gets empty string
+FIX: use bval_tostr() to convert both operands before concat
+BUG: {A1} still showing - toString returns {A1} template - toString func in lib uses template syntax
+FIX: toString broken in bytecode era - need direct approach
+APPROACH: len(val=_args) returns number, concat with empty string forces string conversion in T
+TRICK: "" + number converts number to string via OP_CONCAT with bval_tostr fix
+USE: "" + _argc >> _argc_s instead of toString
+MILESTONE: compile_tilde works! [LOAD src, LOAD x, CALL split 2, STORE result]
+PROGRESS: T compile T ~80% complete
+NEXT: compile_gate then write_output then bootstrap

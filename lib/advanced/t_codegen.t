@@ -56,3 +56,27 @@ func compile_assign(line) {
     push(arr=_instrs, val=_store) ~> _instrs
     _instrs >> out
 }
+
+func compile_tilde(line) {
+    past(line) ~> _L
+    parse_tilde(line=_L) ~> _parts
+    get(arr=_parts, idx=0) ~> _fname
+    get(arr=_parts, idx=1) ~> _target
+    get(arr=_parts, idx=2) ~> _args
+    [] >> _instrs
+    F(_args) {
+        indexOf(str=now, sub="=") ~> _ep
+        _ep + 1 >> _vs
+        len(val=now) ~> _al
+        slice(str=now, from=_vs, to=_al) ~> _val
+        emit_load(vn=_val) ~> _instr
+        push(arr=_instrs, val=_instr) ~> _instrs
+    }
+    len(val=_args) ~> _argc
+    "" + _argc >> _argc_s
+    emit_call(fname=_fname, argc=_argc_s) ~> _call
+    push(arr=_instrs, val=_call) ~> _instrs
+    emit_store(vn=_target) ~> _store
+    push(arr=_instrs, val=_store) ~> _instrs
+    _instrs >> out
+}
