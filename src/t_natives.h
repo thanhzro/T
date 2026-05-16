@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <math.h>
 #include "t_bytecode.h"
 
@@ -500,6 +502,26 @@ static void native_mat_update_flat(BVal *stack, int argc, BVal *out) {
     }
 }
 
+
+static void nat_par_spawn(BVal *stack, int argc, BVal *out) {
+    BVal flist = stack[0];
+    int n = (int)flist.arr_len;
+    pid_t pids[256];
+    for(int i=0;i<n&&i<256;i++){
+        const char *path = flist.arr[i].str;
+        if(!path) continue;
+        pids[i] = fork();
+        if(pids[i]==0){
+            execl("./t_bc","./t_bc",path,NULL);
+            exit(1);
+        }
+    }
+    for(int i=0;i<n&&i<256;i++){
+        if(pids[i]>0) waitpid(pids[i],NULL,0);
+    }
+    *out = make_num(n);
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -522,6 +544,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"par_spawn");f2->is_native=4;f2->native_v=nat_par_spawn;f2->param_count=1;strcpy(f2->params[0],"files");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lower");f2->is_native=2;f2->native_s=nat_lower;f2->param_count=1;strcpy(f2->params[0],"str");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"upper");f2->is_native=2;f2->native_s=nat_upper;f2->param_count=1;strcpy(f2->params[0],"str");}
 

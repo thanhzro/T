@@ -2071,3 +2071,44 @@ Move Par() handler to compiler where pthread and compile_line are available
 MILESTONE: Par() compiles and 48/48 tests pass!
 Par() currently sequential (scaffolding) - runs each line in isolated VM
 NEXT: test Par() works correctly, then make truly parallel with pthread
+BUG: Par() body lines run in isolated VM with copy of frame
+Variables set inside Par() (aa, bb, cc) go to tmp.frame not main vm->frame
+frame sync: vm->frame = tmp.frame only copies LAST thread result
+FIX: Par() lines need to write back to main frame after each run
+OR: compile Par() body lines as part of main chunk directly
+SIMPLEST FIX: run each Par line in main VM context not isolated VM
+BUG: Par() still empty - run(vm) inside OP_PAR_BEGIN calls run() recursively
+run() hits OP_HALT and returns, but vm state corrupted
+SIMPLER: Par() body lines should be compiled directly into main chunk
+Not stored as strings - emit bytecode inline
+FIX: compiler should emit body lines as inline bytecode not string refs
+BUG: Par() still no output - OP_PAR_BEGIN skips bc byte but body lines compiled inline
+Body lines execute but T+ shows nothing
+WAIT: Par() body has "1 >> aa" - this is T0 assignment
+But compile_line for "1 >> aa" may not work correctly
+TEST: does "1 >> aa" work outside Par()
+Par() goal: T con nhân bản - spawn multiple T con instances
+Each T con runs independently, communicates via files
+Par() { tcon1.t \n tcon2.t } = spawn 2 ./t_bc processes in parallel
+Use write_file_t + file_read for communication
+PROGRESS: par_spawn called! done=[worker1.t, worker2.t] not 2
+par_spawn returns files array not count - native returning stack[0] not make_num(n)
+BUT: r1 and r2 empty - workers ran but files not written OR file_read before workers finish
+CHECK: did workers actually run?
+BUG: workers not running - par_spawn fork/execl fails
+execl("./t_bc") - path might be wrong, or files array .str is NULL
+par_spawn stack[0] = files array but files.arr[i].str may be NULL
+T- array ["worker1.t", "worker2.t"] stores strings in .str field
+BUT: BVal.str might not persist - need to check
+DEBUG: test par_spawn with direct shell spawn
+BUG: par_spawn not called - param "files" conflicts with T- var "files"
+SAME classic T param conflict bug
+FIX: rename T- var from "files" to "flist"
+BUG: par_spawn not in natives.h or compiler.c - registration lost!
+par_spawn was added to compiler.c but may have been overwritten
+done=[worker1.t,worker2.t] = par_spawn returns flist = T0 last value
+SAME BUG: native not registered so T returns last arg
+FIX: re-add par_spawn to compiler.c
+MILESTONE: par_spawn works! Returns 2 - spawned 2 worker processes
+Workers ran in parallel and returned
+TEST: check if worker files were created
