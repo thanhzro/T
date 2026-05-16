@@ -7,8 +7,8 @@ def run_t(imports, t0_code, expected):
     global PASS, FAIL
     test = f'[T-]\n{imports}\n\n[T0]\n{t0_code}\n\n[T+]\nshow shall(O1)\n'
     open('_rt_test.t','w').write(test)
-    r = subprocess.run(['./t_bc','_rt_test.t'], capture_output=True, text=True, timeout=5)
-    out = r.stdout.strip()
+    r = subprocess.run(['./t_bc','_rt_test.t'], capture_output=True, timeout=5)
+    out = r.stdout.decode("utf-8",errors="replace").strip()
     if out == str(expected):
         PASS += 1
     else:
@@ -106,8 +106,8 @@ runner_tests = [
 for code, expected in runner_tests:
     prog = template.format(imports='import "lib/basic/std.t"', t0_code=code)
     open('_rt_test.t','w').write(prog)
-    r = subprocess.run(['./t_bc','_rt_test.t'], capture_output=True, text=True, timeout=5)
-    got = r.stdout.strip()
+    r = subprocess.run(['./t_bc','_rt_test.t'], capture_output=True, timeout=5)
+    got = r.stdout.decode("utf-8",errors="replace").strip()
     if got == expected: PASS += 1
     else:
         FAIL += 1

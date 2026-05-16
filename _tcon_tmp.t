@@ -1,7 +1,9 @@
 [T-]
 import "lib/basic/std.t"
-logits = [0.1, 0.05, 0.8, 0.02, 0.03]
+import "lib/intermediate/std.t"
 [T0]
-argmax_n(arr=logits) ~> best
+lower(str="ello") ~> out
+upper(str="h") ~> up
 [T+]
-show shall(best)
+show shall(up)
+show shall(out)

@@ -268,6 +268,13 @@ char* nat_split_first(char**a,int n){
 
 /* String natives */
 
+char* nat_upper(char**a,int n){
+    char *s=a[0]; int len=strlen(s);
+    char *r=malloc(len+1);
+    for(int i=0;i<=len;i++) r[i]=toupper((unsigned char)s[i]);
+    return r;
+}
+
 char* nat_lower(char**a,int n){
     char *s=a[0]; int len=strlen(s);
     char *r=malloc(len+1);
@@ -515,6 +522,9 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lower");f2->is_native=2;f2->native_s=nat_lower;f2->param_count=1;strcpy(f2->params[0],"str");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"upper");f2->is_native=2;f2->native_s=nat_upper;f2->param_count=1;strcpy(f2->params[0],"str");}
+
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"softmax_n");f2->is_native=4;f2->native_v=native_softmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"embed_n");f2->is_native=4;f2->native_v=native_embed_n;f2->param_count=3;strcpy(f2->params[0],"cid");strcpy(f2->params[1],"tbl");strcpy(f2->params[2],"dim");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_update_flat");f2->is_native=4;f2->native_v=native_mat_update_flat;f2->param_count=3;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"grad");strcpy(f2->params[2],"lrv");}

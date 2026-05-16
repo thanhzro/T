@@ -2002,3 +2002,39 @@ ADD: native argmax_n(arr) - works for any size
 MILESTONE: argmax_n works! Returns 2 for [0.1,0.05,0.8,0.02,0.03]
 NOW: add softmax_n native and mat_update_flat native for full training pipeline
 THEN: build embedding lookup native embed_n(char_id, emb_table, emb_dim)
+DEBT REPORT: 66 items total
+CRITICAL (fix now): items 28-40 - registry duplicates and empty slots in register_all_natives
+IMPORTANT: items 1-27 - broken imports and build paths
+CLEANUP: items 41-66 - archived files not connected to active graph
+BUG: check_runtime.py UnicodeDecodeError 0x85 - some test output has non-UTF8 bytes
+Likely from a native func returning garbage bytes
+Fix: add errors='replace' to subprocess decode
+BUG: capitalize("hello") failing - likely returns garbage bytes (0x85)
+capitalize native has encoding issue
+FIX: check capitalize implementation
+BUG: capitalize returns "H\x85\x8c\x8c\x8f" - garbage bytes after H
+upper("h") = "H" correct
+lower("ello") = "\x85\x8c\x8c\x8f" WRONG - garbage bytes!
+lower native has encoding bug - tolower() on non-ASCII or wrong impl
+FIX: check lower native
+nat_lower looks correct - tolower with unsigned char cast is right
+BUG: check_runtime.py imports - capitalize test uses which import?
+check_runtime.py line 73 - what does I contain at that point?
+lower("ELLO") = "ello" correct
+BUG: lower("ello") = garbage - lowercase input to lower gives garbage
+lower("e") should be "e" but giving 0x85
+TEST: lower on already-lowercase input
+ROOT-CAUSE: func lower uses F(P2) loop with push scope bug
+Gate O1 (>= 65 && <= 90) >> now - sets now=1 not char
+then fromChar(val=O4) ~> now - but Gate already set now=1
+CLASSIC T GATE OVERWRITE: Gate sets now=1, then fromChar sets now=char
+Actually: Gate sets now to 1 if condition true, 0 if false
+Then "now" in P2 array is being modified but push scope issue
+F(P2) modifies now but P2 not updated outside F()
+RESULT: garbage output for lowercase chars (ASCII 97-122, not 65-90)
+65-90 = A-Z: Gate fires, O4=char+32=lowercase, fromChar=lowercase char
+97-122 = a-z: Gate doesn't fire, now stays as char, fromChar not called
+BUG: Gate O1(>=65&&<=90)>>now sets now=1 not preserves original
+FIX: lower T func is broken - use nat_lower C native directly
+nat_lower defined but NOT registered - lower only exists as broken T func
+FIX: register nat_lower as native "lower" to override broken T func
