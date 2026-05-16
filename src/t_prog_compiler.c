@@ -274,7 +274,7 @@ void compile_line(Chunk *chunk, const char *line) {
         }
     }
     /* func(args) ~> target */
-    char *tilde = strstr(p, "~>");
+    char *tilde = find_tilde_outside_quotes(p);
     /* arr[i] ~> target - array index access */
     if(tilde && !strchr(p,'(')) {
         char *lb=strchr(p,'['), *rb=strchr(p,']');

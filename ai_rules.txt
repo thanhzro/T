@@ -532,3 +532,138 @@ MILESTONE: func_defs extracted correctly from T- section using arr_filter_starts
 NEXT: build symbol table - for each func def extract name and params
 MILESTONE: symbol table complete! names=[add,mul] params_list=[[a,b],[a,b]]
 PROGRESS: T compile T ~50% complete
+INSIGHT: T has fewest C axioms because T is designed for composition not imperative control
+INSIGHT: 15 C axioms vs Python 300+ builtins - T is already minimal
+PHILOSOPHY: T solves problems differently - fractal depth F(), parallel width Par(), time axis past/now/shall
+T is not shorter Python - T is a different paradigm entirely
+T strength: auditable reasoning, coordinate-based thinking, fractal composition
+FUTURE: after T compile T complete, reducing C axioms is possible but requires careful migration
+NEXT: T0 line classification - identify line type from first token or pattern
+TYPES: assign(>>), tilde_assign(~>), gate, f_loop, func_call
+BUG: classify_t0_line - Gate/f_loop/tilde not detected correctly
+ROOT-CAUSE: Gate _gate(==0)>>_type sets _type but next Gate/assign lines overwrite
+CORRECT: check in REVERSE priority order - most specific first, most general last
+BUT STILL: each Gate line overwrites _type with its own result
+REAL-FIX: use indexOf result directly - check specific patterns first
+BUG: score-based approach still fails - "gate" >> _type always overwrites after Gate _best(>=4)
+ROOT-CAUSE: same overwrite problem - "string" >> _type always runs after Gate
+FINAL-SOLUTION: return numeric code not string - numbers can be set by Gate without overwrite
+BUG: t2=EMPTY_COORD - split(str=x, sep=s) ~> r - tilde ~> found at pos>0 so _is_til=1 but t2 empty
+BUG: t3,t4=1 not 8,4 - Gate and F() not detected - indexOf returns -1 for "Gate " in "Gate x (> 0) >> r"?
+DEBUG: check indexOf result for Gate pattern
+BUG: indexOf with ~> returns EMPTY_COORD - tilde character in sub causes parse issue
+ROOT-CAUSE: ~> in string literal as function argument - tilde may be special char in T compiler
+DEBUG: test indexOf with simple tilde string
+BUG: indexOf returns -1 for ~> even when it exists in string - T- var src="split(str=x) ~> r" may lose ~> due to tilde_outside_quotes fix
+ROOT-CAUSE: find_tilde_outside_quotes or T- parser strips ~> from string value
+CONFIRMED: T- string "hello ~> world" stored correctly - len=14
+BUG: indexOf("~>") returns -1 despite string containing ~>
+ROOT-CAUSE: indexOf C native uses strstr - strstr should find ~> correctly
+DEBUG: test indexOf with exact same string
+expected: 6, 6cat
+ROOT-CAUSE: compile_line detects ~> operator in line BEFORE parsing args - splits line at ~> position
+FIX: compile_line should use find_tilde_outside_quotes when splitting tilde_assign lines
+CHECK: does compile_line split at first ~> or uses find_tilde_outside_quotes?
+ROOT-CAUSE-CONFIRMED: line 277 char *tilde = strstr(p, "~>") - not quote-aware!
+FIX: replace strstr(p,"~>") with find_tilde_outside_quotes(p)
+FIX-CONFIRMED: find_tilde_outside_quotes for tilde detection - indexOf with inline ~> works
+FIX: strstr(p,"~>") replaced with find_tilde_outside_quotes(p) in compile_line
+BUG: t2=0 (tilde not detected), t3=1 not 9 (gate not detected), t4=1 not 5 (F not detected)
+DEBUG: check if indexOf works with inline ~>, Gate, F( patterns in classify func
+CONFIRMED: indexOf works correctly with inline strings - p1=0 p2=0 p3=13
+BUG: classify_t0_line func not detecting correctly - issue is in func body not indexOf
+DEBUG: classify passes line to past() then indexOf - check if past() returns correctly
+CONFIRMED: indexOf in func body works correctly - p1=0 for "Gate x>>r", p2=-1 correct
+BUG: classify_t0_line must have logic error - the bitmask calculation wrong
+DEBUG: test classify step by step
+BUG: til_pos=20 but classify returns 0 - _is_til should be 1 but result=0
+ROOT-CAUSE: classify func uses past(line)~>_L then indexOf(str=_L, sub="~>") but _L is passed as T- var "line"
+BUG: param name "line" conflicts - classify_t0_line has param "line", caller passes T- var "line"
+SAME-BUG as before: param name same as T- var name causes conflict
+FIX: rename T- var from "line" to different name
+BUG: still 0 even with different T- var name - param conflict not the issue here
+DEBUG: test classify with inline string literal not T- variable
+DEBUG: add step-by-step debug inside classify to see actual indexOf values
+FOUND: indexOf(">>") returns -1 for "x + 1 >> r" inside func - >> inside inline string arg gets stripped
+ROOT-CAUSE: find_arrow_outside_quotes strips >> from inline string arg "x + 1 >> r" when passed to function
+FIX: function call arg with >> - find_arrow strips it thinking it's T operator
+CONFIRMED: len=10 correct - string "x + 1 >> r" passed correctly
+BUG: indexOf(sub=">>") returns -1 inside func - the sub=">>") arg - >> in sub gets stripped by arg parser
+ROOT-CAUSE: in arg parser, sub=">>" - the >> is extracted as val, then compile_expr(">>") - >> is not a string literal, it's parsed as expression
+FIX: the arg val ">>" starts with " so compile_expr should push it as string... wait ">>" starts with "
+CONFIRMED: indexOf(sub=">>") works correctly inside func body - returns 2
+BUG ELSEWHERE: in classify, arr_val=-1 for "x + 1 >> r" means the STRING passed is wrong not indexOf
+RETEST: what does debug_classify return for arr when line has >>
+CONFIRMED: len=10 and string passed correctly. indexOf(">>") works in simple func.
+BUG: debug_classify earlier returned arr_val=-1 for "x + 1 >> r" - must be TWO functions conflicting
+ROOT-CAUSE: debug_classify had both ~> and >> indexOf calls - when func body has multiple indexOf with special chars
+CONFIRMED: both ~> and >> indexOf work correctly in same func body
+BUG WAS: in debug_classify test, TWO functions were called in sequence - second func call may have had issue
+NEXT: test classify_t0_line step by step with all 4 line types
+BUG: t2=0, t3=1 wrong - when multiple classify calls, second call returns wrong
+DEBUG: call classify only once to see if single call works
+BUG: single classify call also returns 0 for tilde line - not a multiple call issue
+ROOT-CAUSE: classify_t0_line func itself broken for tilde case
+DEBUG: look at actual classify func body in t_parser.t
+INSIGHT: func body has indexOf(str=_L, sub="~>") - this line contains ~> inside quotes
+COMPILE-TIME: when compile_func processes this line, find_tilde_outside_quotes finds the ~> in sub="~>" - NO it should be inside quotes so skipped
+BUT: the line "indexOf(str=_L, sub=\"~>\") ~> _til" - the ASSIGNMENT ~> is AFTER the closing paren
+COMPILE: find_tilde_outside_quotes should find assignment ~> not the one in quotes
+RUNTIME: but maybe the compiled func stores wrong string for sub param
+CONFIRMED: test_til works correctly - returns 4 for "abc ~> def"
+BUG MUST BE: in classify_t0_line specifically - something about Gate _til(>-1) behavior
+DEBUG: test Gate _til(>-1) with positive value
+CONFIRMED: Gate _til(>-1) works correctly in isolation - returns 1
+BUG: must be in the COMBINATION of multiple indexOf calls in classify
+DEBUG: test with both Gate conditions together
+ROOT-CAUSE-FOUND: test_combo returns 0 - after indexOf(sub=">>") call, _is_til gets reset to 0
+BUG: indexOf(str=_L, sub=">>") call resets frame variable _is_til somehow
+DEBUG: test without second indexOf
+CONFIRMED: _is_til=1 correct without second indexOf
+BUG: adding indexOf(str=_L, sub=">>") after RESETS _is_til to 0
+ROOT-CAUSE: second indexOf call with sub=">>" - the >> in sub arg causes compile_line to parse the indexOf line as an ASSIGN >> statement not a function call
+FIX: indexOf(str=_L, sub=">>") ~> _arr - the >> inside sub="" gets extracted and treated as assign operator
+BUG: arrowsub=">>" in func body - T0 enforce no = rule prevents assignment in func body
+INSIGHT: func body uses compile_func not T0 parser - but still, arrowsub=">>"> is assignment
+ROOT-CAUSE CONFIRMED: >> in inline string arg causes compile_line to parse as assign op
+FIX: find_arrow_outside_quotes must be used in compile_line for func body lines too
+CONFIRMED: no more strstr(">>") - all replaced with find_arrow_outside_quotes
+BUG: find_arrow_outside_quotes should skip >> inside quotes but still returning wrong result
+DEBUG: the line "indexOf(str=_L, sub=">>") ~> _arr" - find_arrow finds >> at which position?
+CONFIRMED: find_arrow_outside_quotes correctly skips >> inside quotes - no >> found outside quotes
+BUG MUST BE: compile_line processes func body lines - but compile_func splits body at \n BEFORE passing to compile_line
+CHECK: does compile_func body lines contain the raw string with >> ?
+CONFIRMED: find_arrow_outside_quotes correctly skips >> inside quotes - no >> found outside quotes
+BUG MUST BE: compile_line processes func body lines - but compile_func splits body at \n BEFORE passing to compile_line
+CHECK: does compile_func body lines contain the raw string with >> ?
+CONFIRMED: Python shows no >> outside quotes, ~> at pos 26 (assignment)
+compile_line should correctly detect only ~> assignment not >>
+BUG ELSEWHERE: problem must be in how func body is READ from file - t_parser.t file has >> inside string
+CHECK: does t_parser.t lib file actually contain the correct string with >> in quotes?
+CONFIRMED: lib file has correct string. compile_line should work.
+NEXT-DEBUG: add print in compile_line to see what arrow position it finds for this specific line
+CONFIRMED: Python simulation correct - arr=None, til=26
+compile_line should correctly process as tilde_assign not arrow_assign
+BUG MUST BE: in C implementation of find_arrow_outside_quotes - single quote handling
+CHECK: find_arrow_outside_quotes uses char 34 for quote but what about escaped quotes?
+C code looks correct. Test minimal reproduction - two indexOf calls only no Gate
+RESULT: 9 not 7 - arr or til wrong value
+"a >> b ~> c": arr should be 2, til should be 7 (not 5) -> 2+7=9 CORRECT!
+WAIT: 9 IS CORRECT! a(0) space(1) >(2) >(3) space(4) b(5) space(6) ~(7) >(8) space(9) c(10)
+arr=2 til=7 -> 9 IS RIGHT!
+PREVIOUS BUG: _is_til was wrong because Gate condition with multiple indexOf
+DEBUG: test step by step - does indexOf(sub=">>") reset _is_til?
+CONFIRMED: _is_til=1 persists after indexOf(sub=">>") call
+BUG MUST BE: Gate _arr(>-1) after indexOf >> is resetting _is_til
+DEBUG: add Gate _arr check
+CONFIRMED: _is_til=1 persists through all steps!
+BUG MUST BE: in the final calculation _is_arr + _is_til * 2 >> out
+DEBUG: test the calculation
+CONFIRMED: separate _til2 calculation works! Returns 2 correctly
+ROOT-CAUSE-FOUND: _is_arr + _is_til * 2 >> out - operator precedence issue!
+_is_arr + _is_til * 2 parsed as (_is_arr + _is_til) * 2 not _is_arr + (_is_til * 2)
+T has no operator precedence - expressions evaluated left to right!
+FIX: always use intermediate variables for multi-operation expressions
+MILESTONE: classify_t0_line works! 1=assign 2=tilde 9=gate 5=f_loop
+CRITICAL-RULE: T has NO operator precedence - a+b*c = (a+b)*c not a+(b*c)
+ALWAYS use intermediate vars for complex math: x*2>>tmp; y+tmp>>result

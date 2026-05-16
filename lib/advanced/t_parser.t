@@ -95,3 +95,25 @@ func build_symbol_table(lines) {
     }
     _funcs >> out
 }
+
+func classify_t0_line(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="Gate ") ~> _gate
+    0 >> _is_gate
+    Gate _gate (== 0) >> _is_gate
+    indexOf(str=_L, sub="F(") ~> _f
+    0 >> _is_f
+    Gate _f (== 0) >> _is_f
+    indexOf(str=_L, sub="~>") ~> _til
+    0 >> _is_til
+    Gate _til (> -1) >> _is_til
+    indexOf(str=_L, sub=">>") ~> _arr
+    0 >> _is_arr
+    Gate _arr (> -1) >> _is_arr
+    _is_til * 2 >> _s2
+    _is_f * 4 >> _s4
+    _is_gate * 8 >> _s8
+    _is_arr + _s2 >> _tmp
+    _tmp + _s4 >> _tmp
+    _tmp + _s8 >> out
+}

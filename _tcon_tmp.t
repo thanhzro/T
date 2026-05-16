@@ -1,20 +1,13 @@
 [T-]
 import "lib/basic/std.t"
 import "lib/advanced/t_parser.t"
-src = "[T-]\nfunc add(a, b) {\na + b >> out\n}\nfunc mul(a, b) {\na * b >> out\n}\nx = 10\n[T0]\nr = 0\n[T+]\nshow shall(r)"
 [T0]
-get_tminus(src=src) ~> tm
-[] >> tm_clean
-F(tm) { Gate now (!= "") >> tm_clean }
-arr_filter_starts(arr=tm_clean, prefix="func ") ~> func_defs
-[] >> names
-[] >> params_list
-F(func_defs) {
-    get_func_name(line=now) ~> _name
-    get_func_params(line=now) ~> _params
-    push(arr=names, val=_name) ~> names
-    push(arr=params_list, val=_params) ~> params_list
-}
+classify_t0_line(line="x + 1 >> r") ~> t1
+classify_t0_line(line="split(str=x) ~> r") ~> t2
+classify_t0_line(line="Gate x (> 0) >> r") ~> t3
+classify_t0_line(line="F(arr) { now >> r }") ~> t4
 [T+]
-show shall(names)
-show shall(params_list)
+show shall(t1)
+show shall(t2)
+show shall(t3)
+show shall(t4)
