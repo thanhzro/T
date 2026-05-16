@@ -258,7 +258,7 @@ func lm_forward(tokens, emb_table, wq, wk, wv, w1, b1, w2, b2, num_heads) {
 func mse_loss(pred, target) {
     past(pred) ~> _p
     past(target) ~> _t
-    vec_add(a=_p, b=_t) ~> _diff
+    vec_sub(a=_p, b=_t) ~> _diff
     dot_product(a=_diff, b=_diff) ~> _sq
     len(val=_p) ~> _n
     _sq / _n >> out
@@ -306,4 +306,46 @@ func sgd_update(weights, grad, lr) {
         push(arr=_new_w, val=_nw) ~> _new_w
     }
     _new_w >> out
+}
+
+func train_step(x, target, weights, bias, lr) {
+    past(x) ~> _x
+    past(target) ~> _t
+    past(weights) ~> _w
+    past(bias) ~> _b
+    past(lr) ~> _lr
+    linear(x=_x, weights=_w, bias=_b) ~> _pred
+    mse_loss(pred=_pred, target=_t) ~> _loss
+    vec_sub(a=_pred, b=_t) ~> _grad_out
+    [] >> _new_w
+    F(_w) {
+        get(arr=_grad_out, idx=idx) ~> _gi
+        vec_scale(a=now, s=_gi) ~> _row_grad
+        sgd_update(weights=now, grad=_row_grad, lr=_lr) ~> _new_row
+        push(arr=_new_w, val=_new_row) ~> _new_w
+    }
+    _new_w >> out
+}
+
+func mat_update_3(mat, grad, lr) {
+    past(mat) ~> _m
+    past(grad) ~> _g
+    past(lr) ~> _lr
+    get(arr=_m, idx=0) ~> _r0
+    get(arr=_m, idx=1) ~> _r1
+    get(arr=_m, idx=2) ~> _r2
+    get(arr=_g, idx=0) ~> _g0
+    get(arr=_g, idx=1) ~> _g1
+    get(arr=_g, idx=2) ~> _g2
+    vec_scale(a=_r0, s=_g0) ~> _rg0
+    vec_scale(a=_r1, s=_g1) ~> _rg1
+    vec_scale(a=_r2, s=_g2) ~> _rg2
+    sgd_update(weights=_r0, grad=_rg0, lr=_lr) ~> _nr0
+    sgd_update(weights=_r1, grad=_rg1, lr=_lr) ~> _nr1
+    sgd_update(weights=_r2, grad=_rg2, lr=_lr) ~> _nr2
+    [] >> _new_m
+    push(arr=_new_m, val=_nr0) ~> _new_m
+    push(arr=_new_m, val=_nr1) ~> _new_m
+    push(arr=_new_m, val=_nr2) ~> _new_m
+    _new_m >> out
 }

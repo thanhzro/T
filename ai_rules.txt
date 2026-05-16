@@ -1276,3 +1276,21 @@ grad_input = weights^T * output_grad
 MILESTONE: SGD update works! [0.499, 0.2995, 0.1998] - weights reduced correctly
 BACKPROP FOUNDATION: mse_loss, sigmoid_grad, vec_sub, linear_grad, sgd_update all working
 NEXT: full training loop - forward + loss + backprop + update
+BUG: train_step returns [3.0, 3.0, 3.0] - weights exploded not reduced
+ROOT-CAUSE: sgd_update(weights=_w, grad=_grad_scaled) - _w is matrix not vector
+sgd_update expects vector but gets matrix [[0.5,0.3,0.2],[0.1,0.8,0.1],[0.2,0.2,0.6]]
+ALSO: mse_loss uses vec_add not vec_sub for diff - wrong!
+FIX: fix mse_loss to use vec_sub, fix train_step to update each row of weight matrix
+CONFIRMED: mse_loss=0.03 correct after vec_sub fix
+NEXT: fix train_step - weights is matrix, need to update each row separately
+train_step must iterate over weight matrix rows and apply sgd_update per row
+BUG: new_loss=0.25 higher than original - weights update wrong direction
+F(_w) scope issue - push inside F() doesnt update outer _new_w
+SAME PROBLEM: nested F() scope - _new_w inside F() is local
+FIX: need different approach for matrix row update
+CONFIRMED: row-by-row update works! [0.4995, 0.2997, 0.1998] rows correctly updated
+PATTERN: get row by index, scale by grad, sgd_update - works outside F()
+FIX: train_step needs mat_update_3 func - hardcode 3 rows for now (3x3 matrix)
+MILESTONE: loss2=0.2528 < loss1=0.2567 - loss DECREASING after 1 training step!
+BACKPROP WORKING! T con LLM learns from data
+NEXT: run multiple training steps to see loss converge
