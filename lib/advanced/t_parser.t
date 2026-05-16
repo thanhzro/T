@@ -82,3 +82,16 @@ func get_func_bodies(lines) {
     }
     _body >> out
 }
+
+func build_symbol_table(lines) {
+    past(lines) ~> _lines
+    [] >> _tmp_all
+    F(_lines) { Gate now (!= "") >> _tmp_all }
+    [] >> _funcs
+    F(_tmp_all) {
+        indexOf(str=now, sub="func ") ~> _fp
+        Gate _fp (== 0) >> _funcs
+        now >> _funcs
+    }
+    _funcs >> out
+}

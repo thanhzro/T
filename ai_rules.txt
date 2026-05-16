@@ -505,3 +505,23 @@ FIX: do not put [T-] inside T- array literal - use split from string instead
 CONFIRMED: Gate now(!="[T-]") works when array comes from split not from T- array literal
 ROOT-CAUSE: T- array literal ["[T-]",...] - ] inside string terminates array parsing
 RULE: never put strings containing ] in T- array literals - use split from string instead
+PROGRESS CHECK v11.6: lexer+section+func_def+func_body+index_tracking+slice = solid foundation
+STRATEGY: build solid foundation first - symbol table then T0 classification then codegen
+NEXT: symbol table - collect all func names and params from T- section
+BUG: build_symbol_table _saved>>_funcs always runs corrupting _funcs
+CORRECT: use Gate filter single line instead of nested F() pattern
+BUG: nested F(_once){_tmp>>_funcs} still returns empty - _funcs corrupted by inner F() now=0
+FINAL-RULE: nested F() for conditional array push NEVER works reliably
+CORRECT-APPROACH: Gate filter is the ONLY reliable conditional collect pattern in T
+BUG: Gate _fp(==0)>>_funcs then now>>_funcs - now>>_funcs always overwrites. Same overwrite pattern.
+ONLY-SOLUTION: Gate filter single-line F body is the ONLY way to conditionally collect
+RULE: F(arr){Gate now(==condition)>>target} - this is the ONLY reliable conditional collect pattern
+INSIGHT: Gate _fp(==0)>>_funcs then now>>_funcs - now>>_funcs ALWAYS runs overwriting. Need Gate filter where CONDITION determines what gets pushed not what gets assigned.
+ONLY-PATTERN: F(arr){Gate now(startswith "func ")>>_funcs} - but startswith not available
+WORKAROUND: create filtered array first using indexOf check, then collect
+ROOT-CAUSE: T cannot filter array by arbitrary predicate - Gate filter only works with literal comparison of now
+FUNDAMENTAL-LIMIT: conditional collect needs predicate filtering - not possible in pure T without nested F()
+SOLUTION: add C native arr_filter_starts(arr, prefix) - 10 lines C, solves problem cleanly
+DESIGN-PRINCIPLE: C and T should complement each other - C for primitives, T for logic
+arr_filter_starts is a legitimate C axiom - filtering by prefix is a primitive operation
+expected: [func add(a, b) {, func mul(a, b) {]cat

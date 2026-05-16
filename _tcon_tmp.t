@@ -1,9 +1,8 @@
 [T-]
 import "lib/basic/std.t"
-src = "[T-]|func add() {|x = 10"
+src = "func add(a, b) {|func mul(a, b) {|x = 10"
 [T0]
-split(str=src, sep="|") ~> arr
-[] >> result
-F(arr) { Gate now (!= "[T-]") >> result }
+split(str=src, sep="|") ~> lines
+arr_filter_starts(arr=lines, prefix="func ") ~> funcs
 [T+]
-show shall(result)
+show shall(funcs)
