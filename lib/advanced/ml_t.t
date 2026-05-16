@@ -427,3 +427,30 @@ func mat_update_4(mat, grad, x, lr) {
     push(arr=_new_m, val=_nr3) ~> _new_m
     _new_m >> out
 }
+
+func linear_rows(r0, r1, r2, r3, bv, x) {
+    past(r0) ~> _r0
+    past(r1) ~> _r1
+    past(r2) ~> _r2
+    past(r3) ~> _r3
+    past(bv) ~> _bv
+    past(x) ~> _x
+    dot_product(a=_r0, b=_x) ~> _y0
+    dot_product(a=_r1, b=_x) ~> _y1
+    dot_product(a=_r2, b=_x) ~> _y2
+    dot_product(a=_r3, b=_x) ~> _y3
+    get(arr=_bv, idx=0) ~> _b0
+    get(arr=_bv, idx=1) ~> _b1
+    get(arr=_bv, idx=2) ~> _b2
+    get(arr=_bv, idx=3) ~> _b3
+    _y0 + _b0 >> _o0
+    _y1 + _b1 >> _o1
+    _y2 + _b2 >> _o2
+    _y3 + _b3 >> _o3
+    [] >> _out
+    push(arr=_out, val=_o0) ~> _out
+    push(arr=_out, val=_o1) ~> _out
+    push(arr=_out, val=_o2) ~> _out
+    push(arr=_out, val=_o3) ~> _out
+    _out >> out
+}

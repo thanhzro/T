@@ -59,10 +59,10 @@ void chunk_write(Chunk*c,uint8_t b){
     c->code[c->count++]=b;
 }
 int chunk_add_num(Chunk*c,double v){c->num_consts=realloc(c->num_consts,sizeof(double)*(c->num_count+1));c->num_consts[c->num_count]=v;return c->num_count++;}
-int chunk_add_str(Chunk*c,const char*s){c->str_consts=realloc(c->str_consts,sizeof(char*)*(c->str_count+1));c->str_consts[c->str_count]=strdup(s);return c->str_count++;}
+int chunk_add_str(Chunk*c,const char*s){for(int _i=0;_i<c->str_count;_i++){if(strcmp(c->str_consts[_i],s)==0)return _i;}c->str_consts=realloc(c->str_consts,sizeof(char*)*(c->str_count+1));c->str_consts[c->str_count]=strdup(s);return c->str_count++;}
 
 /* ===== FRAME ===== */
-#define FRAME_MAX 64
+#define FRAME_MAX 2048
 typedef struct {
     char keys[FRAME_MAX][64];
     BVal vals[FRAME_MAX];
@@ -120,7 +120,7 @@ typedef struct TFunc {
 typedef struct { Frame frame; int return_ip; Chunk *return_chunk; } CallFrame;
 
 /* ===== VM ===== */
-#define STACK_MAX 256
+#define STACK_MAX 4096
 typedef struct {
     BVal stack[STACK_MAX]; int top;
     Chunk *chunk; int ip;

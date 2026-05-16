@@ -1336,3 +1336,200 @@ CONFIRMED: l0=0.2775 -> l0_check=0.2248 - LOSS DECREASING ON SAME PAIR!
 BACKPROP IS CORRECT! 0.2775 -> 0.2248 = 19% reduction in 1 step
 l1 higher because different data pair - expected behavior
 NEXT: train multiple epochs on all 4 pairs, then run inference
+BUG: python3 heredoc not closed properly - ran old train_tcon.t
+FIX: write file directly then run
+PROGRESS: ans0=1 CORRECT! x0->[1] learned mapping
+ans1=1 wrong, should be 2 - need more training steps
+FIX: add second epoch of training on all 4 pairs
+PROGRESS: ans3=0 CORRECT! x3->[0] learned
+ans0=1 correct, ans1,ans2 still wrong - need more epochs
+MODEL LEARNING: 2 out of 4 pairs correct after 2 epochs
+PATTERN: T con LLM IS learning, just needs more epochs
+BUG: push(arr, val=matrix_row) stores matrix instead of scalar - mat_update_4 push scope issue
+BUG: EMPTY_COORD(b) - variable name b conflicts with something
+FIX: rename bias b to bias_vec, and fix mat_update_4 push scope
+BUG: mat_update_4 returns matrix data not updated weights - push inside func body scope issue
+CONFIRMED: push inside func body creates local copy not updating outer
+FIX: mat_update_4 needs to use different approach - build new matrix outside func
+APPROACH: inline the weight updates without mat_update_4 function
+BUG: push(arr=wm, val=row) in T0 - push inside T0 with array var has scope issue
+push ~> wm updates local wm not outer - same scope bug in T0 level
+ALSO: ans returns [0] array not scalar - argmax4 returns [0] array not 0
+BUG: argmax4 returns [] when all flags 0 - _s0+_s1+_s2+_s3 but _s0=0*0=0 always
+ROOT: argmax4 index 0 case returns 0 which is correct scalar but printing as [0]
+FIX: push scope - use T- array literal instead of building array in T0
+MILESTONE: linear_rows works! [0.5, 0.1, 0.2, 0.1] correct, argmax=0 correct
+APPROACH: track rows separately, use linear_rows for forward pass
+GENERATE: full training with linear_rows and row-level sgd_update
+BUG: variable name collision - gs22, gs23 etc - two digit numbers in var names may conflict
+BUG: !EMPTY_COORD(g2) - g2 conflicts with something (gradient var g2 vs get index 2)
+FIX: use underscore separator in var names: g_s_0_0 not gs00
+BUG: !EMPTY_COORD(_g_e0_i2) - i2 = x2 pair, b=t2 in vec_sub
+vec_sub(a=p, b=t2) - t2 contains ] bracket in value [0,0,0,1]
+WAIT: t2=[0,0,0,1] has no ] issue. But "b=t2" - param name "b" conflicts!
+ROOT-CAUSE: vec_sub(a,b) - param name "b" clashes with T- var "bv"? No, it's b not bv
+BUT: in t_bc, T- var names - is "b" a reserved name?
+ACTUALLY: b is just a param name inside vec_sub func - should be fine
+DEBUG: test vec_sub with x2 and t2 directly
+CONFIRMED: vec_sub(x2,t2) works fine - returns [1,1,2,0]
+BUG ELSEWHERE: train10.t has too many variables - T VM has variable limit
+T VM: symbol table has fixed size - 256 or 512 vars max
+10 epochs * 4 pairs * ~8 vars per step = 320 vars - may exceed limit
+FIX: reduce epochs or increase VM var limit
+BUG: train10.t variable limit - need to find VM var storage size
+VM stores vars in chunk constants pool or in a hash/array - need to check
+FOUND: STACK_MAX=256 - VM stack limited to 256 values
+10 epochs * 4 pairs * 8 vars = 320 stack operations exceeding 256
+FIX: increase STACK_MAX or reduce epochs
+SIMPLE FIX: increase STACK_MAX to 4096
+BUG: same error even with STACK_MAX=4096 - not stack size issue
+BUG: _g_e0_i2 = gradient for epoch0, pair2 (x2,t2) - vec_sub fails
+BUG: sgd_update EMPTY_COORD - chunk constant pool limit not stack
+CHECK: what is chunk constant pool size limit
+FOUND: Chunk uses dynamic realloc - no hard limit. Frame uses FRAME_MAX=64
+ROOT-CAUSE: FRAME_MAX=64 - each func call uses 1 frame, deep nesting exceeds 64
+train10.t: linear_rows calls dot_product 4x, vec_sub, vec_scale, sgd_update = many nested calls
+FIX: increase FRAME_MAX from 64 to 512
+BUG: same error - not frame limit issue
+!EMPTY_COORD(_g_e0_i2) - epoch0, pair2 = x2=[0,0,1,0], t2=[0,0,0,1]
+CHECK: does the generated T code actually have correct syntax for pair i2?
+CODE LOOKS CORRECT: syntax is right for e0_i2 lines
+BUG: variable name _g_e0_i2 has underscore prefix - check if T compiler strips _ prefix vars
+OR: var name length limit in T VM frame
+CHECK: max var name length in frame_get/frame_set
+ROOT-CAUSE-FOUND: keys[FRAME_MAX][64] - var name limited to 64 chars!
+_g_e0_i2 = 8 chars OK
+_gs_e0_i2_r2 = 13 chars OK
+BUT: keys array = FRAME_MAX=512 slots * 64 name chars
+AND: FRAME_MAX vars per frame - if more than 512 unique vars in T0, overflow!
+10 epochs * 4 pairs * 8 vars = 320 but with row vars = ~480+ per epoch!
+FIX: increase FRAME_MAX keys array
+ROOT-CAUSE: char keys[FRAME_MAX][64] where FRAME_MAX=512 - only 512 vars per frame
+train10.t: 10 epochs * 4 pairs * (1p + 1g + 4gs + 4rg + 4nr) = 10*4*14 = 560 vars > 512
+FIX: increase FRAME_MAX to 2048
+BUG: same error even with FRAME_MAX=2048 - NOT a frame size issue
+ROOT-CAUSE: !EMPTY_COORD(_g_e0_i2) - vec_sub returns empty
+DEBUG: run just first 2 pairs to isolate issue
+BUG: !EMPTY_COORD(_g_e0_i0) - vec_sub on FIRST pair fails!
+_g_e0_i0 = vec_sub(a=_p_e0_i0, b=t0) - _p_e0_i0 is output of linear_rows
+DEBUG: check if linear_rows output can be used as vec_sub input
+CONFIRMED: linear_rows -> vec_sub pipeline works! grad=[0.5,-0.9,0.2,0.1] correct
+BUG: in train_small.t the same pipeline fails - must be variable naming issue
+The var _p_e0_i0 has special chars that may conflict in T compiler
+CHECK: does T handle variable names with underscore and numbers correctly
+CONFIRMED: _p_e0_i0 and _g_e0_i0 var names work fine
+BUG MUST BE: in train_small.t the imports - it imports t_lm.t which may shadow functions
+CHECK: train_small.t imports vs _tcon_tmp.t imports
+SAME IMPORTS: train_small.t has same imports as working test
+BUG MUST BE: in generated T0 code something different
+COMPARE: run train_small.t step by step - extract just first 2 lines
+CODE LOOKS CORRECT: train_small.t T0 code is syntactically right
+BUG: line_rows has 6 params (r0,r1,r2,r3,bv,x) but T func max params = 8 - OK
+BUT: linear_rows called with 6 params - check if T func param limit allows 6
+CHECK: TFunc params[8] - should be fine
+REAL-BUG: maybe the issue is that linear_rows has param "r0" conflicting with T- var "r0"
+PARAM NAME CONFLICT: linear_rows(r0=r0) - param name r0 same as T- var name r0!
+ROOT-CAUSE-CONFIRMED: param name r0 conflicts with T- var r0!
+When calling linear_rows(r0=r0), param name same as T- var - T compiler confused
+FIX: rename T- vars from r0,r1,r2,r3 to row0,row1,row2,row3 in generated code
+BUG: still fails at e0_i2 = pair x2,t2 - x2=[0,0,1,0] t2=[0,0,0,1]
+DEBUG: generate minimal test with JUST pair x2,t2
+CONFIRMED: x2,t2 pair works in isolation! [0.2,0.3,0.5,0.1] and [0.2,0.3,0.5,-0.9]
+BUG: fails ONLY when run after x0,x1 pairs in sequence
+ROOT-CAUSE: after training on x0 and x1, rows are now _nr_e0_i1_r0 etc - NOT row0-row3
+The rows passed to linear_rows at e0_i2 are _nr_e0_i1_r{0-3} which are sgd_update outputs
+sgd_update output may not be array type properly
+TEST: check if sgd_update output can be used as linear_rows input
+ROOT-CAUSE-FOUND: sgd_update output _nr0=[0.35,0.3,0.2,0.1] correct
+But linear_rows(r0=_nr0,...) ~> _p2 = [0,0,0,0] - WRONG!
+BUG: x2=[0,0,1,0] assigned in T0 section with = syntax! T0 uses >> not =
+"x2 = [0,0,1,0]" in T0 is T- syntax - x2 not set correctly
+FIX: move all data to T- section or use >> in T0
+BUG: _g02 fails - epoch=0, pair=2 (xc,tc=[0,0,1,0],[0,0,0,1])
+_gs022 = epoch0, pair2, row2 - single digit concatenation: 0+2+2=022 looks like octal?
+ACTUAL: var name _gs022 - the 3 digits 0,2,2 concatenated without separator
+FIX: use letter separator not just digits: _gs_0_2_2 not _gs022
+RULE: never concatenate digits directly in var names - use underscore
+BUG: still _g_ep0_p2 fails - pair index 2 always fails
+ALWAYS pair 2 = xc=[0,0,1,0] tc=[0,0,0,1]
+NOT var name issue - pair 2 specifically fails after pair 0 and 1 trained
+ROOT-CAUSE: after 2 training steps, rows are _nr_ep0_p0_r{0-3} and _nr_ep0_p1_r{0-3}
+Then linear_rows called with those as r0-r3 params
+BUT: param names r0,r1,r2,r3 in linear_rows conflict with SOMETHING at that point
+DEBUG: test linear_rows with explicit _nr vars
+CONFIRMED: manual 3-pair pipeline works! _pc=[0.2,0.3,0.5,0.1] correct
+BUG: in generated code, something wrong with variable naming in generator
+The generator must have a bug - manual works but generated doesn't
+COMPARE: check what generated code looks like at pair 2 step
+CODE LOOKS CORRECT: generated code matches manual approach exactly
+line 46: linear_rows with _nr_ep0_p1_r{0-3} - correct
+line 47: vec_sub(a=_p_ep0_p2, b=tc) -> _g_ep0_p2 - looks right
+BUG MUST BE: tc=[0,0,0,1] - T- var name "tc" - but t2 worked before
+WAIT: pairs use xa,ta,xb,tb,xc,tc,xd,td - "tc" is T- var name
+BUT: "tc" - does T compiler reserve "tc" as something? Unlikely
+DEBUG: test just the generated lines 46-47 in isolation
+CONFIRMED: isolated test works! prediction and gradient correct
+BUG: only fails in FULL pipeline - must be variable count limit after all
+FRAME_MAX=2048 keys but maybe Frame struct too large for Termux stack
+ALTERNATIVE: use hash map for frame instead of fixed array
+SIMPLER FIX: reduce epochs to 3 and test
+BUG: !EMPTY_COORD(_p_ep0_p0) - first linear_rows call fails
+BUT: _g line shows [0.5,-0.9,0.2,0.1] which IS the correct gradient!
+CONTRADICTION: _p_ep0_p0 EMPTY but _g_ep0_p0 shows result
+ROOT-CAUSE: linear_rows returns result but ~> _p_ep0_p0 variable name has special issue
+"_p_ep0_p0" - starts with _p which T may interpret as parameter prefix
+FIX: avoid _p prefix - use _pred instead
+BUG: pred_ep0_p0 EMPTY but NEXT line shows gradient [0.5,-0.9,0.2,0.1] - vec_sub worked!
+CONTRADICTION: pred EMPTY but vec_sub(a=pred,...) returned correct gradient
+ROOT-CAUSE: ~> stores result in var BUT show shall shows EMPTY for that var
+BUG: ~> tilde assignment to vars starting without underscore may fail in T0
+OR: linear_rows result stored somewhere but var name lookup fails
+OR: show shall shows EMPTY_COORD but result IS used in next call
+CONCLUSION: show shall _tcon_tmp shows error but actual value used correctly in pipeline!
+EMPTY_COORD is just show shall display issue not actual empty!
+INSIGHT: T con show shall shows EMPTY_COORD but value IS used correctly downstream
+The training pipeline may actually be WORKING - just display errors
+BUG: train3b.t only shows 2 lines then stops - inference results not showing
+EMPTY_COORD errors cause early exit before [T+] section
+FIX: these are real errors not just display - pipeline stops at error
+ROOT-CAUSE: linear_rows returns value via push inside func body - push scope issue!
+linear_rows uses push(arr=_out,...) ~> _out in func body - same scope bug!
+_out inside func is local, outer out is never set
+FIX: linear_rows func returns wrong thing
+CONFIRMED: linear_rows works! [0.5,0.5,0.5,0.5] correct
+BUG: in train3b.t specifically - EMPTY_COORD for pred_ep0_p0 but gradient correct
+ROOT-CAUSE: linear_rows result stored to var pred_ep0_p0 via ~>
+BUT show shall pred_ep0_p0 shows EMPTY
+THEN: vec_sub(a=pred_ep0_p0) uses it correctly!
+CONCLUSION: show shall has bug for certain var names - not actual empty
+SOLUTION: remove all show shall from training, just show final ans
+ROOT-CAUSE: train3b.t crashes at gscal_ep0_p0_r0 = get(arr=grad_ep0_p0, idx=0)
+grad_ep0_p0 = vec_sub result - vec_sub returns correct value BUT
+show shall shows gradient [0.5,-0.9,0.2,0.1] which is FROM PREVIOUS RUN cached
+ACTUAL: grad_ep0_p0 is EMPTY because pred_ep0_p0 is EMPTY
+pred_ep0_p0 EMPTY because linear_rows ~> pred_ep0_p0 failed
+WHY: linear_rows(r0=row0,...) ~> pred_ep0_p0 - var name pred_ep0_p0 too long?
+OR: T0 ~> with long var name fails to store
+CONFIRMED: pred_ep0_p0 works fine in isolation!
+BUG: fails only in train3b.t context - must be function name conflict
+linear_rows is defined in ml_t.t but also has params r0,r1,r2,r3
+When calling with row0,row1,row2,row3 - all fine
+But after training, rows become nrow_ep0_p0_r0 etc - very long names
+CHECK: does linear_rows func have 64-char param limit in TFunc?
+TFunc params[8][64] - param NAMES limited to 64 chars
+nrow_ep0_p0_r0 = 14 chars - fine
+BUT: the func CALL passes these as r0=nrow_ep0_p0_r0 - 64 char limit on compiled arg
+DEBUG: chunk_add_str stores var names in string constants pool - no length limit
+BUT: chunk code uses uint8_t for indices - index max = 255!
+If str_count > 255, index wraps around to 0 - causes wrong var lookup!
+train3b.t has 200+ lines each adding multiple strings - easily > 255 constants
+FIX: change chunk code to use 2-byte index for str_consts
+ROOT-CAUSE-FINAL: uint8_t index for str_consts - max 255 constants
+train3b.t has 200+ lines * multiple strings per line = easily > 255 str constants
+FIX: use 2-byte (uint16_t) index - write high byte then low byte
+REQUIRES: update chunk_write calls for str indices to write 2 bytes
+AND: update VM reads to read 2 bytes for str index
+FIXED! train3b.t outputs 1,1,1,0 - 3 epochs not enough, need more
+FIX: str constant dedup solves uint8_t overflow
+LESSON: always dedup string constants in chunk - max 255 unique strings per program
+NEXT: run more epochs to get 1,2,3,0
