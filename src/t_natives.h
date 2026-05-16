@@ -559,30 +559,16 @@ void register_all_natives(VM *vm) {
     strcpy(f->name,"len"); f->is_native=3; f->native_m=nat_len_mix;
     f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
-    f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
-    f=&vm->funcs[vm->func_count++];
-    f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
-    f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"push"); f->is_native=4; f->native_v=nat_push_val;
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"val");
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"get"); f->is_native=4; f->native_v=nat_get_val;
     REG_S1("md5",nat_md5_s,"str")
     REG_S1("sha256",nat_sha256_s,"str")
-    REG_S1("md5",nat_md5_s,"str")
-    REG_S1("sha256",nat_sha256_s,"str")
-    REG_S1("md5",nat_md5_s,"str")
-    REG_S1("sha256",nat_sha256_s,"str")
-    REG_S1("md5",nat_md5_s,"str")
-    REG_S1("sha256",nat_sha256_s,"str")
     f->param_count=2; strcpy(f->params[0],"arr"); strcpy(f->params[1],"idx");
     f=&vm->funcs[vm->func_count++];
     f=&vm->funcs[vm->func_count++];
-    f->param_count=1; strcpy(f->params[0],"val");
     f=&vm->funcs[vm->func_count++];
-    f=&vm->funcs[vm->func_count++];
-    f=&vm->funcs[vm->func_count++];
-    f->param_count=2; strcpy(f->params[0],"str"); strcpy(f->params[1],"sub");
 
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"file_read");f2->is_native=4;f2->native_v=nat_file_read;f2->param_count=1;strcpy(f2->params[0],"path");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"toNumber");f2->is_native=3;f2->native_m=nat_toNumber_mix;f2->param_count=1;strcpy(f2->params[0],"val");}

@@ -2170,3 +2170,20 @@ OR: extract each segment into separate mini-chunk
 APPROACH: copy segment bytes into new Chunk, run that chunk
 Par() returns 1 1 1 with mini-chunk pthread approach
 VERIFY: is it actually parallel? Test with timing
+TIMING: Par() 0.017s vs Sequential 0.009s
+Par() SLOWER than sequential - pthread overhead > benefit for tiny tasks
+BUT: results correct [0.5,0,0,0] [0.1,0,0,0] [0.2,0,0,0] [0.1,0,0,0]
+ALSO: mat_mmv(src=r0, sz=4, inp=xvec) - sz=4 but r0 is 1D array [0.5,0.3,0.2,0.1]
+Expected: dot(r0, xvec) = 0.5*1+0.3*0+0.2*0+0.1*0 = 0.5 as scalar
+Getting: [0.5,0,0,0] = VECTOR not scalar - mat_mmv treating r0 as 4x4 matrix
+BUG: mat_mmv with sz=4 treats r0 as 4x4=16 element matrix
+But r0 only has 4 elements - out of bounds reads give zeros
+FIX: need dot_product not mat_mmv for single row
+DEBT FIX: use Python script to auto-fix all 66 debt items
+Faster than manual, can run as T con worker
+FIXED: items 28-33 - removed 6 duplicate md5/sha256 registrations
+48/48 still pass
+NEXT: fix items 34-40 orphan slots, then items 1-27 broken imports
+BUG: orphan detection infinite loop - same line 560 forever
+Script broken - git restore natives.h to before orphan removal
+FIX: inspect line 560 manually then fix surgically
