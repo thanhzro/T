@@ -880,7 +880,10 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             }
             /* Compile each body line directly into main chunk */
             chunk_write(c,OP_PAR_BEGIN);
-            for(int bi=0;bi<bc;bi++) compile_line(c,body[bi]);
+            for(int bi=0;bi<bc;bi++){
+                chunk_write(c,OP_PAR_LINE);
+                compile_line(c,body[bi]);
+            }
             chunk_write(c,OP_PAR_END);
             free(body);
             continue;

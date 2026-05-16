@@ -2141,3 +2141,32 @@ Par() body lines compile and execute inline
 xx=1, aa=2, bb=3, yy=4 - sequential order correct
 NEXT: make Par() truly parallel with pthread
 AND: test Par() with function calls not just assignments
+Par() hiện tại: chạy lần lượt (sequential) - chỉ là syntactic grouping
+OP_PAR_BEGIN/END là markers không có pthread
+NEXT: make Par() truly parallel with pthread
+Each body line needs isolated chunk + thread
+IMPLEMENTING: OP_PAR_LINE - boundary marker between Par() body lines
+Each Par() body line separated by OP_PAR_LINE
+VM: when OP_PAR_BEGIN hit, collect bytecode segments between OP_PAR_LINE markers
+Each segment runs in separate pthread
+OP_PAR_LINE added to bytecode and compiler
+NOW: implement VM handler for OP_PAR_BEGIN
+Strategy:
+1. OP_PAR_BEGIN: scan forward to find all OP_PAR_LINE boundaries and OP_PAR_END
+2. Split bytecode into segments
+3. Spawn pthread for each segment
+4. Each thread gets: copy of chunk, own ip, own stack, shared frame with mutex
+5. OP_PAR_END: join all threads
+Par() pthread handler added - compiles without error
+But par_thread function defined inside case block - C99 nested function not portable
+TEST: does Par() still work correctly
+Par() returns 1 1 1 correct
+BUT: is it truly parallel or still sequential?
+par_thread function body: tmp.ip=s->end immediately - does nothing!
+Thread body is empty - just copies frame back
+Currently: Par() still sequential, threads do nothing
+FIX: need run() to stop at OP_PAR_LINE/OP_PAR_END
+OR: extract each segment into separate mini-chunk
+APPROACH: copy segment bytes into new Chunk, run that chunk
+Par() returns 1 1 1 with mini-chunk pthread approach
+VERIFY: is it actually parallel? Test with timing

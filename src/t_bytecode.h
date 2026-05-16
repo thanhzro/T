@@ -20,7 +20,7 @@ typedef enum {
     OP_ITER_START, OP_ITER_NEXT,
     OP_TYPE_NUM, OP_TYPE_STR, OP_TYPE_ARR,
     OP_SHOW, OP_HALT,
-    OP_PAR_BEGIN, OP_PAR_END
+    OP_PAR_BEGIN, OP_PAR_LINE, OP_PAR_END
 } OpCode;
 
 /* ===== VALUE ===== */
