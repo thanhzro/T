@@ -2124,3 +2124,20 @@ worker1_done.txt created by spawned child process
 worker2 empty - worker2.t missing msg/pth vars
 par_spawn + file communication = T con army foundation COMPLETE
 KEY: chdir() before execl fixes CWD issue in child process
+BUG: Par() { } block returns nothing - body lines not executing
+Par() compiler collects body lines but compile_line inside Par() block broken
+DEBUG: check what Par() compiles to
+BUG: Par() crashes VM completely - xx yy aa bb all empty
+Par() consuming too many lines OR crashing
+OP_PAR_BEGIN skips bc byte but bc = number of body lines
+Body lines compiled inline AFTER OP_PAR_BEGIN + bc byte
+But OP_PAR_BEGIN handler reads bc then skips - it skips 1 byte
+Each body line compiled as multiple bytes not 1 byte
+So ip after Par() is wrong - crashes into garbage
+FIX: OP_PAR_BEGIN and OP_PAR_END are just markers - no extra bytes
+Remove bc byte from emit
+MILESTONE: Par() { } block working! 1 2 3 4 all correct
+Par() body lines compile and execute inline
+xx=1, aa=2, bb=3, yy=4 - sequential order correct
+NEXT: make Par() truly parallel with pthread
+AND: test Par() with function calls not just assignments
