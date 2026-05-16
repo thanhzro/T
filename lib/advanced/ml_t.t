@@ -374,29 +374,29 @@ func argmax4(arr) {
     get(arr=_a, idx=2) ~> _v2
     get(arr=_a, idx=3) ~> _v3
     _v0 >> _best_val
+    0 >> _best_idx
     0 >> _is1
     Gate _v1 (> _best_val) >> _is1
-    _best_val + _is1 >> _best_val
+    _v1 - _v0 >> _d1
+    _d1 * _is1 >> _d1
+    _v0 + _d1 >> _best_val
+    _is1 * 1 >> _best_idx
     0 >> _is2
     Gate _v2 (> _best_val) >> _is2
-    _best_val + _is2 >> _best_val
+    _v2 - _best_val >> _d2
+    _d2 * _is2 >> _d2
+    _best_val + _d2 >> _best_val
+    _is2 * 2 >> _bi2
+    _is2 * _best_idx >> _old2
+    _best_idx - _old2 >> _best_idx
+    _best_idx + _bi2 >> _best_idx
     0 >> _is3
     Gate _v3 (> _best_val) >> _is3
-    0 >> _not1
-    1 - _is1 >> _not1
-    0 >> _not2
-    1 - _is2 >> _not2
-    0 >> _not3
-    1 - _is3 >> _not3
-    _not1 * _not2 >> _is0
-    _is0 * _not3 >> _is0
-    _is0 * 0 >> _s0
-    _is1 * 1 >> _s1
-    _is2 * 2 >> _s2
-    _is3 * 3 >> _s3
-    _s0 + _s1 >> _out
-    _out + _s2 >> _out
-    _out + _s3 >> out
+    _is3 * 3 >> _bi3
+    _is3 * _best_idx >> _old3
+    _best_idx - _old3 >> _best_idx
+    _best_idx + _bi3 >> _best_idx
+    _best_idx >> out
 }
 
 func mat_update_4(mat, grad, x, lr) {
