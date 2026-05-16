@@ -460,3 +460,28 @@ MILESTONE: T- body correctly extracted - func definitions and var assignments se
 NEXT: parse func name and params from "func add(a, b) {" line
 MILESTONE: func definition parsing works - is_func_def=1, name=add, params=[a,b]
 NEXT: collect func body lines between { and }
+BUG: get_func_bodies returns "x = 10" instead of func body - _in_func state tracking broken in F() body
+ROOT-CAUSE: F() body cannot maintain mutable state across iterations - _in_func resets each iteration
+INSIGHT: this is the fundamental nested state problem - F() doesnt maintain vars between iterations properly
+BUG: F() body state with _in_f - _in_f+_is_start works but Gate _in_f(>0)>>_body then _line>>_body overwrites
+ROOT-CAUSE: Gate _in_f(>0)>>_body sets _body=number then _line>>_body overwrites with string - wrong pattern
+CORRECT: Gate filter needs pre-init [] and single line body - cannot mix Gate assign and direct assign
+BUG: nested F() _tmp>>_body corrupts _body - same nested F() scope issue
+ROOT-CAUSE: inner F(_once){_tmp>>_body} - after inner F() exits _body gets corrupted
+FUNDAMENTAL: nested F() cannot be used for conditional push - must find another way
+SOLUTION: accept limitation - use multi-pass approach instead of stateful F()
+BREAKTHROUGH: index tracking in F() works! start=0, end=2 correctly found
+PATTERN: use F() to find START and END indices, then slice array - no nested F() needed
+NEXT: slice array from start to end+1 to get func body lines
+BUG: Gate _ci(>=_si) where _si is variable - Gate filter with variable comparison not working
+PATTERN: Gate filter only works with literal values, not variables
+SOLUTION: use math trick - _ci - _si >= 0 means in range
+FINAL-SOLUTION: no nested F() at all - use get(arr,idx) with known start/end indices directly
+CONFIRMED: get(arr,idx) works correctly for array element access
+PATTERN: instead of nested F() for conditional collect - find start/end indices then use get() per element
+PATTERN: for array slicing use known indices + get() not nested F() push
+CONFIRMED: slice() works on arrays! slice(str=arr, from=1, to=3) returns [b, c]
+SOLUTION: use slice() for array slicing - no nested F() needed for func body extraction
+PATTERN: find start/end indices with F() then slice(str=arr, from=start, to=end+1)
+MILESTONE: func body extraction works! slice(arr, start, end+1) after index tracking with F()
+PATTERN: find_index + slice = powerful array section extraction without nested F()

@@ -59,3 +59,26 @@ func get_func_params(line) {
     slice(str=_L, from=_start, to=_rp) ~> _pstr
     split(str=_pstr, sep=", ") ~> out
 }
+
+func get_func_bodies(lines) {
+    past(lines) ~> _lines
+    [] >> _body
+    0 >> _in_func
+    F(_lines) {
+        now >> _line
+        indexOf(str=_line, sub="func ") ~> _is_fd
+        0 >> _fd
+        Gate _is_fd (== 0) >> _fd
+        indexOf(str=_line, sub="}") ~> _is_end
+        0 >> _end
+        Gate _is_end (== 0) >> _end
+        _fd + _in_func >> _in_func
+        Gate _in_func (> 0) >> _body
+        _line >> _body
+        _end * _in_func >> _stop
+        0 >> _in_func
+        Gate _stop (== 0) >> _in_func
+        _in_func >> _in_func
+    }
+    _body >> out
+}
