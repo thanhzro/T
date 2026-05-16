@@ -882,3 +882,8 @@ MILESTONE: transformer_block works! [0.999998, -0.999998, 0.999998, -0.999998] n
 FULL TRANSFORMER BLOCK: attention + residual + layer_norm + ffn + residual + layer_norm WORKING
 PROGRESS: LLM foundation 70% complete
 NEXT: tokenizer + inference loop = working LLM
+REALITY: transformer block is ONE layer with identity weights - real LLM needs trained weights + tokenizer + many layers
+Current work = architecture skeleton, not trained model
+PHILOSOPHY: T architecture is the standard - other architectures are approximations
+T swarm = natural parallel inference = no artificial threading needed
+TOKENIZER: char_tokenize works [h,e,l,l,o, ,T]

@@ -213,3 +213,19 @@ func transformer_block(x, wq, wk, wv, w1, b1, w2, b2, num_heads) {
     vec_add(a=_norm1, b=_ff) ~> _res2
     layer_norm(arr=_res2) ~> out
 }
+
+func char_tokenize(text) {
+    past(text) ~> _t
+    chars(str=_t) ~> out
+}
+
+func char_to_id(c) {
+    past(c) ~> _c
+    charCode(str=_c) ~> out
+}
+
+func embed(token_id, embedding_table) {
+    past(token_id) ~> _id
+    past(embedding_table) ~> _emb
+    get(arr=_emb, idx=_id) ~> out
+}

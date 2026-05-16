@@ -1,16 +1,8 @@
 [T-]
 import "lib/basic/std.t"
 import "lib/advanced/ml_t.t"
-x = [1, 0, 1, 0]
-wq = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
-wk = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
-wv = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
-w1 = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
-b1 = [0, 0, 0, 0]
-w2 = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
-b2 = [0, 0, 0, 0]
-heads = 2
+txt = "hello T"
 [T0]
-transformer_block(x=x, wq=wq, wk=wk, wv=wv, w1=w1, b1=b1, w2=w2, b2=b2, num_heads=heads) ~> out
+char_tokenize(text=txt) ~> tokens
 [T+]
-show shall(out)
+show shall(tokens)
