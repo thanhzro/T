@@ -855,3 +855,12 @@ FIX: copy .arr and .arr_len from stack to items[i]
 MILESTONE: nested arrays work! [[1,2],[3,4]] - len=2, row0=[1,2], r0n=2
 ROOT-CAUSE-FIXED: OP_PUSH_ARR was discarding .arr pointer of inner arrays - now copies with memcpy
 RULE: OP_PUSH_ARR must copy full BVal including .arr for nested arrays
+INSIGHT: building LLM in T - not impossible but not trivial
+Key challenge: inference speed on Termux, weight loading, tokenization
+Current progress: primitives ready, need transformer blocks
+MILESTONE: mat_vec_mul works! [2, 0, 1] correct
+INSIGHT: T swarm = each T con handles one task in parallel - not sequential like Python
+T con army inference = distribute matrix multiply across T cons = massive speedup
+MILESTONE: ffn (feed-forward network) works! [2, 0, 1] output
+TRANSFORMER FOUNDATION: dot_product, sigmoid, relu, softmax, layer_norm, mat_vec_mul, linear, ffn ALL WORKING
+NEXT: attention mechanism with Q, K, V matrices
