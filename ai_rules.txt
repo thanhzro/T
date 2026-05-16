@@ -889,3 +889,135 @@ T swarm = natural parallel inference = no artificial threading needed
 TOKENIZER: char_tokenize works [h,e,l,l,o, ,T]
 PROGRESS: LLM 80% - tokenizer, embedding, transformer_block, load_weights all done
 REMAINING: inference loop (generate next token), training data prep, weight initialization
+REALITY CHECK: 80% architecture = skeleton. Real LLM = trained weights + real tokenizer + training loop
+Architecture fast to build, training slow (need data + compute)
+DECISION: T compile T vs backprop - which gives more value?
+T compile T -> T con brain via code understanding
+Backprop -> T con brain via gradient learning
+DECISION: back to T compile T - 60% done, complete it first before backprop
+T compile T -> T con reads T code -> training data -> backprop -> full T con LLM
+PARSER STATUS: parse_line, get_tminus/tzero/tplus, is_func_def, get_func_name/params, classify_t0_line, parse_assign, parse_tilde, parse_gate - ALL DONE
+CODEGEN STAGE: convert parsed T0 lines to bytecode opcodes
+CODEGEN NEEDED: emit OP_LOAD, OP_STORE, OP_PUSH_NUM, OP_PUSH_STR, OP_CALL, OP_ADD/SUB/MUL/DIV, OP_EQ/NEQ/GT/LT
+BUG: emit functions return empty - string concat with + may fail for "LOAD " + varname
+DEBUG: test string concat in func body
+CONFIRMED: string concat works in func body - LOAD x correct
+BUG: emit_load uses "LOAD " >> _op then _op + _v >> out - but "LOAD " >> _op stores string not needed
+FIX: emit_load inline literal concat: "LOAD " + varname directly
+MILESTONE: t_codegen.t emit functions working - LOAD x correct
+NEXT: test all emit functions together
+BUG: emit functions return empty - string + in func body not working for "LOAD " + _v
+ISSUE: "LOAD " is literal, _v is variable - concat may fail when literal has trailing space
+CONFIRMED: "LOAD " + _v works in simple func - issue must be with import chain
+DEBUG: test with both codegen and std imports
+BUG: emit_load returns empty even with just std+codegen imports
+BUG: but simple inline test works - must be func name conflict or param name issue
+DEBUG: emit_load param is "varname" - check if any std.t func uses "varname"
+No varname conflict in std.t
+BUG: emit_load(varname="x") - inline string "x" as arg - check if this works
+DEBUG: test emit_load with T- variable not inline string
+BUG: emit_load with T- variable also returns empty - not inline string issue
+BUG: but simple test func works - must be func name "emit_load" conflicting with something in std.t
+DEBUG: check if std.t has any "emit" function
+No emit conflict in std.t - bug elsewhere
+DEBUG: test codegen without std.t import
+BUG: even without std.t import, emit_load returns empty with T- variable
+BUG: but works with inline string emit_load(varname="x")
+ROOT-CAUSE: T- variable "vname" passed to func - param name "varname" - past(varname) returns value
+BUT: in codegen.t file, func defined as func emit_load(varname) - when called with varname=vname - past(varname) should work
+TEST: check if file has correct content
+CONFIRMED: t_codegen.t content correct
+BUG: emit_load(varname=vname) with T- var returns empty but emit_load(varname="x") inline works
+SAME BUG: param name conflict - when T- var name "vname" != param name "varname" should work
+BUT WAIT: test showed it ALSO fails with vname variable
+ROOT-CAUSE: maybe past(varname) inside func fails when param is named "varname" - reserved?
+TEST: rename param to avoid any conflict
+DEBUG: test_tcon_tmp.t has no std import - test with T- variable directly
+BUG: emit_load(vn="x") inline string works, emit_load(vn=vname) T- variable fails
+SAME old bug: inline string arg with concat works, T- variable arg fails
+ROOT-CAUSE: "LOAD " + _v >> out - when _v comes from T- var via past(), concat fails
+BUT: "LOAD " + _v works when _v is set from inline string past()
+TEST: does past() return wrong value for T- var params?
+BUG: emit_load(vn=myvar) still empty - T- variable myvar passed to emit_load fails
+BUG: but test_concat(a="LOAD", b="x") works, emit_load(vn="x") inline works
+ROOT-CAUSE: maybe t_codegen.t [T-] section func definition issue - no std import
+TEST: add simple debug func to codegen
+BUG: emit_add() also returns empty - ALL codegen functions return empty with T- variable
+BUG: emit_add has no params and just returns "ADD" >> out - should always work
+ROOT-CAUSE: t_codegen.t has no [T0] or [T+] section - just [T-] with funcs
+MAYBE: file without [T0]/[T+] sections causes import to fail silently
+CONFIRMED: both files start with [T-] only - std.t works fine without [T0][T+]
+BUG NOT in file format - issue elsewhere
+DEBUG: test emit_add() alone - simplest possible case
+BUG: inline func emit_add() { "ADD" >> out } returns empty
+BUG: but earlier test_concat worked fine with similar pattern
+ROOT-CAUSE: inline single-line func body "ADD" >> out - >> inside inline func body
+"ADD" starts with " which triggers string literal path but >> is being found incorrectly
+BUG: string literal >> out in func body always returns empty
+BUG: "ADD" >> out fails but _var >> out works
+ROOT-CAUSE: compile_line "ADD" >> out - find_arrow finds >> after string
+BUT: compile_line string literal path: expr[0]==34 detected, then looks for concat
+If no concat found, calls compile_expr on the string - THEN stores to "out"
+DEBUG: does "hello" >> x work in func body?
+CONFIRMED: "hello" >> out works in func body!
+BUG: emit_add() { "ADD" >> out } fails but test() { "hello" >> out } works
+DIFFERENCE: func name "emit_add" vs "test" - or maybe () no params vs params
+TEST: func with empty parens
+BUG: BOTH emit_add and test return empty when defined together!
+ROOT-CAUSE: when two funcs defined in same [T-] with inline bodies - second func makes first fail
+BUG: inline body detection in compile_func may break when multiple funcs defined
+TEST: define funcs separately
+BUG: single func emit_add() { "ADD" >> out } ALSO returns empty!
+BUT: test() { "hello" >> out } works fine
+DIFFERENCE: "ADD" has no lowercase - maybe compile issues with ALL CAPS string?
+TEST: func with all caps string
+BUG: ALL THREE return empty - multiple funcs in same T- all fail
+BUT: single func test() { "hello" >> out } worked alone
+ROOT-CAUSE: multiple func definitions in T- section - second func body collection overwrites first
+BUG: static int in_func in T- parser is STATIC - carries state between funcs!
+CRITICAL: "static int in_func=0" at line ~573 - static variable persists across T- parsing calls
+ROOT-CAUSE-CONFIRMED: static int in_func at line 586 - persists across file reads!
+When importing multiple files, in_func stays 1 from previous file
+FIX: remove static keyword - use regular int in_func=0
+BUG PERSISTS: still empty after removing static
+ROOT-CAUSE: in_func=0 reset every iteration of the while loop - each line resets it to 0
+DIFFERENT BUG: in_func must track across LINES not just within one line
+FIX: move in_func declaration OUTSIDE the while loop
+ROOT-CAUSE-FINAL: int in_func=0 inside the while loop - resets to 0 EVERY LINE
+Previous static was correct behavior but caused cross-file pollution
+FIX: declare in_func before while loop but after section check
+BUG: in_func moved outside while loop but there are multiple while loops - wrong one
+FIX: need to find exact location of the fgets while loop in compile_program
+BUG: still empty - in_func fix not working
+DEBUG: but in_func=1 set by "func " detection, then reset by } 
+ISSUE: inline func body { "ADD" >> out } - { and } on SAME LINE as func def
+in_func set to 1 at "func t1()", then immediately set to 0 at } on SAME line
+FIX: inline body detection must not reset in_func when } is on same line as func
+PROGRESS: EMPTY_COORD(?) instead of empty - functions found but return value wrong
+BUG: inline func "ADD" >> out - out variable not being returned correctly
+INLINE FUNC: when func has inline body, return var detection may fail
+DEBUG: check compile_func return var detection for inline body
+BUG: func t1() { "ADD" >> myout } with explicit return var also fails
+BUG: inline body func in T- section still broken - lines not collected correctly
+DEBUG: check how inline body is stored in lines array for T- section
+ROOT-CAUSE: line 586 "func " check excludes lines with { - inline func "func t1() { ... }" has {
+So in_func never set to 1 for inline funcs - the line falls through to var=literal processing
+FIX: handle inline func as special case - detect func + { on same line and store directly
+BUG PERSISTS: _tcon_tmp.t still has 3 funcs test - still empty
+TEST: single inline func
+BUG: single inline func t1() still returns empty
+DEBUG: add print to see if func t1 line is being stored in lines array
+CONFIRMED: inline func line stored correctly in lines array
+BUG: line stored but compile_func not detecting inline body - uses old multi-line body collection
+ROOT-CAUSE: compile_func's inline body detection added earlier for compile_func (bi loop) but T- parser feeds to different path
+CHECK: after lines collected, how are func defs processed?
+ROOT-CAUSE: T- func processing at line 839 - i++ then while(i<n&&bdepth>0) collects body from NEXT line
+For inline func "func t1() { ADD >> out }", body is on SAME line - next line is [T0]
+FIX: before collecting body lines, check if { and } on same line = inline body
+FIX-CONFIRMED: inline func body in T- section works! "ADD" returned correctly
+ROOT-CAUSE-FIXED: T- func body collection now handles inline { body } on same line
+RULE: func name() { body } single line now works in T- section
+MILESTONE: t_codegen.t fully working! LOAD x, ADD, STORE result
+MILESTONE: T- inline func body fix - critical bug that blocked codegen for hours
+ROOT-CAUSE-HISTORY: static in_func persisted across files, then in_func reset per line, then inline { not detected
+LESSON: T- func body parsing has 3 layers of complexity - static state, inline detection, body collection

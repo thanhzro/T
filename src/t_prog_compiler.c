@@ -531,6 +531,7 @@ int run_file(const char *path) {
     char buf[256];
     
     int section=0; /* 0=T-, 1=T0, 2=T+ */
+    int in_func=0;
     while(fgets(buf, sizeof(buf), f) && count < 4096) {
         int len = strlen(buf);
         if(len > 0 && buf[len-1] == '\n') buf[len-1] = 0;
@@ -583,9 +584,13 @@ int run_file(const char *path) {
         /* T-: static data + func definitions */
         if(section==0){
             /* Track if inside func block */
-            static int in_func=0;
-            if(strncmp(buf,"func ",5)==0) in_func=1;
-            if(buf[0]=='}') in_func=0;
+            if(strncmp(buf,"func ",5)==0 && !strchr(buf,'{')) in_func=1;
+            if(buf[0]=='}' && !strstr(buf,"func ")) in_func=0;
+            /* Handle inline func: func name() { body } on one line */
+            if(strncmp(buf,"func ",5)==0 && strchr(buf,'{')) {
+                fprintf(stderr,"INLINE_FUNC:[%s]\n",buf);
+                lines[count++]=strdup(buf); continue;
+            }
             if(in_func || buf[0]=='}'){
                 lines[count++]=strdup(buf); continue;
             }
@@ -831,8 +836,19 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 strcpy(ptoks[nparams],pt); params[nparams]=ptoks[nparams]; nparams++;
                 pt=strtok(NULL,",");
             }
+            const char **body=calloc(512,sizeof(char*)); int bc=0;
+            /* Check inline body: func name() { body } on same line */
+            char *_ob2=rp?strchr(rp,'{'):NULL;
+            char *_cb2=_ob2?strrchr(_ob2,'}'):NULL;
+            if(_ob2&&_cb2&&_cb2>_ob2+1){
+                char _inl[256]={0}; strncpy(_inl,_ob2+1,_cb2-_ob2-1);
+                char *_ip2=_inl; while(*_ip2==' ')_ip2++;
+                int _il2=strlen(_ip2); while(_il2>0&&_ip2[_il2-1]==' ')_ip2[--_il2]=0;
+                if(_il2>0) body[bc++]=strdup(_ip2);
+                i++;
+            } else {
             i++;
-            const char **body=calloc(512,sizeof(char*)); int bc=0; int bdepth=1;
+            int bdepth=1;
             while(i<n&&bdepth>0){
                 const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
                 int _ll=(int)strlen(lines[i]);
@@ -842,6 +858,7 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
             }
+            } /* end inline/multiline */
             /* i now past closing } */
             compile_func(vm,fname,params,nparams,body,bc);
             continue;

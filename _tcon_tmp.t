@@ -1,8 +1,12 @@
 [T-]
 import "lib/basic/std.t"
-import "lib/advanced/ml_t.t"
-txt = "hello T"
+import "lib/advanced/t_codegen.t"
+myvar = "x"
 [T0]
-char_tokenize(text=txt) ~> tokens
+emit_load(vn=myvar) ~> r1
+emit_add() ~> r2
+emit_store(vn="result") ~> r3
 [T+]
-show shall(tokens)
+show shall(r1)
+show shall(r2)
+show shall(r3)
