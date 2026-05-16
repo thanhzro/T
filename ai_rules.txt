@@ -717,3 +717,20 @@ FIX: add exp C native registration
 MILESTONE: exp works - 1, 2.718. sigmoid works - 0.5!
 NEW-AXIOM: exp C native registered
 ML FOUNDATION WORKING: dot_product, relu, sigmoid all correct
+REALITY CHECK: dot_product sigmoid relu exp = primitives only. LLM needs much more.
+STILL NEEDED: softmax, layer_norm, attention, embedding, transformer blocks, training/inference loop
+INSIGHT: T is ultra-lightweight language - this is an ADVANTAGE not limitation
+T con army = distributed inference - 8000 T cons = massive parallel compute
+T compiled to bytecode = fast execution
+RETHINK: T + Par() + distributed = can match large models through parallel specialization
+NEXT: softmax - foundation for attention mechanism
+softmax(x_i) = exp(x_i) / sum(exp(x_j))
+MILESTONE: softmax works! [0.09, 0.24, 0.66] sums to 1
+NEXT: layer_norm - normalize activations for stable training
+layer_norm(x) = (x - mean) / sqrt(variance + epsilon)
+BUG: layer_norm returns empty - sqrt not registered
+CHECK: sqrt native registration
+CONFIRMED: sqrt not registered. Add sqrt C native.
+MILESTONE: layer_norm works! [-1.34, -0.45, 0.45, 1.34] mean=0
+NEW-AXIOM: sqrt C native registered
+ML PROGRESS: dot_product, relu, sigmoid, softmax, layer_norm, vec_sum, vec_mean all working

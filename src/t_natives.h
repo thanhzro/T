@@ -371,9 +371,16 @@ void nat_exp_v(BVal *stack, int argc, BVal *out){
     out->type=VT_NUM; out->num=exp(stack[0].num);
     out->str=NULL; out->arr=NULL; out->arr_len=0;
 }
+
+void nat_sqrt_v(BVal *stack, int argc, BVal *out){
+    if(argc<1){out->type=VT_NUM;out->num=0;return;}
+    out->type=VT_NUM; out->num=sqrt(stack[0].num);
+    out->str=NULL; out->arr=NULL; out->arr_len=0;
+}
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_starts");f2->is_native=4;f2->native_v=nat_filter_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"sqrt");f2->is_native=4;f2->native_v=nat_sqrt_v;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"exp");f2->is_native=4;f2->native_v=nat_exp_v;f2->param_count=1;strcpy(f2->params[0],"val");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"_trim_c");f2->is_native=4;f2->native_v=nat_trim_v;f2->param_count=1;strcpy(f2->params[0],"str");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"charCode");f2->is_native=4;f2->native_v=nat_charcode;f2->param_count=1;strcpy(f2->params[0],"str");}
