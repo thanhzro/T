@@ -435,6 +435,64 @@ static void native_mat_mmv(BVal *stack, int argc, BVal *out) {
     }
 }
 
+
+static void native_argmax_n(BVal *stack, int argc, BVal *out) {
+    BVal arr = stack[0];
+    if(!arr.arr || arr.arr_len==0){*out=make_num(0);return;}
+    int best_idx=0;
+    double best_val=arr.arr[0].num;
+    for(int i=1;i<arr.arr_len;i++){
+        if(arr.arr[i].num > best_val){
+            best_val = arr.arr[i].num;
+            best_idx = i;
+        }
+    }
+    *out = make_num(best_idx);
+}
+
+
+static void native_softmax_n(BVal *stack, int argc, BVal *out) {
+    BVal arr = stack[0];
+    int n = arr.arr_len;
+    if(!arr.arr || n==0){*out=make_arr(0);return;}
+    double max_val = arr.arr[0].num;
+    for(int i=1;i<n;i++) if(arr.arr[i].num>max_val) max_val=arr.arr[i].num;
+    double sum=0;
+    *out = make_arr(n);
+    for(int i=0;i<n;i++){
+        out->arr[i] = make_num(exp(arr.arr[i].num - max_val));
+        sum += out->arr[i].num;
+    }
+    for(int i=0;i<n;i++) out->arr[i].num /= sum;
+}
+
+static void native_embed_n(BVal *stack, int argc, BVal *out) {
+    BVal char_id = stack[0];
+    BVal emb_table = stack[1];
+    BVal emb_dim = stack[2];
+    int id = (int)char_id.num;
+    int dim = (int)emb_dim.num;
+    int offset = id * dim;
+    *out = make_arr(dim);
+    for(int i=0;i<dim;i++){
+        int idx = offset + i;
+        out->arr[i] = (idx < emb_table.arr_len) ? emb_table.arr[idx] : make_num(0);
+    }
+}
+
+static void native_mat_update_flat(BVal *stack, int argc, BVal *out) {
+    BVal mat = stack[0];
+    BVal grad = stack[1];
+    BVal lr_v = stack[2];
+    double lr = lr_v.num;
+    int n = mat.arr_len;
+    *out = make_arr(n);
+    for(int i=0;i<n;i++){
+        double g = (i < grad.arr_len) ? grad.arr[i].num : 0;
+        out->arr[i] = make_num(mat.arr[i].num - lr * g);
+    }
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -457,6 +515,11 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"softmax_n");f2->is_native=4;f2->native_v=native_softmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"embed_n");f2->is_native=4;f2->native_v=native_embed_n;f2->param_count=3;strcpy(f2->params[0],"cid");strcpy(f2->params[1],"tbl");strcpy(f2->params[2],"dim");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_update_flat");f2->is_native=4;f2->native_v=native_mat_update_flat;f2->param_count=3;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"grad");strcpy(f2->params[2],"lrv");}
+
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"argmax_n");f2->is_native=4;f2->native_v=native_argmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_mmv");f2->is_native=4;f2->native_v=native_mat_mmv;f2->param_count=3;strcpy(f2->params[0],"src");strcpy(f2->params[1],"sz");strcpy(f2->params[2],"inp");}
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"len"); f->is_native=3; f->native_m=nat_len_mix;

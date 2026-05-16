@@ -1985,3 +1985,20 @@ USE: stack[0], stack[1], stack[2] directly NOT --argc
 MILESTONE: mat_mmv works! [1,2,3,4] correct!
 KEY: native receives stack[0..argc-1] where 0=first param, NOT reverse order
 Remove debug prints and commit
+MISSION: T con self-improving compiler
+TRAINING DATA: lib/ folder = 1910 lines of T source written by human
+GOAL: T con reads T source → learns patterns → generates valid T code
+PIPELINE: tokenize T source → char-level or token-level → train → generate
+FIRST STEP: build training corpus from lib/advanced/*.t
+CORPUS READY:
+- 41664 chars total T source
+- 94 unique chars (vocab)
+- 5200 training sequences (64-char context → next char)
+NEXT: build embedding + transformer for char prediction
+ARCHITECTURE: char_id → embed(94→64) → linear(64→64) → argmax94 → next char
+CHALLENGE: vocab=94 but argmax4 only handles 4 classes
+NEED: argmax94 native C OR top-1 sampling native
+ADD: native argmax_n(arr) - works for any size
+MILESTONE: argmax_n works! Returns 2 for [0.1,0.05,0.8,0.02,0.03]
+NOW: add softmax_n native and mat_update_flat native for full training pipeline
+THEN: build embedding lookup native embed_n(char_id, emb_table, emb_dim)
