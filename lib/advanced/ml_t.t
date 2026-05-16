@@ -349,3 +349,81 @@ func mat_update_3(mat, grad, lr) {
     push(arr=_new_m, val=_nr2) ~> _new_m
     _new_m >> out
 }
+
+func greedy_sample(logits) {
+    past(logits) ~> _l
+    len(val=_l) ~> _n
+    0 >> _max_val
+    0 >> _max_idx
+    get(arr=_l, idx=0) ~> _max_val
+    range(n=_n) ~> _r
+    F(_r) {
+        get(arr=_l, idx=idx) ~> _v
+        0 >> _is_max
+        Gate _v (> _max_val) >> _is_max
+        _is_max * idx >> _new_idx
+        _max_val + _is_max >> _max_val
+    }
+    _max_idx >> out
+}
+
+func argmax4(arr) {
+    past(arr) ~> _a
+    get(arr=_a, idx=0) ~> _v0
+    get(arr=_a, idx=1) ~> _v1
+    get(arr=_a, idx=2) ~> _v2
+    get(arr=_a, idx=3) ~> _v3
+    _v0 >> _best_val
+    0 >> _is1
+    Gate _v1 (> _best_val) >> _is1
+    _best_val + _is1 >> _best_val
+    0 >> _is2
+    Gate _v2 (> _best_val) >> _is2
+    _best_val + _is2 >> _best_val
+    0 >> _is3
+    Gate _v3 (> _best_val) >> _is3
+    0 >> _not1
+    1 - _is1 >> _not1
+    0 >> _not2
+    1 - _is2 >> _not2
+    0 >> _not3
+    1 - _is3 >> _not3
+    _not1 * _not2 >> _is0
+    _is0 * _not3 >> _is0
+    _is0 * 0 >> _s0
+    _is1 * 1 >> _s1
+    _is2 * 2 >> _s2
+    _is3 * 3 >> _s3
+    _s0 + _s1 >> _out
+    _out + _s2 >> _out
+    _out + _s3 >> out
+}
+
+func mat_update_4(mat, grad, x, lr) {
+    past(mat) ~> _m
+    past(grad) ~> _g
+    past(x) ~> _x
+    past(lr) ~> _lr
+    get(arr=_m, idx=0) ~> _r0
+    get(arr=_m, idx=1) ~> _r1
+    get(arr=_m, idx=2) ~> _r2
+    get(arr=_m, idx=3) ~> _r3
+    get(arr=_g, idx=0) ~> _g0
+    get(arr=_g, idx=1) ~> _g1
+    get(arr=_g, idx=2) ~> _g2
+    get(arr=_g, idx=3) ~> _g3
+    vec_scale(a=_x, s=_g0) ~> _rg0
+    vec_scale(a=_x, s=_g1) ~> _rg1
+    vec_scale(a=_x, s=_g2) ~> _rg2
+    vec_scale(a=_x, s=_g3) ~> _rg3
+    sgd_update(weights=_r0, grad=_rg0, lr=_lr) ~> _nr0
+    sgd_update(weights=_r1, grad=_rg1, lr=_lr) ~> _nr1
+    sgd_update(weights=_r2, grad=_rg2, lr=_lr) ~> _nr2
+    sgd_update(weights=_r3, grad=_rg3, lr=_lr) ~> _nr3
+    [] >> _new_m
+    push(arr=_new_m, val=_nr0) ~> _new_m
+    push(arr=_new_m, val=_nr1) ~> _new_m
+    push(arr=_new_m, val=_nr2) ~> _new_m
+    push(arr=_new_m, val=_nr3) ~> _new_m
+    _new_m >> out
+}

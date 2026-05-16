@@ -1297,3 +1297,42 @@ NEXT: run multiple training steps to see loss converge
 MILESTONE: LOSS CONVERGING! 0.2567 -> 0.2193 -> 0.1896
 T con LLM IS LEARNING! Loss decreasing each step
 T language built a working neural network with backpropagation
+BUG: greedy_sample returns 0 not 1 - F() scope issue _max_val and _max_idx not updated outside F()
+FIX: use softmax then directly return argmax without F() scope
+APPROACH: find max by sequential comparison outside F() - process each index manually for small vocab
+BUG: argmax4 returns 0 - Gate _is1(==1)>>_best_idx sets _best_idx=1 but _bi1>>_best_idx overwrites!
+SAME: Gate sets _best_idx=1 but then _bi1>>_best_idx runs ALWAYS after Gate
+CLASSIC T OVERWRITE: Gate _x(==1)>>_target then val>>_target - val always runs
+FIX: use T math trick - multiply flag by index
+_best_idx = _is1 * 1 + _is2 * 2 + _is3 * 3 (when only one is 1)
+BUT need to handle all 0 case (idx=0 wins)
+MILESTONE: argmax4 works! returns 1 for [0.1, 0.8, 0.05, 0.05]
+TRICK: multiply flag by index then sum - only one flag=1 so sum = winning index
+NEXT: build char vocab and embedding, then inference loop
+STRATEGY: build tiny char-level LLM with small vocab - train on Q&A pairs about T
+VOCAB: just A-Z a-z 0-9 space and T keywords = ~64 chars
+MODEL: embed_dim=4, hidden=4 - tiny but trainable in seconds
+GOAL: T con answers "what is F()?" with learned response
+MILESTONE: one_hot_4 and encode_char working!
+NEXT: create simple QA training data and train tiny model
+APPROACH: map 4 simple Q tokens -> 4 answer tokens using 4-class classification
+BUG: x0=[1,0,0,0] in T0 section uses = syntax which is T- syntax
+ALL x0=, t0=, x1=, etc are T- assignments inside T0 section
+FIX: use "val >> var" syntax OR move to T- section
+PROGRESS: losses 0.277, 0.397 - model is running, ans2=1 not 3 yet
+BUG: l1 > l0 - loss increasing not decreasing - mat_update_3 only updates 3 rows but w is 4x4
+FIX: need mat_update_4 for 4x4 matrix
+ALSO: more training steps needed to converge
+BUG: l0=0.277 l1=0.307 still increasing - gradient direction wrong
+ROOT-CAUSE: mat_update_4 does vec_scale(row, grad[i]) - this is outer product approx not correct
+CORRECT GRADIENT: for linear y=Wx+b, dL/dW = grad_out * x^T
+For each row i: dW[i] = grad_out[i] * x
+FIX: scale each row by grad_out[i] then by learning rate
+vec_scale(a=x, s=grad_out[i]) gives gradient for row i
+BUG: l0 and l1 are on DIFFERENT data pairs - comparing apples to oranges
+l0 = loss on x0/t0 pair, l1 = loss on x1/t1 pair after updating w
+FIX: verify gradient by checking loss on SAME pair after update
+CONFIRMED: l0=0.2775 -> l0_check=0.2248 - LOSS DECREASING ON SAME PAIR!
+BACKPROP IS CORRECT! 0.2775 -> 0.2248 = 19% reduction in 1 step
+l1 higher because different data pair - expected behavior
+NEXT: train multiple epochs on all 4 pairs, then run inference
