@@ -35,3 +35,27 @@ func get_tplus(src) {
     slice(str=_src, from=_tpp, to=_srclen) ~> _tp_src
     split(str=_tp_src, sep="\n") ~> out
 }
+
+func is_func_def(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="func ") ~> _pos
+    0 >> out
+    Gate _pos (== 0) >> out
+    1 >> out
+}
+
+func get_func_name(line) {
+    past(line) ~> _L
+    slice(str=_L, from=5, to=99) ~> _rest
+    indexOf(str=_rest, sub="(") ~> _lp
+    slice(str=_rest, from=0, to=_lp) ~> out
+}
+
+func get_func_params(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="(") ~> _lp
+    indexOf(str=_L, sub=")") ~> _rp
+    _lp + 1 >> _start
+    slice(str=_L, from=_start, to=_rp) ~> _pstr
+    split(str=_pstr, sep=", ") ~> out
+}

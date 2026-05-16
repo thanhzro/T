@@ -452,3 +452,11 @@ FOUND: arg parser at line 318 uses bracket-aware split - checks depth for [] but
 FIX: add quote-aware check in arg split loop - skip comma inside "" strings
 FIX-CONFIRMED: quote-aware arg parser - comma inside "" string literals no longer treated as arg separator
 FIX: split(str=src, sep=",") now works correctly
+MILESTONE v11.4: quote-aware arg parser fixed. 
+PENDING: Gate filter with "[T-]" string still returns empty - was testing this when split bug appeared
+MILESTONE: Gate filter with [T-] brackets works! Section filtering now complete.
+PROGRESS: T compile T ~35%
+MILESTONE: T- body correctly extracted - func definitions and var assignments separated from section markers
+NEXT: parse func name and params from "func add(a, b) {" line
+MILESTONE: func definition parsing works - is_func_def=1, name=add, params=[a,b]
+NEXT: collect func body lines between { and }

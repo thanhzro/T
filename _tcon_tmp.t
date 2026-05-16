@@ -1,7 +1,12 @@
 [T-]
 import "lib/basic/std.t"
-src = "hello,world"
+import "lib/advanced/t_parser.t"
+line = "func add(a, b) {"
 [T0]
-split(str=src, sep=",") ~> arr
+is_func_def(line=line) ~> is_func
+get_func_name(line=line) ~> fname
+get_func_params(line=line) ~> params
 [T+]
-show shall(arr)
+show shall(is_func)
+show shall(fname)
+show shall(params)
