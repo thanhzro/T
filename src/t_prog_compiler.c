@@ -646,19 +646,18 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
             /* trim trailing spaces */
             int gl=strlen(gate_tgt);
             while(gl>0&&(gate_tgt[gl-1]==' '||gate_tgt[gl-1]=='\n'||gate_tgt[gl-1]=='\r'))gate_tgt[--gl]=0;
-            is_gate_filter=1;
+            /* Only use filter mode for literal comparisons */
+            char *_gend; strtod(gate_val_str,&_gend);
+            int _is_num_lit = (_gend!=gate_val_str && *_gend==0);
+            if(gate_is_str_lit || _is_num_lit || strcmp(gate_op,"is_num")==0 || strcmp(gate_op,"is_str")==0 || strcmp(gate_op,"is_arr")==0)
+                is_gate_filter=1;
+            fprintf(stderr,"FILTER op=[%s] val=[%s] is_str=%d\n",gate_op,gate_val_str,gate_is_str_lit);
         }
     }
     if(is_gate_filter) {
         /* Load target - if not exist, init as empty array */
         int itgt=chunk_add_str(chunk,gate_tgt);
-        chunk_write(chunk,OP_LOAD); chunk_write(chunk,itgt);
-        chunk_write(chunk,OP_TYPE_ARR);
-        chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,4);
-        /* already array - skip init */
-        chunk_write(chunk,OP_JUMP); chunk_write(chunk,4);
-        chunk_write(chunk,OP_PUSH_ARR); chunk_write(chunk,0);
-        chunk_write(chunk,OP_STORE); chunk_write(chunk,itgt);
+        /* caller must pre-init target */
         /* Load array and start iter */
         int iarr=chunk_add_str(chunk,arr_var);
         chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);

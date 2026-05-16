@@ -275,3 +275,112 @@ MILESTONE: all 3 sections parsed correctly - get_tminus, get_tzero, get_tplus wo
 PROGRESS: T compile T ~30% complete
 GPT-REVIEW: T compiler is real but not clean - string/array literal parsing, Gate in func body, OP_* inconsistencies are recurring patterns
 GPT-REVIEW: layers to separate: bytecode format, VM dispatch, native layer
+VISION: T con carries the load - AI assists T con, not the other way around
+NEXT: parse T- func definitions from section lines
+BUG: F(tm_clean) { Gate now (!= "[T-]") >> tm_body } fails - Gate with [T-] string containing brackets causes parse issue
+DEBUG: brackets in string literal may cause Gate compare to fail
+BUG: Gate filter with "[T-]" string literal containing [] brackets returns empty - [] in string literal causes Gate filter compile issue
+DEBUG: gate_val_str parsing stops at [ character or sscanf fails with [ in val
+BUG: Gate now (== marker) where marker is variable - nested F() corrupts filtered - same nested F scope issue
+WORKAROUND: use indexOf to check if line starts with [T instead of Gate string compare
+BUG: nested F() with _tmp >> filtered still returns empty - _tmp gets corrupted by inner F() now=0
+CORE-ISSUE: nested F() cannot reliably pass outer variables to inner F() body
+DEBUG: restore code exists but _tmp still corrupted - _tmp is not now/idx so restore doesnt help
+ROOT-CAUSE: push(arr=filtered,val=_line)~>_tmp creates _tmp, then inner F() sets now=0 which doesnt affect _tmp
+ROOT-CAUSE: _tmp>>filtered inside inner F() - now _tmp is correct but filtered gets inner now=0? No...
+REAL-ROOT-CAUSE: after inner F() exits, outer F() OP_ITER_NEXT fires and sets now=next_element correctly
+BUT: what happens to filtered after inner F() overwrites it with _tmp?
+BUG-CONFIRMED: _tmp>>filtered inside inner F() returns [] - inner F() range(n=1) now=0, then _tmp>>filtered sets filtered=[hello] but outer F() OP_ITER_NEXT write-back corrupts filtered back to []
+ROOT-CAUSE: OP_ITER_NEXT write-back mechanism writes now back to source array, corrupting non-now vars
+ROOT-CAUSE-FINAL: sync loop at line 407-411 is empty - does nothing. OP_ITER_NEXT for inner F() when exiting restores now/idx but filtered was set inside inner F() body correctly. The issue is outer F() next iteration sets now=next_element via frame_set, which is correct. But filtered should persist...
+NEED: actually trace what happens to filtered step by step with --trace
+CONFIRMED: push+assign in F() body works without nested F() - _tmp>>filtered works correctly
+SOLUTION: avoid nested F() for conditional push - use _keep flag with direct push+assign pattern
+INSIGHT: F() needs upgrade - inner F() should have isolated frame, not share with outer F()
+SOLUTION: F() frame isolation - each F() level gets own frame copy, merges back on exit
+INSIGHT: F() philosophy - when entering nested F(), outer now becomes past, inner now is current
+INSIGHT: Par() would solve nested F() issue - parallel execution with isolated frames
+INSIGHT: F() = fractal depth, Par() = fractal width - both needed for complete language
+DESIGN: F() nested - outer now becomes past when entering inner F(), inner now is current element
+DESIGN: this mirrors T timeline: T-(past) T0(now) T+(shall) - F() nesting is same philosophy
+DESIGN: fix needed: on OP_ITER_START, save current now as past, on OP_ITER_END restore past to now
+PHILOSOPHY: F() nesting must work perfectly - it's the foundation for T con's complex reasoning
+PRIORITY: fix nested F() frame isolation before building more features
+APPROACH: each F() level needs isolated now/past - implement depth-based frame slots
+VM-FIX: depth-based now save/restore - _f_now_0, _f_now_1 etc - outer now preserved across nested F()
+NEXT: add past keyword in F() body = access _f_now_{depth-1} = outer F() now value
+BUG: nested F() fix still returns empty - _tmp>>filtered in inner F() not persisting to outer scope
+DEBUG: after inner F() exits, filtered should have value but returns empty
+BUG-CRITICAL: Signal 11 SIGSEGV after nested F() VM fix - depth-based save/restore causing crash
+ROLLBACK: revert VM fix, find safer approach
+INSIGHT: nested F() frame isolation is hard - VM crash on depth-based approach
+ALTERNATIVE: instead of fixing VM, design T code to avoid nested F() entirely
+PATTERN: use Gate filter (single-line F body) instead of nested F() for conditional operations
+BUG: Gate filter with "[T-]" string containing [] brackets still fails - EMPTY_COORD(?) means Gate filter target not initialized
+CORE-BUG: brackets [] in Gate string literal causes gate_val_str to be empty - sscanf stops at [
+CONFIRMED: gate_is_str_lit=1 parsing loop stops at ] character - val_str gets "[T-" not "[T-]"
+FIX: change while(*_gvp!=34) to also handle ] inside string - actually loop stops at 34 (") not ]
+RECHECK: *_gvp!=34 means stop at " - so "[T-]" should be parsed as "[T-]" correctly
+MYSTERY: why does Gate now (!= "[T-]") >> step1 fail? Need to check at runtime not compile
+BUG: F(arr){Gate now(!="abc")>>result} returns [] - Gate filter with != string literal not working
+DEBUG: Gate filter initializes result=[] then condition check - if NEQ fails result stays []
+ROOT-CAUSE: Gate filter compile_f_block uses gate_val=atof("abc")=0 for push decision, not string compare
+CODE-CORRECT: compile_f_block Gate filter already has gate_is_str_lit check and OP_PUSH_STR
+BUG-ELSEWHERE: gate_is_str_lit must be 0 when it should be 1 - check where gate_is_str_lit is set in filter detection
+DEBUG: gate_is_str_lit set correctly when *_gvp==34 (quote char). But for Gate now(!="abc")>>result - inside="!= \"abc\"" - sscanf gets gate_op="!=" then _gvp points to " which is 34 - SHOULD work
+MYSTERY: add debug print to verify gate_is_str_lit value at runtime
+DEBUG-RESULT: FILTER op=[==] val=[] is_str=0 - first Gate filter detected is == with empty val!
+ROOT-CAUSE: array initialization code "OP_LOAD; OP_TYPE_ARR; JUMP_IF_0" has Gate-like pattern that triggers is_gate_filter detection incorrectly
+ACTUAL: two filters detected - first is wrong (==, empty), second is correct (!=, abc, is_str=1)
+BUG: compile_f_block detecting is_gate_filter from wrong body line
+ROOT-CAUSE-FOUND: arr=[A1] - first wrong filter is from lib function using A1 as array var - probably from std.t import
+ROOT-CAUSE: compile_f_block called for lib functions during import - some lib func has single-line Gate body that triggers filter incorrectly
+NEXT: check which lib func has arr_var=A1 and single Gate body
+ROOT-CAUSE: lib functions with F(A1){Gate...} single body triggering incorrect gate_filter detection
+FIX: is_gate_filter should only trigger for T0-level F(), not inside func definitions
+ROOT-CAUSE-CONFIRMED: F(A1){Gate now(==A2)>>O1} in lib/basic/array.t - single body Gate filter with variable compare A2 - gate_val="" is_str=0 - this incorrectly overwrites target with wrong filter
+FIX: Gate filter should NOT trigger when val_str is a variable name (not literal) - only trigger for literal values
+BUG-STILL: Gate filter with string literal still returns [] after fix
+DEBUG: test simpler case first
+BUG-CRITICAL: Gate filter F(arr){Gate now(=="abc")>>result} returns [] even without import
+BUG: gate_is_str_lit=1 confirmed but filter still returns []
+BUG: jump offset patch may be wrong - _jmp_pos patch calculates wrong offset
+BUG: or OP_EQ string compare in filter context not working
+DEBUG-NEXT: check jump offset in Gate filter - _jmp_pos patch may jump too far or too short
+DEBUG-NEXT: print compiled bytecode for F(arr){Gate now(=="abc")>>result}
+TRACE-ANALYSIS: IP:10 OP:26=TYPE_ARR, IP:11 OP:18=JUMP_IF_0 offset, IP:17 next - jump from 11 to 17 = 4 bytes skip init
+IP:21 OP:22=ITER_START, IP:23 OP:3=PUSH_STR(now), IP:25 OP:1=LOAD(now)
+IP:27 OP:11=EQ, IP:28 OP:18=JUMP_IF_0 - this is the condition check
+JUMP at IP:28 offset=? if condition false jump to ITER_NEXT
+DEBUG: OP_EQ pops b then a - so stack must be [a, b] where a=now, b="abc"
+TRACE: IP:23 OP:3=PUSH_STR, IP:25 OP:1=LOAD - order is PUSH_STR first then LOAD now - so stack=[str,now] - EQ pops b=now, a=str - strcmp(str,now) not strcmp(now,str) - result same so not the issue
+REAL-CHECK: what is IP:28 JUMP_IF_0 offset value?
+TRACE: IP:28 JUMP_IF_0, IP:30 PUSH_STR - offset at IP:29 = 30-29=1? No - JUMP_IF_0 reads offset byte at IP:29, then jumps IP:30+offset
+NEED: see raw bytecode bytes at IP:28-29 to know offset value
+DEBUG: add raw IP value print to JUMP_IF_0 handler to see offset and jump target
+FOUND: JUMP_IF_0 off=9 v=1.000000 - EQ returns 1 (match) so NO jump - but then v=0.000000 for second element - correct!
+BUT: result still [] - push section after JUMP_IF_0 must be broken
+TRACE: after JUMP_IF_0(v=1, no jump), ip=30, OP:30=PUSH_STR(result), OP:32=LOAD(result?), OP:34=CALL(push), OP:37=STORE(result)
+CHECK: what is at IP:30-39 exactly
+TRACE-ANALYSIS: IP:30 OP:3=PUSH_STR, IP:32 OP:3=PUSH_STR, IP:34 OP:19=CALL, IP:37 OP:4=PUSH_ARR, IP:39 OP:23=ITER_NEXT
+BUG: IP:37 OP:4=PUSH_ARR after CALL - STORE is missing! OP_STORE should be at IP:37 but got PUSH_ARR instead
+ROOT-CAUSE: patch offset wrong - STORE(result) is being skipped, ITER_NEXT fires too early
+ROOT-CAUSE: JUMP_IF_0 offset=4 skips OP_JUMP(2)+OP_PUSH_ARR(2)=4 but OP_PUSH_ARR needs OP_STORE after it - total init block is 6 bytes not 4
+FIX: change init block jump offset from 4 to 6 to skip OP_PUSH_ARR+OP_STORE both
+FIX: init block JUMP_IF_0 offset must cover OP_JUMP(2)+OP_PUSH_ARR(2)+OP_STORE(2)=6 bytes not 4
+FIX: JUMP_IF_0 offset=4 skips OP_JUMP(2bytes)+OP_PUSH_ARR(2bytes) but not OP_STORE(2bytes)
+OP_JUMP offset=4 skips OP_PUSH_ARR(2)+OP_STORE(2)=4 bytes - this is correct
+So JUMP_IF_0 should be 6 to skip OP_JUMP(2)+OP_PUSH_ARR(2)+OP_STORE(2)=6
+TRACE: IP:11 JUMP_IF_0 now jumps to IP:19 (offset=6, correct skip). IP:19 OP:3=PUSH_STR, IP:21 OP:22=ITER_START - init block correct now
+BUG-STILL: IP:34 OP:19=CALL then IP:37 OP:4=PUSH_ARR - STORE still missing after CALL
+ROOT-CAUSE-FINAL: push section STORE is at wrong position - OP_STORE(itgt2) not being emitted after CALL
+CODE-CORRECT: OP_STORE at line 705 exists after CALL - but trace shows PUSH_ARR at IP:37 instead of STORE
+MATH: CALL at IP:34 = OP_CALL(1byte)+ipush(1byte)+2(1byte)=3bytes, so IP:37 should be STORE
+OP_STORE=1, itgt2=? - if itgt2 index is large number it could look like OP_PUSH_ARR(4)
+CHECK: OP_STORE opcode value vs OP_PUSH_ARR value
+BUG-PERSISTENT: Gate filter string literal still returns [] after all fixes
+DECISION: remove entire init block from compile_f_block - require caller to always pre-init target
+SIMPLIFY: Gate filter should NEVER auto-init - user must write [] >> target before F()
+FIX-CONFIRMED: Gate filter works when caller pre-inits target with [] >> result before F()
+RULE: Gate filter NEVER auto-inits target - user MUST write [] >> target before F(){Gate...}
+LESSON: auto-init code was causing wrong bytecode layout corrupting push section
