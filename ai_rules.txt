@@ -667,3 +667,17 @@ FIX: always use intermediate variables for multi-operation expressions
 MILESTONE: classify_t0_line works! 1=assign 2=tilde 9=gate 5=f_loop
 CRITICAL-RULE: T has NO operator precedence - a+b*c = (a+b)*c not a+(b*c)
 ALWAYS use intermediate vars for complex math: x*2>>tmp; y+tmp>>result
+LESSON: T no operator precedence is a DESIGN CHOICE not a bug
+T evaluates left-to-right: a+b*c = (a+b)*c
+This mirrors coordinate system: each operation is one step in one direction
+IMPLICATION: all T code with complex math needs intermediate variables
+TARGET: 70-80% self-hosting
+NEXT STEPS: codegen - emit bytecode from T0 lines
+STAGE: parse T0 lines -> classify -> emit opcodes
+MILESTONE: parse_assign works - [x, +, 1, result] correctly parsed
+NEXT: parse_tilde - parse func call ~> target
+MILESTONE: parse_tilde works - [split, result, [str=src, sep=x]]
+NEXT: parse_gate - Gate var (op val) >> target
+MILESTONE: parse_gate works - [x, > 0, result]
+PROGRESS: 60% - all line parsers done: assign, tilde, gate
+NEXT: codegen - convert parsed lines to bytecode opcodes

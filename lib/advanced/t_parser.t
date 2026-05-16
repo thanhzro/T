@@ -117,3 +117,63 @@ func classify_t0_line(line) {
     _tmp + _s4 >> _tmp
     _tmp + _s8 >> out
 }
+
+func parse_assign(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub=">>") ~> _ap
+    slice(str=_L, from=0, to=_ap) ~> _expr
+    _ap + 2 >> _tp
+    len(val=_L) ~> _ll
+    slice(str=_L, from=_tp, to=_ll) ~> _target
+    _trim_c(str=_expr) ~> _expr
+    _trim_c(str=_target) ~> _target
+    split(str=_expr, sep=" ") ~> _parts
+    push(arr=_parts, val=_target) ~> _parts
+    _parts >> out
+}
+
+func parse_tilde(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="~>") ~> _tp
+    slice(str=_L, from=0, to=_tp) ~> _call
+    _tp + 2 >> _ts
+    len(val=_L) ~> _ll
+    slice(str=_L, from=_ts, to=_ll) ~> _target
+    _trim_c(str=_call) ~> _call
+    _trim_c(str=_target) ~> _target
+    indexOf(str=_call, sub="(") ~> _lp
+    slice(str=_call, from=0, to=_lp) ~> _fname
+    _lp + 1 >> _as
+    len(val=_call) ~> _cl
+    _cl - 1 >> _ae
+    slice(str=_call, from=_as, to=_ae) ~> _args
+    split(str=_args, sep=", ") ~> _arglist
+    [] >> _result
+    push(arr=_result, val=_fname) ~> _result
+    push(arr=_result, val=_target) ~> _result
+    push(arr=_result, val=_arglist) ~> _result
+    _result >> out
+}
+
+func parse_gate(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="Gate ") ~> _gp
+    5 >> _vs
+    indexOf(str=_L, sub=" (") ~> _lp
+    slice(str=_L, from=_vs, to=_lp) ~> _var
+    _lp + 2 >> _ops
+    indexOf(str=_L, sub=")") ~> _rp
+    slice(str=_L, from=_ops, to=_rp) ~> _cond
+    indexOf(str=_L, sub=">>") ~> _ap
+    _ap + 2 >> _ts
+    len(val=_L) ~> _ll
+    slice(str=_L, from=_ts, to=_ll) ~> _target
+    _trim_c(str=_var) ~> _var
+    _trim_c(str=_cond) ~> _cond
+    _trim_c(str=_target) ~> _target
+    [] >> _result
+    push(arr=_result, val=_var) ~> _result
+    push(arr=_result, val=_cond) ~> _result
+    push(arr=_result, val=_target) ~> _result
+    _result >> out
+}
