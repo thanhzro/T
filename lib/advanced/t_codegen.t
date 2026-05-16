@@ -39,3 +39,20 @@ func emit_ge() { "GE" >> out }
 func emit_le() { "LE" >> out }
 func emit_return() { "RETURN" >> out }
 func emit_halt() { "HALT" >> out }
+
+func compile_assign(line) {
+    past(line) ~> _L
+    parse_assign(line=_L) ~> _parts
+    len(val=_parts) ~> _n
+    _n - 1 >> _last_idx
+    get(arr=_parts, idx=_last_idx) ~> _target
+    slice(str=_parts, from=0, to=_last_idx) ~> _expr_parts
+    [] >> _instrs
+    F(_expr_parts) {
+        emit_load(vn=now) ~> _instr
+        push(arr=_instrs, val=_instr) ~> _instrs
+    }
+    emit_store(vn=_target) ~> _store
+    push(arr=_instrs, val=_store) ~> _instrs
+    _instrs >> out
+}

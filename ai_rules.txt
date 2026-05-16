@@ -1021,3 +1021,20 @@ MILESTONE: t_codegen.t fully working! LOAD x, ADD, STORE result
 MILESTONE: T- inline func body fix - critical bug that blocked codegen for hours
 ROOT-CAUSE-HISTORY: static in_func persisted across files, then in_func reset per line, then inline { not detected
 LESSON: T- func body parsing has 3 layers of complexity - static state, inline detection, body collection
+LESSON: T- parser state management needs complete rewrite for robustness
+BETTER-APPROACH: preprocess all func definitions separately before line-by-line parsing
+ARCHITECTURE: scan all func defs first, then process var assignments, eliminates state tracking bugs
+T con still referencing old bug - needs updated rule about T- parser fix
+FIX-COMPLETE: T- parser in_func bug fixed in 3 stages - now works correctly
+ARCHITECTURE-NOTE: T- parser state management fragile - future rewrite recommended after T compile T
+CURRENT-STATE: 48/48 pass, t_codegen.t working, ready for codegen compile_t0_line
+CONFIRMED: parser + codegen imports working together - classify returns 1,2 correctly
+NEXT: compile_t0_line - convert classified line to emit instructions
+PROGRESS: compile_assign working - [LOAD x, LOAD +, LOAD 1, LOAD r, STORE r]
+BUG: LOAD r included before STORE r - last element (target) should not be LOADed
+BUG: operator + should emit ADD not LOAD +
+SIMPLIFICATION: for now emit LOAD for all tokens - operator handling later
+REAL-BUG: target var getting LOAD before STORE - last token should be skipped in F() loop
+MILESTONE: compile_assign works! [LOAD x, LOAD +, LOAD 1, STORE r]
+NOTE: LOAD + is placeholder - operator resolution needed later
+NEXT: handle operators in compile_assign - + -> ADD, - -> SUB, * -> MUL, / -> DIV
