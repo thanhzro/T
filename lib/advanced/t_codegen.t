@@ -80,3 +80,65 @@ func compile_tilde(line) {
     push(arr=_instrs, val=_store) ~> _instrs
     _instrs >> out
 }
+
+func get_op_emit(op) {
+    past(op) ~> _op
+    indexOf(str=_op, sub=">=") ~> _pge
+    indexOf(str=_op, sub="<=") ~> _ple
+    indexOf(str=_op, sub="==") ~> _peq
+    indexOf(str=_op, sub="!=") ~> _pne
+    indexOf(str=_op, sub=">") ~> _pgt
+    indexOf(str=_op, sub="<") ~> _plt
+    0 >> _is_ge
+    Gate _pge (== 0) >> _is_ge
+    0 >> _is_le
+    Gate _ple (== 0) >> _is_le
+    0 >> _is_eq
+    Gate _peq (== 0) >> _is_eq
+    0 >> _is_ne
+    Gate _pne (== 0) >> _is_ne
+    0 >> _is_gt
+    Gate _pgt (== 0) >> _is_gt
+    1 - _is_ge >> _not_ge
+    _not_ge * _is_gt >> _is_gt
+    0 >> _is_lt
+    Gate _plt (== 0) >> _is_lt
+    1 - _is_le >> _not_le
+    _not_le * _is_lt >> _is_lt
+    _is_eq * 1 >> _c1
+    _is_ne * 2 >> _c2
+    _is_ge * 3 >> _c3
+    _is_le * 4 >> _c4
+    _is_gt * 5 >> _c5
+    _is_lt * 6 >> _c6
+    _c1 + _c2 >> _code
+    _code + _c3 >> _code
+    _code + _c4 >> _code
+    _code + _c5 >> _code
+    _code + _c6 >> _code
+    _code >> out
+}
+
+func compile_gate(line) {
+    past(line) ~> _L
+    parse_gate(line=_L) ~> _parts
+    get(arr=_parts, idx=0) ~> _var
+    get(arr=_parts, idx=1) ~> _cond
+    get(arr=_parts, idx=2) ~> _target
+    split(str=_cond, sep=" ") ~> _ctoks
+    get(arr=_ctoks, idx=0) ~> _op
+    get(arr=_ctoks, idx=1) ~> _val
+    [] >> _instrs
+    emit_load(vn=_var) ~> _i1
+    push(arr=_instrs, val=_i1) ~> _instrs
+    emit_load(vn=_val) ~> _i2
+    push(arr=_instrs, val=_i2) ~> _instrs
+    get_op_emit(op=_op) ~> _opcode_n
+    "" + _opcode_n >> _opcode_str
+    push(arr=_instrs, val=_opcode_str) ~> _instrs
+    "JUMP_IF_0 END" >> _jmp
+    push(arr=_instrs, val=_jmp) ~> _instrs
+    emit_store(vn=_target) ~> _i3
+    push(arr=_instrs, val=_i3) ~> _instrs
+    _instrs >> out
+}

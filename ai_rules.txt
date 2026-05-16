@@ -1072,3 +1072,40 @@ USE: "" + _argc >> _argc_s instead of toString
 MILESTONE: compile_tilde works! [LOAD src, LOAD x, CALL split 2, STORE result]
 PROGRESS: T compile T ~80% complete
 NEXT: compile_gate then write_output then bootstrap
+NEXT: compile_gate - Gate var (op val) >> target
+parse_gate returns [var, cond, target] - need emit LOAD var, PUSH val, OP_CMP, JUMP, STORE target
+WAITING: compile_gate test result pending
+BUG: LT instead of GT - get_op_emit returns wrong opcode for ">"
+ROOT-CAUSE: T no operator precedence - score calculation wrong
+_m5*5 for > but _m6*6 for < - both found in ">" string because ">" is substring of nothing else
+BUT: indexOf(">") in ">" returns 0, indexOf("<") in ">" returns -1
+_m5=1, _m6=0 -> _s5=5, _s6=0 -> _sc=5 -> Gate _sc(==5)->>"LE" WRONG
+FIX: scores wrong - > should be 5=GT, < should be 6=LT but assigning wrong
+ROOT-CAUSE: Gate _sc(==5)>>"LE" but > gives _sc=5 from _m5*5
+_sc=5 -> LE is wrong, should be GT
+FIX: reassign scores - use unique values that don't conflict
+== -> 1, != -> 2, >= -> 4, <= -> 8, > -> 16, < -> 32
+All powers of 2 = no overlap = bitmask
+BUG: still LT - Gate _is_gt(==1)>>"GT" then Gate _is_lt(==1)>>"LT" overwrites!
+SAME overwrite pattern - last Gate wins
+FOR >: _is_gt=1, _is_lt=0 -> should be GT
+BUT: Gate _is_lt(==1)>>"LT" fires AFTER GT and overwrites _res="GT" with... wait _is_lt=0 for >
+TRACE: for ">" - _is_gt=1 _is_lt=0 - Gate _is_gt(==1)->GT sets _res=GT then Gate _is_lt(==1) - _is_lt=0 so skips
+So _res should stay GT... but result is LT
+BUG: operator precedence! Gate _is_gt(==1)>>"GT" then "GT">>_res - ALWAYS sets _res to GT then skips
+NO WAIT: format is Gate _is_gt(==1)>>_res then "GT">>_res - "GT">>_res ALWAYS runs!
+ROOT-CAUSE: Gate _is_gt(==1)>>_res sets _res=1 not "GT" - Gate always sets numeric result
+Then "GT">>_res always overwrites with string "GT" - LAST string literal always wins
+CORRECT-PATTERN: range(n=_is_gt)~>_once then F(_once){"GT">>_res} - only runs when flag=1
+BUG: range+F still returns LT - maybe range(0) returns [0] not [] in T VM
+DEBUG: test range(0) and range(1) directly
+CONFIRMED: range(0) returns empty, range(1) returns [0], F(r0) skips, F(r1) sets _res=ONE
+PATTERN WORKS: range+F for conditional string assignment is correct
+BUG: must be in get_op_emit specifically - test it directly
+expected: GT, LT, EQcat
+MILESTONE: get_op_emit returns numeric codes! GT=5, LT=6, EQ=1
+NEXT: update compile_gate to use numeric code and map to opcode string
+OPCODES: 1=EQ, 2=NEQ, 3=GE, 4=LE, 5=GT, 6=LT
+MILESTONE: compile_gate works! [LOAD x, LOAD 0, 5, JUMP_IF_0 END, STORE result]
+NOTE: 5=GT numeric code - good enough for codegen, VM maps number to opcode
+DECISION: keep numeric opcode codes for now - cleaner than string mapping
