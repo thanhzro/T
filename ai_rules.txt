@@ -2644,3 +2644,13 @@ PATTERN: Gate X >> var then Y >> var = Y always wins
 REAL FIX: use FRAME sentinel like EMPTY for stack
 Init frame="FRAME", always append "|new_entry"
 No conditional needed → no Gate overwrite bug
+MILESTONE: FRAME|r=1|s=x - frame append working perfectly!
+LESSON LEARNED: use sentinel pattern (EMPTY/FRAME) to avoid conditional logic
+No Gate overwrite bug when using sentinel + always append
+VM STATUS:
+✓ LOAD - push to stack
+✓ STORE - pop to frame, append correctly
+✓ HALT - stop VM
+✓ FRAME sentinel works
+✗ CALL not implemented
+✗ JUMP not implemented

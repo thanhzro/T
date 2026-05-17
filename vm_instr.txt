@@ -1,1 +1,1 @@
-STORE s
+HALT
