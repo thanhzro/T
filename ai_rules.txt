@@ -2654,3 +2654,38 @@ VM STATUS:
 ✓ FRAME sentinel works
 ✗ CALL not implemented
 ✗ JUMP not implemented
+CRITICAL T LANGUAGE RULES (prevent common bugs):
+1. Gate X (cond) >> var then Y >> var = Y ALWAYS wins (overwrite!)
+   FIX: never >> same var after Gate on same var
+   USE: sentinel pattern (EMPTY/FRAME) to avoid conditional logic
+
+2. Param name same as T- var = CLASSIC CONFLICT
+   FIX: always rename T- vars to avoid param name collision
+
+3. F() cannot accumulate to outer array
+   FIX: use native C function or file-based accumulation
+
+4. Gate string (== "") unreliable
+   FIX: use len() or indexOf() or sentinel pattern
+
+5. >> after Gate = always runs (not conditional!)
+   Gate is FILTER not IF-ELSE
+   Only use Gate to set flag, then use flag differently
+NEXT: t_vm_call.t - execute CALL instruction
+CALL foo 2 = pop 2 args from stack, call native foo, push result
+For bootstrap: CALL just records in frame that call happened
+Full CALL needs native lookup table
+t_vm_call.t working! CALL:foo(2) recorded in frame
+RESULT_foo=called pushed to stack
+Gemini không biết T chỉ có ~15 built-in C functions
+Python có hàng nghìn built-ins
+T minimal by design
+NEXT: t_vm_jump.t - JUMP_IF_0 instruction
+t_vm_jump.t working! ip=999 when top=0, stack=EMPTY ✓
+ALL 4 INSTRUCTIONS IMPLEMENTED:
+✓ LOAD - t_vm_load.t
+✓ STORE - t_vm_store.t
+✓ CALL - t_vm_call.t
+✓ JUMP_IF_0 - t_vm_jump.t
+✓ HALT - t_vm_dispatch.t
+T VM ARMY COMPLETE!
