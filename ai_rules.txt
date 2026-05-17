@@ -2393,3 +2393,34 @@ REMAINING DEBT:
 - root still has: t1.t t2.t worker*.t master.t par_test.t seq_test.t
 - lib/archived/ 26 dead files
 NEXT: build t_vm.t → close bootstrap chain → mức 3
+DEBT STATUS:
+✓ Makefile fixed
+✓ temp files cleaned
+✓ train files moved to examples/training/
+✓ demo files moved to examples/demo/
+REMAINING:
+- t_vm.t MISSING → bootstrap mức 3 chưa đóng
+- lib/archived/ 26 dead files → low priority
+- _tcon_*.t, _all_tests.t etc ở root → internal tools, ok
+NEXT: build t_vm.t với recursive spawn approach
+MILESTONE: t_vm_step.t working!
+Step 1: reads ip=0, fetches "LOAD x", writes ip=1
+VM stepping confirmed working
+NEXT: run multiple steps, then add recursive spawn for full loop
+BUG: halt triggered at step 1 - Gate instr (== "HALT") fails
+"LOAD 1" != "HALT" but halt=1 anyway
+Gate string comparison issue OR vm_halt.txt starts as "0" but Gate reads wrong
+ISSUE: Gate instr (== "HALT") >> is_halt - Gate sets is_halt=1 if condition true
+But "LOAD 1" != "HALT" so Gate should NOT fire
+Wait: vm_halt.txt = "0" → toNumber = 0 → is_halt = 0
+Gate instr (== "HALT") - instr = "LOAD x" from step 0, but now ip=1
+Actually: Gate sets is_halt=1 if "LOAD 1" == "HALT" = false
+So is_halt stays 0... but halt file shows 1?
+BUG: write_file_t(path="vm_halt.txt", content="1") runs ALWAYS
+Not gated - Gate ok3 sets ok3=1 then write runs regardless
+FIX: need to only write halt=1 when instr==HALT
+MILESTONE: t_vm_step.t executes ALL instructions correctly!
+LOAD x, LOAD 1, STORE r, LOAD x, LOAD y, CALL foo 2, STORE result
+LOAD val, LOAD >0, JUMP_IF_0 END, STORE flag - ALL CORRECT
+Step 12 repeats - no HALT in stage1.bc, need to add HALT
+VM stepping proven working!
