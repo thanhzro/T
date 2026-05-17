@@ -454,30 +454,6 @@ static void native_argmax_n(BVal *stack, int argc, BVal *out) {
         if(arr.arr[i].num > best_val){
             best_val = arr.arr[i].num;
             best_idx = i;
-        } else if(gate_op){
-            /* Gate var (op val) >> target */
-            char *lp2=strchr(line,'('); char *rp2=strchr(line,')');
-            char *arr2=strstr(line," >> ");
-            if(lp2&&rp2&&arr2){
-                char var[64]={0}; strncpy(var,line+5,lp2-line-5);
-                char *vp=var+strlen(var)-1; while(vp>var&&*vp==' ')vp--;vp[1]=0;
-                char cond[64]={0}; strncpy(cond,lp2+1,rp2-lp2-1);
-                char tgt2[64]={0}; strcpy(tgt2,arr2+4);
-                char *tp2=tgt2+strlen(tgt2)-1;
-                while(tp2>tgt2&&(*tp2==' '||*tp2=='\n'))tp2--;tp2[1]=0;
-                /* emit: LOAD var, LOAD val, CMP op, JUMP_IF_0 END, STORE tgt */
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                char b1[128]; snprintf(b1,sizeof(b1),"LOAD %s",var);
-                out->arr[out->arr_len++]=make_str(b1); out->num=out->arr_len;
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                char b2[128]; snprintf(b2,sizeof(b2),"LOAD %s",cond);
-                out->arr[out->arr_len++]=make_str(b2); out->num=out->arr_len;
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                out->arr[out->arr_len++]=make_str("JUMP_IF_0 END"); out->num=out->arr_len;
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                char b3[128]; snprintf(b3,sizeof(b3),"STORE %s",tgt2);
-                out->arr[out->arr_len++]=make_str(b3); out->num=out->arr_len;
-            }
         }
     }
     *out = make_num(best_idx);
@@ -539,31 +515,7 @@ static void nat_par_spawn(BVal *stack, int argc, BVal *out) {
             chdir("/data/data/com.termux/files/home/t-lang");
             execl("/data/data/com.termux/files/home/t-lang/t_bc","/data/data/com.termux/files/home/t-lang/t_bc",path,NULL);
             exit(1);
-        } else if(gate_op){
-            /* Gate var (op val) >> target */
-            char *lp2=strchr(line,'('); char *rp2=strchr(line,')');
-            char *arr2=strstr(line," >> ");
-            if(lp2&&rp2&&arr2){
-                char var[64]={0}; strncpy(var,line+5,lp2-line-5);
-                char *vp=var+strlen(var)-1; while(vp>var&&*vp==' ')vp--;vp[1]=0;
-                char cond[64]={0}; strncpy(cond,lp2+1,rp2-lp2-1);
-                char tgt2[64]={0}; strcpy(tgt2,arr2+4);
-                char *tp2=tgt2+strlen(tgt2)-1;
-                while(tp2>tgt2&&(*tp2==' '||*tp2=='\n'))tp2--;tp2[1]=0;
-                /* emit: LOAD var, LOAD val, CMP op, JUMP_IF_0 END, STORE tgt */
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                char b1[128]; snprintf(b1,sizeof(b1),"LOAD %s",var);
-                out->arr[out->arr_len++]=make_str(b1); out->num=out->arr_len;
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                char b2[128]; snprintf(b2,sizeof(b2),"LOAD %s",cond);
-                out->arr[out->arr_len++]=make_str(b2); out->num=out->arr_len;
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                out->arr[out->arr_len++]=make_str("JUMP_IF_0 END"); out->num=out->arr_len;
-                out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
-                char b3[128]; snprintf(b3,sizeof(b3),"STORE %s",tgt2);
-                out->arr[out->arr_len++]=make_str(b3); out->num=out->arr_len;
-            }
-        }
+
     }
     for(int i=0;i<n&&i<256;i++){
         if(pids[i]>0) waitpid(pids[i],NULL,0);
@@ -694,7 +646,6 @@ static void nat_compile_all(BVal *stack, int argc, BVal *out) {
                 out->num=out->arr_len;
             }
         } else if(gate_op){
-            /* Gate var (op val) >> target */
             char *lp2=strchr(line,'('); char *rp2=strchr(line,')');
             char *arr2=strstr(line," >> ");
             if(lp2&&rp2&&arr2){
@@ -704,7 +655,6 @@ static void nat_compile_all(BVal *stack, int argc, BVal *out) {
                 char tgt2[64]={0}; strcpy(tgt2,arr2+4);
                 char *tp2=tgt2+strlen(tgt2)-1;
                 while(tp2>tgt2&&(*tp2==' '||*tp2=='\n'))tp2--;tp2[1]=0;
-                /* emit: LOAD var, LOAD val, CMP op, JUMP_IF_0 END, STORE tgt */
                 out->arr=realloc(out->arr,sizeof(BVal)*(out->arr_len+1));
                 char b1[128]; snprintf(b1,sizeof(b1),"LOAD %s",var);
                 out->arr[out->arr_len++]=make_str(b1); out->num=out->arr_len;

@@ -2353,3 +2353,14 @@ LOAD x, LOAD 1, STORE r - assign line ✓
 LOAD x, LOAD y, CALL foo 2, STORE result - tilde line ✓
 Gate line missing - need gate handling in compile_all C native
 EXTRA SPACE: "STORE  result" has double space - trim issue
+BUG: gate_op and line undeclared at line 457 - Gate block added OUTSIDE the for loop
+The replace added gate_op check after closing braces of for loop
+Gate block needs to be INSIDE the for loop where line and gate_op are defined
+FIX: find exact location in C code and fix properly
+BUG: Gate block inserted inside argmax_n function not compile_all
+The replace pattern matched wrong closing braces
+FIX: surgically edit compile_all to add gate handling
+BUG: line 463 still has function definition error - same old misplaced code
+compile_all assign+tilde working (LOAD x, LOAD 1, STORE r, CALL foo 2)
+Gate still missing but assign+tilde = 90% of T0 code
+PRIORITY: fix line 463 error then Gate
