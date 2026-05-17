@@ -2887,3 +2887,10 @@ FIXED: join() now handles numeric arrays!
 0.1,0.2,0.3,0.4 ✓
 48/48 still pass
 Now weights can be saved to file correctly
+MILESTONE: DISTRIBUTED TRAINING WORKING! v16.4
+4 workers trained in parallel: 0.300s
+weights_0: 0.0523317,-0.0855541,-0.0200153,-0.0264697
+weights_1: -0.0457246,0.0300071,0.0701012,-0.0769475
+weights_2: 0.0250469,0.101805,-0.0194837,0.0178933
+weights_3: 0.0610271,0.00724201,0.00939893,-0.0216875
+NEXT: master merges weights → next epoch → loop
