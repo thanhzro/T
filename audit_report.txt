@@ -1,0 +1,15 @@
+BUGS: 301
+FIXES: 179
+MILESTONES: 71
+
+LATEST BUGS:
+BUG: frame not appending - only last entry kept
+BUG: t_vm_load.t stack OVERWRITING not PUSHING
+BUG: "|x" and "|x|1" - leading | because vm_stk="" but Gate(!="") fires
+BUG: frame only has s=x not r=1|s=x
+BUG: JUMP sets ip=999 but dispatch still runs empty steps 11-15
+BUG: echo "42\nhello" doesnt create newline in bash
+BUG: worker_42.t has literal \n not real newlines
+BUG: par_spawn returns 0 not 1 - fspawn=[worker_file] in T-
+BUG: t_auditor.t shows nothing - F() push scope issue again
+BUG: F() body with Gate chain still not working

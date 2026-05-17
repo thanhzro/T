@@ -2753,3 +2753,61 @@ spawn_file native works - dynamic path spawning
 worker_1_done.txt = "worker 1 reporting" ✓
 T con generates new T con → spawns it → runs → output
 TRUE SELF-REPLICATION CONFIRMED
+IMPLEMENTING: T con self-audit
+t_auditor.t reads ai_rules.txt → detect bug patterns → generate fix suggestions
+Pattern: "BUG:" lines = known issues, "FIX:" lines = known solutions
+BUG: t_auditor.t shows nothing - F() push scope issue again
+bugs/fixes arrays not accumulating outside F()
+CLASSIC: Gate bug_flag(==1)>>bugs sets bugs=1 not array
+WORKAROUND: write each bug line to file inside F()
+BUG: F() body with Gate chain still not working
+bug_count not updating - Gate bf(==1)>>bug_count sets bug_count=1
+then bug_count+1>>bug_count always runs = 2 always
+AND show shall shows nothing = F() not executing at all?
+TEST: simple F() loop without Gate
+ai_rules.txt = 2767 lines - very large file
+F() on 2767 elements may be slow or hitting limits
+SIMPLER: use grep via native or Python to count BUG: lines
+Use Python script as t_auditor for now - faster and reliable
+AUDIT COMPLETE:
+Total: 2771 lines in ai_rules.txt
+BUG entries: 301
+FIX entries: 179
+MILESTONE entries: 71
+Resolved ratio: 179/301 = 59% bugs fixed
+Most recent unresolved: F() push scope, Gate overwrite, echo newline
+CRITICAL INSIGHT: 301 bugs documented = living knowledge base for T con training
+TESTING: actual training speed on Termux
+train_small.t = 4-dim model, small dataset
+Measure real time not estimate
+CONFIRMED: train_small.t = 0.036s actual on Termux!
+Estimate was WRONG - 50 steps/sec was too conservative
+Actual: train_small.t runs in 36ms
+Need to know: how many training steps in train_small.t
+Scale: if 1 file = 36ms, 232,000 char corpus = ?
+train_tcon.t = 0.047s for full 4-dim training cycle
+EXTREMELY FAST - 47ms not 77 minutes!
+Estimate was wrong by factor of 100,000x
+Real training: ms not hours
+Scale to 64-dim char model is feasible
+ANALYSIS: 76,666 sequences × 47ms = WRONG calculation
+47ms = overhead launching t_bc + loading imports
+Actual compute per step inside 1 file = much less
+train_tcon.t does 4 steps in 47ms = ~12ms per step
+BUT if 1000 steps in 1 file → overhead paid once
+FIX: generate 1 big training file with many steps
+CONFIRMED: 200 steps in 0.011s = 18,000 steps/second!
+train_char.t overhead = near zero when steps compiled inline
+Scale: 76,666 sequences / 18,000 per sec = 4.3 seconds per epoch!
+Full training 10 epochs = 43 seconds TOTAL
+Training is TRIVIALLY fast - scale up now
+2000 steps in 0.016s = 125,000 steps/second!
+But: steps are just loading data into T- vars
+No actual forward pass or backprop happening in T0
+Need to add linear_rows + sgd_update calls in T0
+NEXT: add actual training ops per step
+MILESTONE: Real training with backprop working!
+50 steps forward+backward in 0.051s = ~1000 real training steps/sec
+wr0 updated: [-0.000424191] = weights changed by gradient
+SCALE: 1000 steps/sec × full dim=4 × 50 epochs = feasible
+NEXT: scale to 500 steps, verify loss decreasing
