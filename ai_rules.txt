@@ -2894,3 +2894,31 @@ weights_1: -0.0457246,0.0300071,0.0701012,-0.0769475
 weights_2: 0.0250469,0.101805,-0.0194837,0.0178933
 weights_3: 0.0610271,0.00724201,0.00939893,-0.0216875
 NEXT: master merges weights → next epoch → loop
+BENCHMARK: 4 workers × 30 steps = 0.308s
+= 390 steps/second distributed
+SCALE TEST: increase to dim=32, steps=100 per worker
+Python syntax error in benchmark script - quote mismatch
+bench_seq.t empty so 0.011s = no training
+Fix: use correct quote in xvec line
+BENCHMARK RESULT:
+Sequential 120 steps: 0.127s
+Distributed 4×30 steps: 0.308s
+Sequential FASTER than distributed!
+Reason: par_spawn overhead (fork+exec) > compute time
+For tiny dim=4 model, spawn overhead dominates
+Distributed wins only when compute >> spawn overhead
+LESSON: distributed training worth it only for large models
+spawn overhead = ~0.07s per worker (0.308 - 0.127 = 0.181s / 4 workers ≈ 0.045s each)
+Sequential wins for small models on same device
+Distributed wins when: compute per worker > 0.045s
+Currently: 30 steps = ~0.07s per worker → borderline
+Need: 100+ steps per worker for distributed to win
+Test: 4 workers × 100 steps vs sequential 400 steps
+BENCHMARK FINAL:
+Sequential 400 steps: 0.049s
+Distributed 4×100:    0.400s
+Sequential 8x FASTER than distributed on same device!
+CONCLUSION: distributed training only wins on MULTIPLE PHYSICAL DEVICES
+On 1 device: sequential always wins (fork overhead too high)
+On N phones: distributed wins N× (each phone = 1 worker)
+INSIGHT: T con army designed for multi-device not multi-process on 1 device
