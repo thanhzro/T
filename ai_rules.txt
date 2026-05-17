@@ -2373,3 +2373,10 @@ CHECK: line just before 527 - par_spawn or nat_par_spawn missing }
 FOUND: nat_par_spawn missing 2 closing braces
 exit(1); should be followed by } for if(pid==0) then } for for loop
 FIX: add missing braces
+MILESTONE: t_compiler.t compiles ALL 3 line types!
+assign: LOAD x, LOAD 1, STORE r ✓
+tilde: LOAD x, LOAD y, CALL foo 2, STORE result ✓ (double space in STORE - minor)
+gate: LOAD val, LOAD >0, JUMP_IF_0 END, STORE flag ✓
+48/48 tests pass
+t_compiler.t = LEVEL 3 candidate - can compile T0 patterns
+NEXT: build-selfhost.sh to prove bootstrap chain
