@@ -2697,3 +2697,9 @@ FIX: CALL should NOT push to stack - just record in frame
 FIXING BUG1: ip bounds check in t_vm_dispatch.t
 If ip >= total instructions → write HALT to vm_instr.txt
 FIXING BUG2: t_vm_call.t should NOT push to stack
+BUG: JUMP sets ip=999 but dispatch still runs empty steps 11-15
+Gate ip_num(< total)>>safe_instr - SAME overwrite bug!
+"HALT">>safe_instr then Gate fires→safe_instr=1 then instr>>safe_instr=real instr
+Gate fires but instr>>safe_instr ALWAYS overwrites
+FIX: dont use Gate for bounds - check halt before dispatch
+OR: t_vm_jump.t write "HALT" directly to vm_instr.txt when jumping

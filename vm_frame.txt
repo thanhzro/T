@@ -1,1 +1,1 @@
-FRAME|r=1|CALL:foo(2)|result=y
+FRAME|r=1|CALL:foo(2)|result=y|flag=val
