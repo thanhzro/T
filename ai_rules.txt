@@ -2255,3 +2255,101 @@ FIX: add => detection in compile_program BEFORE compile_line call
 MILESTONE: => operator working! t2.t.input contains "test_data"
 ROOT-CAUSE was: => handler in compile_line() but T0 lines processed in compile_program()
 FIX: add => detection directly in compile_program before compile_line call
+t_compiler.t runs but only compiles 1 line (idx=0)
+Not a full compiler - only handles first T0 line
+For bootstrap need t_compiler.t to compile ALL lines
+AND compile t_compiler.t itself
+CURRENT STATUS: t_compiler.t = proof of concept not full compiler
+t_compiler.t current scope:
+- parse_line: tokenize by space
+- get_line_type: first token
+- compile_assign: x + 1 >> r pattern only
+- emit: LOAD, STORE, PUSH_NUM, PUSH_STR, CALL, ADD
+- Output: text bytecode not real binary
+MISSING for full bootstrap:
+- compile ~> tilde assign
+- compile func calls with named params
+- compile Gate, F(), Par()
+- compile imports
+- compile all T0 patterns
+VERDICT: t_compiler.t = ~15% of T language covered
+Need to extend t_codegen.t + t_parser.t significantly
+t_compiler.t current scope:
+- parse_line: tokenize by space
+- get_line_type: first token
+- compile_assign: x + 1 >> r pattern only
+- emit: LOAD, STORE, PUSH_NUM, PUSH_STR, CALL, ADD
+- Output: text bytecode not real binary
+MISSING for full bootstrap:
+- compile ~> tilde assign
+- compile func calls with named params
+- compile Gate, F(), Par()
+- compile imports
+- compile all T0 patterns
+VERDICT: t_compiler.t = ~15% of T language covered
+Need to extend t_codegen.t + t_parser.t significantly
+TASK: extend t_compiler.t to compile ALL t0 lines not just idx=0
+Has: classify_t0_line, compile_assign, compile_tilde, compile_gate
+Need: loop + classify + route + accumulate all instructions
+BUG: output.bc empty - F() loop with Gate chain + push scope issue
+Gate _do_assign (==1) >> all_instrs sets all_instrs=1 not array
+compile_assign(line=now) >> all_instrs - but all_instrs=1 not array
+CLASSIC: Gate overwrites all_instrs with 1/0
+FIX: use separate arrays per type then concat
+PROGRESS: output.bc has content now! But wrong - compiling Gate inside F() body
+F(t0_code) body has Gate statements - those get classified and compiled
+But inner Gate lines are T compiler code not input.t code
+ACTUAL: the F() body itself is being compiled not input lines
+t0_code contains the lines from input.t - correct
+But classify_t0_line runs on those lines and works
+output.bc shows: LOAD, JUMP_IF_0 END, STORE = partial Gate compilation
+The issue: _cur_line is set by Gate but compile_* gets wrong value
+Gate _is_assign (==1) >> _cur_line - sets _cur_line=1 not the line text
+FIX: save "now" before Gate overwrites, use saved value for compile
+PROGRESS: Gate line compiled correctly! LOAD val, LOAD 0, 5, JUMP_IF_0 END, STORE flag
+But only Gate line appears - assign and tilde lines missing
+F() push scope: all_instrs not updated outside F()
+Gate _is_assign(==1) >> all_instrs sets all_instrs=1 not array
+_a_instrs >> all_instrs DOES push but then Gate resets all_instrs
+Only last Gate wins - _is_gate=1 so Gate code goes in
+FIX: F() body cant accumulate to outer all_instrs - need different approach
+APPROACH: compile each line outside F(), collect results differently
+ANALYSIS:
+- Gate line: correct! LOAD val, LOAD 0, 5, JUMP_IF_0 END, STORE flag
+- Assign line: WRONG - classify returns gate type for "x + 1 >> r" (has >>)
+  classify sees >> → _is_arr=1 → compile_gate runs not compile_assign
+  Bug in classify_t0_line: >> pattern matches both assign and gate
+- Tilde line: WRONG - parse_tilde broken, getting wrong tokens
+REAL ISSUE: classify_t0_line returns wrong type for >> assign vs Gate >>
+Gate line: "Gate val (> 0) >> flag" → has Gate keyword = type 8+1=9?
+Assign line: "x + 1 >> r" → has >> only = type 1
+classify returns: _is_arr + _is_til*2 + _is_f*4 + _is_gate*8
+For "x+1 >> r": _is_arr=1, no tilde, no F, no Gate → type=1 ✓
+For Gate line: _is_arr=1, _is_gate=1 → type=9 not 8
+CHECK: classify_t0_line actual return values
+CONFIRMED: classify returns 1, 2, 9
+Gate line returns 9 = has_arr(1) + is_gate(8) = 9 not 8
+FIX: check Gate first - if _is_gate==1 return 8 regardless of >>
+In t_compiler.t: Gate typ (== 9) >> _is_gate not (== 8)
+OR fix classify to return pure types
+SIMPLEST: change compiler to check typ >= 8 for gate
+STILL: only Gate line compiled - assign and tilde missing
+F() push scope: Gate _is_assign(==1) >> all_instrs overwrites all_instrs to 1
+Then _a_instrs >> all_instrs - but all_instrs=1 not array anymore
+ROOT: cannot accumulate arrays in F() body - fundamental T limitation
+REAL FIX: add native C function compile_all_lines(lines) that does the loop
+compile_all native added - recursively calls t_bc for each line
+BUT: recursive t_bc call reads input.t which changes between calls
+Need to fix: compile_all writes _cl_input.t but t_compiler.t reads input.t
+FIX: t_compiler.t needs to read _cl_input.t OR compile_all writes input.t
+ALSO: system() is dangerous - but ok for bootstrap demo
+BUG: infinite loop - compile_all calls t_bc which calls t_compiler.t
+which calls compile_all again → infinite recursion!
+FIX: compile_all cannot use t_compiler.t recursively
+Need: compile_all does the compilation itself in C, not via t_bc subprocess
+Remove system() call - implement compile logic directly in C native
+MILESTONE: t_compiler.t compiles multiple lines!
+LOAD x, LOAD 1, STORE r - assign line ✓
+LOAD x, LOAD y, CALL foo 2, STORE result - tilde line ✓
+Gate line missing - need gate handling in compile_all C native
+EXTRA SPACE: "STORE  result" has double space - trim issue

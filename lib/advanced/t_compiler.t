@@ -13,10 +13,8 @@ split(str=t0_str, sep=nl) ~> t0_lines
 arr_filter_not_starts(arr=t0_lines, prefix=bracket) ~> t0_nonempty
 [] >> t0_code
 F(t0_nonempty) { Gate now (!= "") >> t0_code }
-get(arr=t0_code, idx=0) ~> _line0
-compile_assign(line=_line0) ~> instrs0
-write_output(instrs=instrs0, path="output.bc", nl=nl) ~> ok
+compile_all(lines=t0_code) ~> all_instrs
+write_output(instrs=all_instrs, path="output.bc", nl=nl) ~> ok
 
 [T+]
-show shall(t0_code)
 show shall(ok)

@@ -1,6 +1,4 @@
 [T-]
 [T0]
-x + 1 >> r
-foo(a=x, b=y) ~> result
 Gate val (> 0) >> flag
 [T+]
