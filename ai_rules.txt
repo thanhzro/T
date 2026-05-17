@@ -2197,3 +2197,24 @@ REMAINING DEBT:
 - Item 1: Makefile wrong paths (low priority)
 - Items 26-27: tests/advanced.t and examples/t-pipeline.t broken imports
 - Items 41-66: lib/archived/ not connected (cleanup only)
+DEBT RESOLVED: items 1-40 fixed
+- 24 broken imports removed from std.t
+- 6 duplicate md5/sha256 removed
+- 4 orphan slots removed
+- 2 broken imports in tests/examples
+48/48 tests pass
+Foundation clean. Ready for => operator
+VERIFIED: core ML functions intact after debt cleanup
+dot_product, sgd_update working correctly
+Foundation stable. Ready for => operator
+IMPLEMENTING: => operator
+Syntax: data => "next.t"
+Behavior:
+1. Serialize data to file "next.t.input"
+2. Spawn next.t with ./t_bc
+3. next.t reads input via file_read
+Pipeline: T1 => T2 => T3
+fat_arrow native added - now need compiler support for => syntax
+T0 compiler needs to detect "val => target" and compile as fat_arrow call
+=> syntax added to compiler
+TEST: T1 => T2 pipeline

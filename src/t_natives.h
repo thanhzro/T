@@ -523,6 +523,51 @@ static void nat_par_spawn(BVal *stack, int argc, BVal *out) {
     *out = make_num(n);
 }
 
+
+static void nat_fat_arrow(BVal *stack, int argc, BVal *out) {
+    BVal data = stack[0];
+    BVal target = stack[1];
+    if(!target.str){*out=make_num(0);return;}
+    
+    /* Serialize data to input file */
+    char input_path[512];
+    snprintf(input_path, sizeof(input_path), "%s.input", target.str);
+    
+    /* Convert data to string */
+    char buf[65536]={0};
+    if(data.type==VT_NUM){
+        snprintf(buf,sizeof(buf),"%g",data.num);
+    } else if(data.type==VT_STR && data.str){
+        snprintf(buf,sizeof(buf),"%s",data.str);
+    } else if(data.type==VT_ARR){
+        int pos=0;
+        pos+=snprintf(buf+pos,sizeof(buf)-pos,"[");
+        for(int i=0;i<data.arr_len;i++){
+            if(i>0) pos+=snprintf(buf+pos,sizeof(buf)-pos,", ");
+            if(data.arr[i].type==VT_STR && data.arr[i].str)
+                pos+=snprintf(buf+pos,sizeof(buf)-pos,"%s",data.arr[i].str);
+            else
+                pos+=snprintf(buf+pos,sizeof(buf)-pos,"%g",data.arr[i].num);
+        }
+        pos+=snprintf(buf+pos,sizeof(buf)-pos,"]");
+    }
+    
+    /* Write to input file */
+    FILE *f=fopen(input_path,"w");
+    if(f){fprintf(f,"%s",buf);fclose(f);}
+    
+    /* Spawn target T con */
+    char *tbc_path = "/data/data/com.termux/files/home/t-lang/t_bc";
+    pid_t pid=fork();
+    if(pid==0){
+        chdir("/data/data/com.termux/files/home/t-lang");
+        execl(tbc_path,tbc_path,target.str,NULL);
+        exit(1);
+    }
+    if(pid>0) waitpid(pid,NULL,0);
+    *out=make_num(1);
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -545,6 +590,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fat_arrow");f2->is_native=4;f2->native_v=nat_fat_arrow;f2->param_count=2;strcpy(f2->params[0],"data");strcpy(f2->params[1],"tgt");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"par_spawn");f2->is_native=4;f2->native_v=nat_par_spawn;f2->param_count=1;strcpy(f2->params[0],"files");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lower");f2->is_native=2;f2->native_s=nat_lower;f2->param_count=1;strcpy(f2->params[0],"str");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"upper");f2->is_native=2;f2->native_s=nat_upper;f2->param_count=1;strcpy(f2->params[0],"str");}
