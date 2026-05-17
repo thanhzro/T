@@ -918,6 +918,22 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             /* i now past closing } */
             compile_f_block(c,arr_var,body,bc);
             continue;
+        } else if(strstr(lines[i]," => ") && !strstr(lines[i],"~>") && !strstr(lines[i]," >> ")){
+            /* => fat arrow operator */
+            const char *_line=lines[i];
+            char *_fa=strstr(_line," => ");
+            char _lhs[256]={0}, _rhs[256]={0};
+            int _llen=_fa-_line;
+            strncpy(_lhs,_line,_llen); _lhs[_llen]=0;
+            char *_lp=_lhs; while(*_lp==' ')_lp++;
+            strcpy(_rhs,_fa+4);
+            char *_rp=_rhs+strlen(_rhs)-1;
+            while(_rp>_rhs&&(*_rp==' '||*_rp=='\n'))_rp--;
+            _rp[1]=0;
+            char _fat[512];
+            snprintf(_fat,sizeof(_fat),"fat_arrow(data=%s, dest=%s) ~> _fa_rslt",_lp,_rhs);
+            compile_line(c,_fat);
+            i++;
         } else {
             compile_line(c,lines[i]); i++;
         }

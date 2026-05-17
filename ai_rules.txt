@@ -2218,3 +2218,40 @@ fat_arrow native added - now need compiler support for => syntax
 T0 compiler needs to detect "val => target" and compile as fat_arrow call
 => syntax added to compiler
 TEST: T1 => T2 pipeline
+BUG: still not working - fat_arrow native not being called
+DEBUG: add simple test to verify => compiles
+CONFIRMED: fat_arrow native works directly!
+But => syntax "val => tgt" not compiling to fat_arrow call
+DEBUG: print what compile_line sees for "val => tgt"
+ISSUE: "val => tgt" - _fa finds " => " but then tgt param name = T- var "tgt"
+fat_arrow(data=val, tgt=tgt) - param "tgt" conflicts with T- var "tgt"!
+SAME CLASSIC T PARAM CONFLICT
+FIX: compiler generates fat_arrow with _tgt_ prefix to avoid conflict
+BUG: still not working - val => tgt not compiling
+The => compile_line handler may not be reached
+OR: "val => tgt" - tgt is T- var so _rhs = "tgt" (no quotes)
+fat_arrow(data=val, dest=tgt) - NOW dest!=tgt so no conflict!
+But still not working - check if compile_line handler runs at all
+ADD: stderr debug print to verify
+BUG: compile_line not called for T0 lines at all!
+T0 lines go through compile_program which calls compile_line
+BUT: "val => tgt" - T0 section processes lines differently
+T0 compiler may handle lines through compile_tilde_line not compile_line
+CHECK: which function handles T0 assignment lines
+FOUND: line 922 "compile_line(c,lines[i])" - this IS called for T0 lines
+But debug not printing - compile_line IS the right function
+WAIT: _tcon_tmp.t has "val => tgt" - _fa = strstr finds " => "
+BUT: tgt has no spaces - "val => tgt" → _fa points to " => tgt"
+_rhs = "tgt" which is correct
+MAYBE: the handler is reached but fat_arrow call itself fails
+Remove debug check - maybe fprintf goes to /dev/null
+TEST: write to file instead of stderr
+ROOT-CAUSE: => handler in compile_line() but T0 lines go through compile_program()
+compile_program checks Par(), F(), func - if none match → compile_line(c,lines[i])
+=> handler IS in compile_line but NEVER REACHED because compile_program handles lines[i]
+via compile_line at line 922 BUT lines[i] = "val => tgt" with leading spaces stripped?
+OR: lines[i] already processed before reaching compile_line
+FIX: add => detection in compile_program BEFORE compile_line call
+MILESTONE: => operator working! t2.t.input contains "test_data"
+ROOT-CAUSE was: => handler in compile_line() but T0 lines processed in compile_program()
+FIX: add => detection directly in compile_program before compile_line call
