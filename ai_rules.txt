@@ -3072,3 +3072,26 @@ MILESTONE: char model training WORKING! ls=0.0066, wmat=64 values non-zero!
 Loss > 0 ✓, weights updated ✓
 T- large array now works with 65536 buffer
 CONCERN: static char buffers 65536+131072 on stack = memory usage
+PROGRESS: loss=0.00196 after 100 steps - very low!
+But !EMPTY_COORD(ok) - write_file_t failed
+tcon_weights.txt not created
+join(arr=wmat, sep=",") ~> ws - ws param name conflicts with wmat?
+NO: "ws" is output var, no conflict
+write_file_t(path="tcon_weights.txt", content=ws) - "ws" T0 var
+BUG: ws not being passed correctly to write_file_t
+SIMPLER: save wmat directly using shall output
+join+write_file_t works in isolation
+BUG in training file: wmat after mat_update_flat is updated matrix
+join(arr=wmat) should work but !EMPTY_COORD(ok)
+ISSUE: "wstr" param name - write_file_t param is "content"
+"wstr" starts with "w" same as "wmat" - no conflict
+REAL: mat_update_flat returns updated wmat but as different type?
+Test: join wmat after mat_update_flat
+join after mat_update_flat WORKS in isolation!
+saved=1, wstr=weights correctly saved
+BUG must be in training file with 100 steps
+After 100 steps wmat becomes corrupted type?
+OR: "ws" variable name in T+ section conflicts
+T+ section: join ~> ws then write_file_t(content=ws)
+"ws" might be reserved or conflict
+FIX: rename ws → wstr in training file

@@ -909,6 +909,6 @@ vec_scale(a=ev, s=gs) ~> rg
 mat_update_flat(mat=wmat, grad=rg, lrv=lr) ~> wmat
 [T+]
 show shall(ls)
-join(arr=wmat, sep=",") ~> ws
-write_file_t(path="tcon_weights.txt", content=ws) ~> ok
+join(arr=wmat, sep=",") ~> wstr
+write_file_t(path="tcon_weights.txt", content=wstr) ~> ok
 show shall(ok)
