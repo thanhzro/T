@@ -2811,3 +2811,79 @@ MILESTONE: Real training with backprop working!
 wr0 updated: [-0.000424191] = weights changed by gradient
 SCALE: 1000 steps/sec × full dim=4 × 50 epochs = feasible
 NEXT: scale to 500 steps, verify loss decreasing
+BUG: 500 steps in 0.761s but NO output shown
+loss0, loss499, wr0 = empty - show shall not working?
+OR: string constant limit hit - 500 steps × many strings = too many
+OR: variable name collision with s prefix
+NEED: check if output exists at all
+BUG: 500 steps = 0 output, 0 lines to stdout
+3013 lines in file - likely hitting string constant limit (255)
+500 steps × 6 vars each = 3000 string constants >> 255 limit
+SAME BUG as before: chunk_add_str overflow
+FIX: reduce to 40 steps max OR use rotating var names
+BUG: loss=0, wr0=[[0],[0],[0],[0]] - weights zeroed out
+mat_update_4 returns zeros - T- array format wrong
+T- array wr0=[0.1,0.2,...] but mat_update_4 expects 2D array
+mat_update_4 takes mat=w where w=[[row0],[row1],...] not flat
+FIX: use sgd_update per row not mat_update_4
+OR: init weights as 2D array
+PROGRESS: wr0 updating! [0.0279, -0.095, -0.045, -0.0554] non-zero ✓
+loss=0 still wrong - dot_product(gg,gg) returning 0
+gg = vec_sub result should be non-zero
+BUT: ls=0 means gg=[0,0,0,0]
+vec_sub returns zeros? OR tvec format wrong?
+TEST: check pp and gg values directly
+ROOT CAUSE: T0 uses = assignment - WRONG!
+T0 only supports ~> and >>
+xv = {xvec} in T0 = T- syntax = NOT executed in T0
+xv stays as original T- value for ALL steps
+FIX: move data to T- as named vars per step (rotating names)
+OR: data hardcoded in T- with step index
+DECISION: add train_loop as C native
+T con calls train_loop() = training inside T language
+No Python dependency
+train_loop(data, steps, lr) ~> weights
+IMPLEMENTING: distributed training army
+Master splits corpus → N chunks
+par_spawn N workers → each train 1 chunk
+Workers save weights to file
+Master merge weights → next round
+Corpus split: 4 chunks × 30527 chars each
+Now build worker_train.t template and master_train.t
+Worker: load chunk → train 40 steps → save weights
+Master: spawn 4 workers → wait → merge weights
+MILESTONE: 4 workers spawned and completed in 0.070s!
+Each worker read 30527 chars and wrote done file
+spawn_file returns 1 = success for all 4 workers
+MINOR: filename "worker_data_chunk_0.txt_done.txt" - double extension
+FIX: template uses "worker_CHUNK_ID_done.txt" → CHUNK_ID="data_chunk_0.txt"
+→ becomes "worker_data_chunk_0.txt_done.txt" not clean
+FIX: pass just "0","1","2","3" as IDs not full filenames
+NEXT: workers do real training not just read/write
+Worker reads chunk → generates T- training vars → trains → saves weights
+Master spawns 4 workers → merges weights → next epoch
+MILESTONE: 4 workers training in parallel! 0.283s total
+Each worker shows loss + updated weights:
+worker_0: loss=0.040, wr0=[0.052,-0.085,-0.020,-0.026]
+worker_1: loss=0.017, wr0=[-0.046,0.030,0.070,-0.077]
+worker_2: loss=0.029, wr0=[0.025,0.102,-0.019,0.018]
+worker_3: loss=0.090, wr0=[0.061,0.007,0.009,-0.022]
+BUT: weights_N.txt empty - write_file_t(content=wr0) cant write array
+FIX: convert array to string before writing
+BUG: weights_N.txt = ",,," - join(arr=wr0) gives empty strings
+wr0 after sgd_update is array but join sees empty elements
+sgd_update returns updated array but elements may be num not str
+join converts num elements to empty string
+FIX: use shall() to convert each element or use write native that handles arrays
+SIMPLER: show shall(wr0) works - use tcon output capture
+OR: add arr_to_str native
+ROOT BUG: join() on numeric array returns ",,," - elements are VT_NUM not VT_STR
+join() only handles VT_STR elements, skips VT_NUM
+FIX: fix nat_join to convert num to string before joining
+FOUND: nat_join uses arr[i].str only - skips VT_NUM elements
+const char *s=arr[i].str?arr[i].str:"" → num elements = ""
+FIX: convert num to string if arr[i].str is NULL
+FIXED: join() now handles numeric arrays!
+0.1,0.2,0.3,0.4 ✓
+48/48 still pass
+Now weights can be saved to file correctly

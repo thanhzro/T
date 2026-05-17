@@ -1,0 +1,1476 @@
+ode
+        fromChar(val=code) ~> now
+    }
+    join(arr=IDX, sep="") ~> out
+}
+
+func to_base64(str) {
+    past(str) ~> A1
+    chars(str=A1) ~> ch
+    len(val=ch) ~> L
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" >> alpha
+    chars(str=alpha) ~> alpha_arr
+    range_step(from=0, to=L, step=3) ~> starts
+    F(starts) {
+        get(arr=ch, idx=now) ~> c1
+        charCode(str=c1) ~> b1
+        now + 1 >> i2
+        now + 2 >> i3
+        L - i2 >> d2
+        clamp(val=d2, lo=0, hi=1) ~> has2
+        L - i3 >> d3
+        clamp(val=d3, lo=0, hi=1) ~> has3
+        get(arr=ch, idx=i2) ~> c2r
+        charCode(str=c2r) ~> b2r
+        [] >> b2o
+        push(arr=b2o, val=0) ~> b2o
+        push(arr=b2o, val=b2r) ~> b2o
+        get(arr=b2o, idx=has2) ~> b2
+        get(arr=ch, idx=i3) ~> c3r
+        charCode(str=c3r) ~> b3r
+        [] >> b3o
+        push(arr=b3o, val=0) ~> b3o
+        push(arr=b3o, val=b3r) ~> b3o
+        get(arr=b3o, idx=has3) ~> b3
+        b1 / 4 >> ix1
+        b1 % 4 >> r1
+        r1 * 16 >> r1s
+        b2 / 16 >> b2h
+        r1s + b2h >> ix2
+        b2 % 16 >> r2
+        r2 * 4 >> r2s
+        b3 / 64 >> b3h
+        r2s + b3h >> ix3
+        b3 % 64 >> ix4
+        get(arr=alpha_arr, idx=ix1) ~> e1
+        get(arr=alpha_arr, idx=ix2) ~> e2
+        get(arr=alpha_arr, idx=ix3) ~> e3r
+        get(arr=alpha_arr, idx=ix4) ~> e4r
+        [] >> e3o
+        push(arr=e3o, val="=") ~> e3o
+        push(arr=e3o, val=e3r) ~> e3o
+        get(arr=e3o, idx=has2) ~> e3
+        [] >> e4o
+        push(arr=e4o, val="=") ~> e4o
+        push(arr=e4o, val=e4r) ~> e4o
+        get(arr=e4o, idx=has3) ~> e4
+        e1 + e2 + e3 + e4 >> now
+    }
+    join(arr=starts, sep="") ~> out
+}
+
+func startsWith(str, prefix) {
+    past(str) ~> P1
+    past(prefix) ~> P2
+    indexOf(str=P1, sub=P2) ~> O1
+    Gate O1 (== 0) >> O2
+    O2 >> out
+}
+
+func endsWith(str, suffix) {
+    past(str) ~> P1
+    past(suffix) ~> P2
+    len(val=P1) ~> O1
+    len(val=P2) ~> O2
+    O1 - O2 >> O3
+    indexOf(str=P1, sub=P2) ~> O4
+    Gate O4 (== O3) >> O5
+    O5 >> out
+}
+
+func repeat(str, n) {
+    past(str) ~> P1
+    past(n) ~> P2
+    range(n=P2) ~> O1
+    "" >> result
+    F(O1) {
+        result + P1 >> result
+    }
+    result >> out
+}
+
+func str_chars(str) {
+    past(str) ~> S
+    chars(str=S) ~> out
+}
+
+func char_code(str) {
+    past(str) ~> S
+    charCode(str=S) ~> out
+}
+
+func from_char(n) {
+    past(n) ~> N
+    fromChar(val=N) ~> out
+}
+
+func str_index(str, sub) {
+    past(str) ~> S
+    past(sub) ~> SUB
+    indexOf(str=S, sub=SUB) ~> out
+}
+
+func str_slice(str, lo, hi) {
+    past(str) ~> S
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    slice(str=S, from=Lo, to=Hi) ~> out
+}
+
+func str_reverse(str) {
+    past(str) ~> _srS
+    str_chars(str=_srS) ~> _srchars
+    len(val=_srchars) ~> _srn
+    _srn - 1 >> _srlast
+    [] >> _sracc
+    range(n=_srn) ~> _sridx
+    F(_sridx) {
+        _srlast - now >> _sri
+        get(arr=_srchars, idx=_sri) ~> _srEl
+        push(arr=_sracc, val=_srEl) ~> _sracc
+    }
+    join(arr=_sracc, sep="") ~> out
+}
+
+func str_count(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    split(str=S, sep=P) ~> parts
+    len(val=parts) ~> n
+    n - 1 >> out
+}
+
+func is_blank(str) {
+    past(str) ~> S
+    trim(str=S) ~> t
+    len(val=t) ~> n
+    0 >> out
+    Gate n (== 0) >> out
+}
+
+func str_starts(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    indexOf(str=S, sub=P) ~> idx
+    0 >> out
+    Gate idx (== 0) >> out
+}
+
+func str_ends(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    len(val=S) ~> slen
+    len(val=P) ~> plen
+    slen - plen >> expected_idx
+    indexOf(str=S, sub=P) ~> idx
+    idx - expected_idx >> diff
+    0 >> out
+    Gate diff (== 0) >> out
+}
+
+func str_first(str) {
+    past(str) ~> S
+    slice(str=S, from=0, to=1) ~> out
+}
+
+func str_last(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    n - 1 >> last
+    slice(str=S, from=last, to=n) ~> out
+}
+
+func str_drop_first(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    slice(str=S, from=1, to=n) ~> out
+}
+
+func str_drop_last(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    n - 1 >> last
+    slice(str=S, from=0, to=last) ~> out
+}
+
+func str_insert(str, pos, sub) {
+    past(str) ~> S
+    past(pos) ~> P
+    past(sub) ~> I
+    slice(str=S, from=0, to=P) ~> before
+    len(val=S) ~> n
+    slice(str=S, from=P, to=n) ~> after
+    before + I + after >> out
+}
+
+func str_is_alpha(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="^[a-zA-Z]+$") ~> out
+}
+
+func str_is_numeric(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="^-?[0-9]+\.?[0-9]*$") ~> out
+}
+
+func str_is_alnum(str) {
+    past(str) ~> S
+    regex_match(str=S, pat="^[a-zA-Z0-9]+$") ~> out
+}
+
+func str_lpad(str, n, ch) {
+    past(str) ~> S
+    past(n) ~> N
+    past(ch) ~> C
+    len(val=S) ~> slen
+    N - slen >> pad_n
+    Gate pad_n (> 0) >> need_pad
+    0 >> np
+    Gate need_pad (is_num) >> np
+    range(n=pad_n) ~> idx
+    F(idx) { C >> now }
+    join(arr=idx, sep="") ~> padding
+    [] >> opts
+    push(arr=opts, val=S) ~> opts
+    push(arr=opts, val=padding + S) ~> opts
+    get(arr=opts, idx=np) ~> out
+}
+
+func str_join(arr, sep) {
+    past(arr) ~> A
+    past(sep) ~> S
+    join(arr=A, sep=S) ~> out
+}
+
+func str_split(str, sep) {
+    past(str) ~> S
+    past(sep) ~> P
+    split(str=S, sep=P) ~> out
+}
+
+func str_eq(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    indexOf(str=A, sub=B) ~> i1
+    indexOf(str=B, sub=A) ~> i2
+    len(val=A) ~> la
+    len(val=B) ~> lb
+    la - lb >> diff
+    Gate diff (== 0) >> len_eq
+    0 >> le
+    Gate len_eq (is_num) >> le
+    Gate i1 (== 0) >> p1
+    0 >> ip1
+    Gate p1 (is_num) >> ip1
+    Gate i2 (== 0) >> p2
+    0 >> ip2
+    Gate p2 (is_num) >> ip2
+    le * ip1 >> t1
+    t1 * ip2 >> out
+}
+
+func str_to_arr(str) {
+    past(str) ~> S
+    str_chars(str=S) ~> out
+}
+
+func str_wrap_word(str, width) {
+    past(str) ~> S
+    past(width) ~> W
+    len(val=S) ~> n
+    Gate n (<= W) >> short
+    0 >> is_short
+    Gate short (is_num) >> is_short
+    [] >> opts
+    push(arr=opts, val=S) ~> opts
+    slice(str=S, from=0, to=W) ~> cut
+    push(arr=opts, val=cut) ~> opts
+    get(arr=opts, idx=is_short) ~> out
+}
+
+func str_repeat_sep(str, n, sep) {
+    past(str) ~> S
+    past(n) ~> N
+    past(sep) ~> P
+    floor(val=N) ~> ni
+    range(n=ni) ~> idx
+    F(idx) { S >> now }
+    join(arr=idx, sep=P) ~> out
+}
+
+func indexOf(str, sub) {
+    past(str) ~> _S
+    past(sub) ~> _B
+    len(val=_B) ~> _sl
+    len(val=_S) ~> _slen
+    -1 >> _found
+    range(n=_slen) ~> _idx
+    F(_idx) {
+        Gate _found (> -1) >> done
+        now + _sl >> _e
+        slice(str=_S, from=now, to=_e) ~> _c
+        0 >> _m
+        Gate _c (== _B) >> _m
+        1 - _m >> _k
+        _found * _k >> _o
+        now * _m >> _nw
+        _o + _nw >> _found
+    }
+}
+func range_step(from, to, step) {
+    past(from) ~> _rsF
+    past(to) ~> _rsT
+    past(step) ~> _rsS
+    [] >> _rsacc
+    range(n) ~> _rsidx
+    F(_rsidx) {
+        push(arr=_rsacc, val=_rsF) ~> _rsacc
+        _rsF + _rsS >> _rsF
+        0 >> done
+        Gate _rsF (>= _rsT) >> done
+    }
+    _rsacc >> out
+}
+
+func reverse(arr) {
+    past(arr) ~> _rA
+    len(val=_rA) ~> _rn
+    [] >> _racc
+    range(n=_rn) ~> _ridx
+    F(_ridx) {
+        _rn - now - 1 >> _ri
+        get(arr=_rA, idx=_ri) ~> _rel
+        push(arr=_racc, val=_rel) ~> _racc
+    }
+    _racc >> out
+}
+
+[T-]
+
+
+func first(arr) {
+    past(arr) ~> P1
+    get(arr=P1, idx=0) ~> out
+}
+
+func last(arr) {
+    past(arr) ~> P1
+    len(val=P1) ~> L1
+    L1 - 1 >> L2
+    get(arr=P1, idx=L2) ~> out
+}
+
+
+
+func count(arr, val) {
+    past(arr) ~> A1
+    past(val) ~> A2
+    F(A1) {
+        Gate now (== A2) >> O1
+    }
+    len(val=O1) ~> out
+}
+
+func unique(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> A2
+    F(A2) {
+        idx - 1 >> prev_idx
+        get(arr=A2, idx=prev_idx) ~> prev
+        Gate idx (== 0) || now (!= prev) >> O1
+    }
+    O1 >> out
+}
+
+func zip(a, b) {
+    past(a) ~> A1
+    past(b) ~> A2
+    len(val=A1) ~> L1
+    len(val=A2) ~> L2
+    min(a=L1, b=L2) ~> L
+    range(n=L) ~> IDX
+    F(IDX) {
+        get(arr=A1, idx=now) ~> v1
+        get(arr=A2, idx=now) ~> v2
+        [] >> pair
+        push(arr=pair, val=v1) ~> pair
+        push(arr=pair, val=v2) ~> pair
+        pair >> now
+    }
+    IDX >> out
+}
+
+func flatten(arr) {
+    past(arr) ~> A1
+    [] >> result
+    F(A1) {
+        isArray(val=now) ~> is_arr
+        Gate is_arr (== 1) >> O1
+    }
+    F(O1) {
+        F(now) {
+            push(arr=result, val=now) ~> result
+        }
+    }
+    result >> out
+}
+
+func pop(arr) {
+    past(arr) ~> A1
+    len(val=A1) ~> L
+    L - 1 >> n
+    slice_arr(arr=A1, from=0, to=n) ~> out
+}
+
+func range(n) {
+    past(n) ~> N
+    range_step(from=0, to=N, step=1) ~> out
+}
+
+func groupBy(arr) {
+    past(arr) ~> A1
+    sort(arr=A1) ~> sorted
+    len(val=sorted) ~> L
+    [] >> result
+    [] >> cur_group
+    "__NONE__" >> prev_str
+    0 >> i
+    range(n) ~> _steps
+    F(_steps) {
+        0 >> done
+        Gate i (>= L) >> done
+        get(arr=sorted, idx=i) ~> cur
+        toString(val=cur) ~> cur_str
+        indexOf(str=cur_str, sub=prev_str) ~> si1
+        indexOf(str=prev_str, sub=cur_str) ~> si2
+        si1 + si2 >> samesum
+        Gate samesum (== 0) >> is_same
+        0 >> is_s
+    Gate is_same (is_num) >> is_s
+        Gate is_s (== 0) >> should_flush
+        0 >> sf
+    Gate should_flush (is_num) >> sf
+        len(val=cur_group) ~> glen
+        Gate glen (== 0) >> is_empty
+        0 >> ie
+    Gate is_empty (is_num) >> ie
+        1 - ie >> not_empty
+        sf * not_empty >> do_flush
+        push_arr(arr=result, sub=cur_group) ~> result2
+        [] >> empty
+        [] >> r_opts
+        push(arr=r_opts, val=result) ~> r_opts
+        push(arr=r_opts, val=result2) ~> r_opts
+        get(arr=r_opts, idx=do_flush) ~> result
+        [] >> cg_opts
+        push(arr=cg_opts, val=cur_group) ~> cg_opts
+        push(arr=cg_opts, val=empty) ~> cg_opts
+        get(arr=cg_opts, idx=do_flush) ~> cur_group
+        push(arr=cur_group, val=cur) ~> cur_group
+        cur_str >> prev_str
+        i + 1 >> i
+    }
+    push_arr(arr=result, sub=cur_group) ~> result
+    result >> out
+}
+
+func sort_asc(arr) {
+    past(arr) ~> A
+    sort(arr=A) ~> out
+}
+
+func sort_desc(arr) {
+    past(arr) ~> A
+    sort(arr=A) ~> s
+    reverse_arr(arr=s) ~> out
+}
+
+func arr_is_empty(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    0 >> out
+    Gate n (== 0) >> out
+}
+
+
+
+
+func arr_push(arr, val) {
+    past(arr) ~> A
+    past(val) ~> V
+    push(arr=A, val=V) ~> out
+}
+
+func arr_slice(arr, lo, hi) {
+    past(arr) ~> A
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    slice_arr(arr=A, from=Lo, to=Hi) ~> out
+}
+
+func arr_join(arr, sep) {
+    past(arr) ~> A
+    past(sep) ~> S
+    join(arr=A, sep=S) ~> out
+}
+
+func arr_concat(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    push_arr(arr=A, sub=B) ~> out
+}
+
+func arr_range(from, to, step) {
+    past(from) ~> FR
+    past(to) ~> TO
+    past(step) ~> ST
+    range_step(from=FR, to=TO, step=ST) ~> out
+}
+
+func any_arr(arr) {
+    past(arr) ~> A
+    F(A) {
+        Gate now (> 0) >> O1
+        0 >> now
+    Gate O1 (is_num) >> now
+    }
+    sum(arr=A) ~> s
+    Gate s (> 0) >> O1
+    0 >> out
+    Gate O1 (is_num) >> out
+}
+
+func all_arr(arr) {
+    past(arr) ~> A
+    min_arr(arr=A) ~> m
+    0 >> out
+    Gate m (> 0) >> out
+}
+
+func enumerate_arr(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    range(n=n) ~> idx
+    zip(a=idx, b=A) ~> out
+}
+
+func zip_arrays(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    zip(a=A, b=B) ~> out
+}
+
+func arr_min(arr) {
+    past(arr) ~> A
+    min_arr(arr=A) ~> out
+}
+
+func arr_max(arr) {
+    past(arr) ~> A
+    max_arr(arr=A) ~> out
+}
+
+func arr_avg(arr) {
+    past(arr) ~> A
+    avg(arr=A) ~> out
+}
+
+func arr_count(arr) {
+    past(arr) ~> A
+    len(val=A) ~> out
+}
+
+func arr_first(arr) {
+    past(arr) ~> A
+    get(arr=A, idx=0) ~> out
+}
+
+func arr_last(arr) {
+    past(arr) ~> A
+    len(val=A) ~> n
+    n - 1 >> last
+    get(arr=A, idx=last) ~> out
+}
+
+func arr_flatten(arr) {
+    past(arr) ~> A
+    flatten(arr=A) ~> out
+}
+
+func arr_reverse(arr) {
+    past(arr) ~> A
+    reverse_arr(arr=A) ~> out
+}
+
+func arr_sort(arr) {
+    past(arr) ~> A
+    sort(arr=A) ~> out
+}
+
+func arr_unique(arr) {
+    past(arr) ~> A
+    unique(arr=A) ~> out
+}
+
+
+
+func arr_remove_at(arr, idx) {
+    past(arr) ~> A
+    past(idx) ~> I
+    slice_arr(arr=A, from=0, to=I) ~> before
+    len(val=A) ~> total
+    I + 1 >> after_from
+    slice_arr(arr=A, from=after_from, to=total) ~> after
+    join(arr=before, sep="|") ~> bs
+    join(arr=after, sep="|") ~> af
+    bs + "|" + af >> combined
+    split(str=combined, sep="|") ~> out
+}
+
+func arr_insert_at(arr, idx, val) {
+    past(arr) ~> A
+    past(idx) ~> I
+    past(val) ~> V
+    slice_arr(arr=A, from=0, to=I) ~> before
+    len(val=A) ~> total
+    slice_arr(arr=A, from=I, to=total) ~> after
+    push(arr=before, val=V) ~> with_val
+    join(arr=with_val, sep="|") ~> ws
+    join(arr=after, sep="|") ~> af
+    ws + "|" + af >> combined
+    split(str=combined, sep="|") ~> out
+}
+[T-]
+
+
+func isNumber(val) {
+    past(val) ~> A1
+    toString(val=A1) ~> s
+    regex_match(str=s, pat="^-?[0-9]+\.?[0-9]*$") ~> out
+}
+
+func isString(val) {
+    past(val) ~> A1
+    0 >> n
+    Gate A1 (is_num) >> n
+    isArray(val=A1) ~> a
+    n + a >> na
+    clamp(val=na, lo=0, hi=1) ~> na1
+    1 - na1 >> out
+}
+
+func to_num(val) {
+    past(val) ~> V
+    toNumber(val=V) ~> out
+}
+
+func is_arr(val) {
+    past(val) ~> V
+    isArray(val=V) ~> out
+}
+
+
+
+
+
+func is_error(val) {
+    past(val) ~> V
+    0 >> is_str
+    Gate V (is_str) >> is_str
+    0 >> out
+    Gate is_str (== 1) >> out
+    indexOf(str=V, sub="!") ~> idx
+    0 >> is_err
+    Gate idx (== 0) >> is_err
+    is_err * is_str >> out
+}
+
+func unwrap(val, default) {
+    past(val) ~> V
+    past(default) ~> D
+    is_error(val=V) ~> err
+    [] >> opts
+    push(arr=opts, val=V) ~> opts
+    push(arr=opts, val=D) ~> opts
+    get(arr=opts, idx=err) ~> out
+}
+
+func type_of(val) {
+    past(val) ~> V
+    0 >> is_num
+    Gate V (is_num) >> is_num
+    isArray(val=V) ~> is_arr
+    is_error(val=V) ~> is_err
+    0 >> is_str
+    Gate V (is_str) >> is_str
+    [] >> opts
+    push(arr=opts, val="string") ~> opts
+    push(arr=opts, val="number") ~> opts
+    get(arr=opts, idx=is_num) ~> t1
+    [] >> opts2
+    push(arr=opts2, val=t1) ~> opts2
+    push(arr=opts2, val="array") ~> opts2
+    get(arr=opts2, idx=is_arr) ~> t2
+    [] >> opts3
+    push(arr=opts3, val=t2) ~> opts3
+    push(arr=opts3, val="error") ~> opts3
+    get(arr=opts3, idx=is_err) ~> out
+}
+
+func is_null(val) {
+    past(val) ~> V
+    is_error(val=V) ~> ie
+    0 >> is_str
+    Gate V (is_str) >> is_str
+    len(val=V) ~> slen
+    Gate slen (== 0) >> empty
+    0 >> is_empty
+    Gate empty (is_num) >> is_empty
+    is_str * is_empty >> str_empty
+    ie + str_empty >> score
+    clamp(val=score, lo=0, hi=1) ~> out
+}
+
+func coerce_num(val) {
+    past(val) ~> V
+    0 >> is_num
+    Gate V (is_num) >> is_num
+    toNumber(val=V) ~> n
+    [] >> opts
+    push(arr=opts, val=0) ~> opts
+    push(arr=opts, val=n) ~> opts
+    get(arr=opts, idx=is_num) ~> out
+}
+[T-]
+
+
+func file_exists(path) {
+    past(path) ~> P
+    "test -f " + P + " && echo 1 || echo 0" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func file_size(path) {
+    past(path) ~> P
+    "wc -c < " + P >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> n
+    toNumber(val=n) ~> out
+}
+
+func file_delete(path) {
+    past(path) ~> P
+    exec(cmd="rm -f " + P) ~> out
+}
+
+func http_get(url) {
+    past(url) ~> U
+    "curl -s " + U >> cmd
+    exec(cmd=cmd) ~> out
+}
+
+func http_post(url, body) {
+    past(url) ~> U
+    past(body) ~> B
+    shell_escape(str=B) ~> esc
+    "curl -s -X POST -d " + esc + " " + U >> cmd
+    exec(cmd=cmd) ~> out
+}
+
+func md5(str) {
+    past(str) ~> S
+    shell_escape(str=S) ~> esc
+    "printf %s " + esc + " | md5sum | cut -d' ' -f1" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> out
+}
+
+func sha256(str) {
+    past(str) ~> S
+    shell_escape(str=S) ~> esc
+    "printf %s " + esc + " | sha256sum | cut -d' ' -f1" >> cmd
+    exec(cmd=cmd) ~> raw
+    trim(str=raw) ~> out
+}
+[T-]
+
+func mat_rows(m) {
+    past(m) ~> M
+    len(val=M) ~> out
+}
+
+func mat_cols(m) {
+    past(m) ~> M
+    first(arr=M) ~> row
+    len(val=row) ~> out
+}
+
+func mat_get(m, i, j) {
+    past(m) ~> M
+    past(i) ~> I
+    past(j) ~> J
+    get(arr=M, idx=I) ~> row
+    get(arr=row, idx=J) ~> out
+}
+
+
+
+
+func softmax(arr) {
+    past(arr) ~> A
+    max_arr(arr=A) ~> mx
+    F(A) {
+        now - mx >> sv
+        exp_e(val=sv) ~> ev
+        ev >> now
+    }
+    sum(arr=A) ~> total
+    F(A) {
+        now / total >> now
+    }
+    A >> out
+}
+
+func cosine_sim(a, b) {
+    past(a) ~> A
+    past(b) ~> B
+    dot_product(a=A, b=B) ~> dot
+    F(A) { now * now >> now }
+    sum(arr=A) ~> sq_a
+    sqrt_n(val=sq_a) ~> na
+    F(B) { now * now >> now }
+    sum(arr=B) ~> sq_b
+    sqrt_n(val=sq_b) ~> nb
+    na * nb >> denom
+    safe_div(a=dot, b=denom) ~> out
+}
+[T-]
+func tokenize_line(line) {
+    past(line) ~> _L
+    split(str=_L, sep=" ") ~> _parts
+    [] >> _toks
+    F(_parts) { Gate now (!= "") >> _toks }
+    _toks >> out
+}
+
+func tokenize(src) {
+    past(src) ~> _src
+    split(str=_src, sep="\n") ~> _lines
+    [] >> _all
+    F(_lines) {
+        tokenize_line(line=now) ~> _toks
+        push(arr=_all, val=_toks) ~> _all
+    }
+    _all >> out
+}
+[T-]
+
+
+func starts_with(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    len(val=P) ~> plen
+    slice(str=S, from=0, to=plen) ~> head
+    indexOf(str=head, sub=P) ~> idx
+    0 >> out
+    Gate idx (== 0) >> out
+}
+
+func ends_with(str, sub) {
+    past(str) ~> S
+    past(sub) ~> P
+    len(val=S) ~> slen
+    len(val=P) ~> plen
+    slen - plen >> from
+    slice(str=S, from=from, to=slen) ~> tail
+    indexOf(str=tail, sub=P) ~> idx
+    0 >> out
+    Gate idx (== 0) >> out
+}
+
+func char_at(str, n) {
+    past(str) ~> S
+    past(n) ~> N
+    N + 1 >> n1
+    slice(str=S, from=N, to=n1) ~> out
+}
+
+func insert(str, pos, sub) {
+    past(str) ~> S
+    past(pos) ~> P
+    past(sub) ~> I
+    slice(str=S, from=0, to=P) ~> left
+    slice(str=S, from=P, to=9999) ~> right
+    left + I + right >> out
+}
+
+func remove_at(str, pos, n) {
+    past(str) ~> S
+    past(pos) ~> P
+    past(n) ~> N
+    P + N >> end
+    slice(str=S, from=0, to=P) ~> left
+    len(val=S) ~> slen
+    slice(str=S, from=end, to=slen) ~> right
+    left + right >> out
+}
+
+func count_char(str, ch) {
+    past(str) ~> S
+    past(ch) ~> C
+    split(str=S, sep=C) ~> parts
+    len(val=parts) ~> n
+    n - 1 >> out
+}
+
+func is_empty(str) {
+    past(str) ~> S
+    len(val=S) ~> n
+    0 >> out
+    Gate n (== 0) >> out
+}
+
+func str_wrap(str, width) {
+    past(str) ~> S
+    past(width) ~> W
+    split(str=S, sep=" ") ~> words
+    len(val=words) ~> n
+    "" >> line
+    "" >> result
+    0 >> i
+    range(n) ~> _steps
+    F(_steps) {
+        0 >> done
+        Gate i (>= n) >> done
+        get(arr=words, idx=i) ~> word
+        len(val=line) ~> ll
+        len(val=word) ~> wl
+        ll + wl >> total
+        Gate total (> W) >> wrap
+        isNumber(val=wrap) ~> do_wrap
+        [] >> opts
+        push(arr=opts, val=line + " " + word) ~> opts
+        push(arr=opts, val=word) ~> opts
+        get(arr=opts, idx=do_wrap) ~> line
+        [] >> opts2
+        push(arr=opts2, val=result) ~> opts2
+        push(arr=opts2, val=result + "
+") ~> opts2
+        get(arr=opts2, idx=do_wrap) ~> result
+        i + 1 >> i
+    }
+    result + line >> out
+}
+
+func str_center(str, width) {
+    past(str) ~> S
+    past(width) ~> W
+    len(val=S) ~> n
+    W - n >> pad
+    pad / 2 >> lpad
+    floor(val=lpad) ~> lp
+    W - n - lp >> rp
+    range(n=lp) ~> li
+    F(li) { " " >> now }
+    join(arr=li, sep="") ~> ls
+    range(n=rp) ~> ri
+    F(ri) { " " >> now }
+    join(arr=ri, sep="") ~> rs
+    ls + S + rs >> out
+}
+[T-]
+func parse_line(line) {
+    past(line) ~> _L
+    split(str=_L, sep=" ") ~> _toks
+    [] >> _tokens
+    F(_toks) { Gate now (!= "") >> _tokens }
+    _tokens >> out
+}
+
+func get_line_type(tokens) {
+    past(tokens) ~> _toks
+    get(arr=_toks, idx=0) ~> _first
+    _first >> out
+}
+
+func get_tminus(src) {
+    past(src) ~> _src
+    indexOf(str=_src, sub="[T0]") ~> _t0p
+    slice(str=_src, from=0, to=_t0p) ~> _tm_src
+    split(str=_tm_src, sep="\n") ~> out
+}
+
+func get_tzero(src) {
+    past(src) ~> _src
+    indexOf(str=_src, sub="[T0]") ~> _t0p
+    indexOf(str=_src, sub="[T+]") ~> _tpp
+    slice(str=_src, from=_t0p, to=_tpp) ~> _t0_src
+    split(str=_t0_src, sep="\n") ~> out
+}
+
+func get_tplus(src) {
+    past(src) ~> _src
+    indexOf(str=_src, sub="[T+]") ~> _tpp
+    len(val=_src) ~> _srclen
+    slice(str=_src, from=_tpp, to=_srclen) ~> _tp_src
+    split(str=_tp_src, sep="\n") ~> out
+}
+
+func is_func_def(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="func ") ~> _pos
+    0 >> out
+    Gate _pos (== 0) >> out
+    1 >> out
+}
+
+func get_func_name(line) {
+    past(line) ~> _L
+    slice(str=_L, from=5, to=99) ~> _rest
+    indexOf(str=_rest, sub="(") ~> _lp
+    slice(str=_rest, from=0, to=_lp) ~> out
+}
+
+func get_func_params(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="(") ~> _lp
+    indexOf(str=_L, sub=")") ~> _rp
+    _lp + 1 >> _start
+    slice(str=_L, from=_start, to=_rp) ~> _pstr
+    split(str=_pstr, sep=", ") ~> out
+}
+
+func get_func_bodies(lines) {
+    past(lines) ~> _lines
+    [] >> _body
+    0 >> _in_func
+    F(_lines) {
+        now >> _line
+        indexOf(str=_line, sub="func ") ~> _is_fd
+        0 >> _fd
+        Gate _is_fd (== 0) >> _fd
+        indexOf(str=_line, sub="}") ~> _is_end
+        0 >> _end
+        Gate _is_end (== 0) >> _end
+        _fd + _in_func >> _in_func
+        Gate _in_func (> 0) >> _body
+        _line >> _body
+        _end * _in_func >> _stop
+        0 >> _in_func
+        Gate _stop (== 0) >> _in_func
+        _in_func >> _in_func
+    }
+    _body >> out
+}
+
+func build_symbol_table(lines) {
+    past(lines) ~> _lines
+    [] >> _tmp_all
+    F(_lines) { Gate now (!= "") >> _tmp_all }
+    [] >> _funcs
+    F(_tmp_all) {
+        indexOf(str=now, sub="func ") ~> _fp
+        Gate _fp (== 0) >> _funcs
+        now >> _funcs
+    }
+    _funcs >> out
+}
+
+func classify_t0_line(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="Gate ") ~> _gate
+    0 >> _is_gate
+    Gate _gate (== 0) >> _is_gate
+    indexOf(str=_L, sub="F(") ~> _f
+    0 >> _is_f
+    Gate _f (== 0) >> _is_f
+    indexOf(str=_L, sub="~>") ~> _til
+    0 >> _is_til
+    Gate _til (> -1) >> _is_til
+    indexOf(str=_L, sub=">>") ~> _arr
+    0 >> _is_arr
+    Gate _arr (> -1) >> _is_arr
+    _is_til * 2 >> _s2
+    _is_f * 4 >> _s4
+    _is_gate * 8 >> _s8
+    _is_arr + _s2 >> _tmp
+    _tmp + _s4 >> _tmp
+    _tmp + _s8 >> out
+}
+
+func parse_assign(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub=">>") ~> _ap
+    slice(str=_L, from=0, to=_ap) ~> _expr
+    _ap + 2 >> _tp
+    len(val=_L) ~> _ll
+    slice(str=_L, from=_tp, to=_ll) ~> _target
+    _trim_c(str=_expr) ~> _expr
+    _trim_c(str=_target) ~> _target
+    split(str=_expr, sep=" ") ~> _parts
+    push(arr=_parts, val=_target) ~> _parts
+    _parts >> out
+}
+
+func parse_tilde(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="~>") ~> _tp
+    slice(str=_L, from=0, to=_tp) ~> _call
+    _tp + 2 >> _ts
+    len(val=_L) ~> _ll
+    slice(str=_L, from=_ts, to=_ll) ~> _target
+    _trim_c(str=_call) ~> _call
+    _trim_c(str=_target) ~> _target
+    indexOf(str=_call, sub="(") ~> _lp
+    slice(str=_call, from=0, to=_lp) ~> _fname
+    _lp + 1 >> _as
+    len(val=_call) ~> _cl
+    _cl - 1 >> _ae
+    slice(str=_call, from=_as, to=_ae) ~> _args
+    split(str=_args, sep=", ") ~> _arglist
+    [] >> _result
+    push(arr=_result, val=_fname) ~> _result
+    push(arr=_result, val=_target) ~> _result
+    push(arr=_result, val=_arglist) ~> _result
+    _result >> out
+}
+
+func parse_gate(line) {
+    past(line) ~> _L
+    indexOf(str=_L, sub="Gate ") ~> _gp
+    5 >> _vs
+    indexOf(str=_L, sub=" (") ~> _lp
+    slice(str=_L, from=_vs, to=_lp) ~> _var
+    _lp + 2 >> _ops
+    indexOf(str=_L, sub=")") ~> _rp
+    slice(str=_L, from=_ops, to=_rp) ~> _cond
+    indexOf(str=_L, sub=">>") ~> _ap
+    _ap + 2 >> _ts
+    len(val=_L) ~> _ll
+    slice(str=_L, from=_ts, to=_ll) ~> _target
+    _trim_c(str=_var) ~> _var
+    _trim_c(str=_cond) ~> _cond
+    _trim_c(str=_target) ~> _target
+    [] >> _result
+    push(arr=_result, val=_var) ~> _result
+    push(arr=_result, val=_cond) ~> _result
+    push(arr=_result, val=_target) ~> _result
+    _result >> out
+}
+[T-]
+
+
+func lerp(a, b, t) {
+    past(a) ~> A
+    past(b) ~> B
+    past(t) ~> Tv
+    B - A >> diff
+    diff * Tv >> scaled
+    A + scaled >> out
+}
+
+func sign(val) {
+    past(val) ~> V
+    Gate V (> 0) >> pos
+    isNumber(val=pos) ~> is_pos
+    Gate V (< 0) >> neg
+    isNumber(val=neg) ~> is_neg
+    is_pos - is_neg >> out
+}
+
+
+
+
+func sum_range(lo, hi) {
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    Hi - Lo >> n
+    n + 1 >> n1
+    Lo + Hi >> ft
+    ft * n1 >> prod
+    prod / 2 >> out
+}
+
+
+func e() {
+    exp(val=1) ~> out
+}
+
+func percent(val, total) {
+    past(val) ~> V
+    past(total) ~> T
+    V / T >> ratio
+    ratio * 100 >> out
+}
+
+func average_arr(arr) {
+    past(arr) ~> A
+    sum(arr=A) ~> s
+    len(val=A) ~> n
+    s / n >> out
+}
+
+func clamp_arr(arr, lo, hi) {
+    past(arr) ~> A
+    past(lo) ~> Lo
+    past(hi) ~> Hi
+    F(A) {
+        clamp(val=now, lo=Lo, hi=Hi) ~> now
+    }
+    A >> out
+}
+
+func moving_avg(arr, window) {
+    past(arr) ~> A
+    past(window) ~> W
+    len(val=A) ~> n
+    n - W >> lim
+    lim + 1 >> count
+    range(n=count) ~> idx
+    F(idx) {
+        slice_arr(arr=A, from=now, to=now+W) ~> win
+        avg(arr=win) ~> now
+    }
+    idx >> out
+}
+
+
+
+[T-]
+func dot_product(a, b) {
+    past(a) ~> _a
+    past(b) ~> _b
+    len(val=_a) ~> _n
+    range(n=_n) ~> _idx
+    0 >> _sum
+    F(_idx) {
+        get(arr=_a, idx=idx) ~> _ax
+        get(arr=_b, idx=idx) ~> _bx
+        _ax * _bx >> _prod
+        _sum + _prod >> _sum
+    }
+    _sum >> out
+}
+
+func vec_add(a, b) {
+    past(a) ~> _a
+    past(b) ~> _b
+    len(val=_a) ~> _n
+    range(n=_n) ~> _idx
+    [] >> _result
+    F(_idx) {
+        get(arr=_a, idx=idx) ~> _ax
+        get(arr=_b, idx=idx) ~> _bx
+        _ax + _bx >> _s
+        push(arr=_result, val=_s) ~> _result
+    }
+    _result >> out
+}
+
+func vec_scale(a, s) {
+    past(a) ~> _a
+    past(s) ~> _s
+    [] >> _result
+    F(_a) {
+        now * _s >> _v
+        push(arr=_result, val=_v) ~> _result
+    }
+    _result >> out
+}
+
+func sigmoid(x) {
+    past(x) ~> _x
+    0 - _x >> _negx
+    exp(val=_negx) ~> _ex
+    1 + _ex >> _denom
+    1 / _denom >> out
+}
+
+func relu(x) {
+    past(x) ~> _x
+    0 >> _r
+    Gate _x (> 0) >> _r
+    _x * _r >> _pos
+    0 - _x >> _negx
+    Gate _negx (> 0) >> _r2
+    0 >> _zero
+    _r2 * _zero >> _n2
+    _pos + _n2 >> out
+}
+
+func vec_sum(arr) {
+    past(arr) ~> _a
+    0 >> _s
+    F(_a) {
+        _s + now >> _s
+    }
+    _s >> out
+}
+
+func softmax(arr) {
+    past(arr) ~> _a
+    [] >> _exp_arr
+    F(_a) {
+        exp(val=now) ~> _e
+        push(arr=_exp_arr, val=_e) ~> _exp_arr
+    }
+    vec_sum(arr=_exp_arr) ~> _sum
+    [] >> _result
+    F(_exp_arr) {
+        now / _sum >> _p
+        push(arr=_result, val=_p) ~> _result
+    }
+    _result >> out
+}
+
+func vec_mean(arr) {
+    past(arr) ~> _a
+    vec_sum(arr=_a) ~> _s
+    len(val=_a) ~> _n
+    _s / _n >> out
+}
+
+func layer_norm(arr) {
+    past(arr) ~> _a
+    vec_mean(arr=_a) ~> _mean
+    [] >> _diffs
+    F(_a) {
+        now - _mean >> _d
+        _d * _d >> _d2
+        push(arr=_diffs, val=_d2) ~> _diffs
+    }
+    vec_mean(arr=_diffs) ~> _var
+    0.00001 >> _eps
+    _var + _eps >> _var_eps
+    sqrt(val=_var_eps) ~> _std
+    [] >> _result
+    F(_a) {
+        now - _mean >> _d
+        _d / _std >> _n
+        push(arr=_result, val=_n) ~> _result
+    }
+    _result >> out
+}
+
+func mat_vec_mul(mat, vec) {
+    past(mat) ~> _m
+    past(vec) ~> _v
+    [] >> _result
+    F(_m) {
+        dot_product(a=now, b=_v) ~> _d
+        push(arr=_result, val=_d) ~> _result
+    }
+    _result >> out
+}
+
+func attention(q, k, v) {
+    past(q) ~> _q
+    past(k) ~> _k
+    past(v) ~> _v
+    len(val=_q) ~> _d
+    sqrt(val=_d) ~> _scale
+    dot_product(a=_q, b=_k) ~> _score
+    _score / _scale >> _scaled
+    [] >> _scores
+    push(arr=_scores, val=_scaled) ~> _scores
+    softmax(arr=_scores) ~> _weights
+    get(arr=_weights, idx=0) ~> _w
+    vec_scale(a=_v, s=_w) ~> out
+}
+
+func linear(x, weights, bias) {
+    past(x) ~> _x
+    past(weights) ~> _w
+    past(bias) ~> _b
+    mat_vec_mul(mat=_w, vec=_x) ~> _out
+    vec_add(a=_out, b=_b) ~> out
+}
+
+func ffn(x, w1, b1, w2, b2) {
+    past(x) ~> _x
+    past(w1) ~> _w1
+    past(b1) ~> _b1
+    past(w2) ~> _w2
+    past(b2) ~> _b2
+    linear(x=_x, weights=_w1, bias=_b1) ~> _h
+    [] >> _h_relu
+    F(_h) {
+        relu(x=now) ~> _r
+        push(arr=_h_relu, val=_r) ~> _h_relu
+    }
+    linear(x=_h_relu, weights=_w2, bias=_b2) ~> out
+}
+
+func load_weights(path) {
+    past(path) ~> _p
+    file_read(path=_p) ~> _raw
+    split(str=_raw, sep=",") ~> _tokens
+    [] >> _weights
+    F(_tokens) {
+        _trim_c(str=now) ~> _t
+        toNumber(val=_t) ~> _w
+        push(arr=_weights, val=_w) ~> _weights
+    }
+    _weights >> out
+}
+
+func multi_head_attention(q, k, v, num_heads) {
+    past(q) ~> _q
+    past(k) ~> _k
+    past(v) ~> _v
+    past(num_heads) ~> _h
+    len(val=_q) ~> _d
+    _d / _h >> _head_dim
+    sqrt(val=_head_dim) ~> _scale
+    dot_product(a=_q, b=_k) ~> _score
+    _score / _scale >> _scaled
+    [] >> _scores
+    push(arr=_scores, val=_scaled) ~> _scores
+    softmax(arr=_scores) ~> _weights
+    get(arr=_weights, idx=0) ~> _w
+    vec_scale(a=_v, s=_w) ~> out
+}
+
+func transformer_block(x, wq, wk, wv, w1, b1, w2, b2, num_heads) {
+    past(x) ~> _x
+    past(wq) ~> _wq
+    past(wk) ~> _wk
+    past(wv) ~> _wv
+    past(w1) ~> _w1
+    past(b1) ~> _b1
+    past(w2) ~> _w2
+    past(b2) ~> _b2
+    past(num_heads) ~> _h
+    mat_vec_mul(mat=_wq, vec=_x) ~> _q
+    mat_vec_mul(mat=_wk, vec=_x) ~> _k
+    mat_vec_mul(mat=_wv, vec=_x) ~> _v
+    multi_head_attention(q=_q, k=_k, v=_v, num_heads=_h) ~> _attn
+    vec_add(a=_x, b=_attn) ~> _res1
+    layer_norm(arr=_res1) ~> _norm1
+    ffn(x=_norm1, w1=_w1, b1=_b1, w2=_w2, b2=_b2) ~> _ff
+    vec_add(a=_norm1, b=_ff) ~> _res2
+    layer_norm(arr=_res2) ~> out
+}
+
+func char_tokenize(text) {
+    past(text) ~> _t
+    chars(str=_t) ~> out
+}
+
+func char_to_id(c) {
+    past(c) ~> _c
+    charCode(str=_c) ~> out
+}
+
+func embed(token_id, embedding_table) {
+    past(token_id) ~> _id
+    past(embedding_table) ~> _emb
+    get(arr=_emb, idx=_id) ~> out
+}
+
+func lm_forward(tokens, emb_table, wq, wk, wv, w1, b1, w2, b2, num_heads) {
+    past(tokens) ~> _toks
+    past(emb_table) ~> _emb
+    past(wq) ~> 

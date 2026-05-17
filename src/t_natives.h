@@ -404,7 +404,10 @@ void nat_join(BVal *stack, int argc, BVal *out){
     const char *sep=stack[1].str?stack[1].str:"";
     char buf[65536]={0}; int pos=0;
     for(int i=0;i<n;i++){
-        const char *s=arr[i].str?arr[i].str:"";
+        char _nbuf[64]={0};
+        const char *s;
+        if(arr[i].str) s=arr[i].str;
+        else { snprintf(_nbuf,sizeof(_nbuf),"%g",arr[i].num); s=_nbuf; }
         int sl=strlen(s);
         if(pos+sl<65535){memcpy(buf+pos,s,sl);pos+=sl;}
         if(i<n-1){int sep_l=strlen(sep);if(pos+sep_l<65535){memcpy(buf+pos,sep,sep_l);pos+=sep_l;}}
