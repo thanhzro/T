@@ -671,6 +671,22 @@ static void nat_compile_all(BVal *stack, int argc, BVal *out) {
     }
 }
 
+
+static void nat_spawn_file(BVal *stack, int argc, BVal *out) {
+    BVal path = stack[0];
+    if(!path.str){*out=make_num(0);return;}
+    pid_t pid = fork();
+    if(pid==0){
+        chdir("/data/data/com.termux/files/home/t-lang");
+        execl("/data/data/com.termux/files/home/t-lang/t_bc",
+              "/data/data/com.termux/files/home/t-lang/t_bc",
+              path.str, NULL);
+        exit(1);
+    }
+    if(pid>0) waitpid(pid,NULL,0);
+    *out=make_num(1);
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -693,6 +709,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"spawn_file");f2->is_native=4;f2->native_v=nat_spawn_file;f2->param_count=1;strcpy(f2->params[0],"fpath");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"compile_all");f2->is_native=4;f2->native_v=nat_compile_all;f2->param_count=1;strcpy(f2->params[0],"lines");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fat_arrow");f2->is_native=4;f2->native_v=nat_fat_arrow;f2->param_count=2;strcpy(f2->params[0],"data");strcpy(f2->params[1],"dest");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"par_spawn");f2->is_native=4;f2->native_v=nat_par_spawn;f2->param_count=1;strcpy(f2->params[0],"files");}

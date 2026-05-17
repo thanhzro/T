@@ -2739,3 +2739,17 @@ T CON ARMY CAN NOW:
 ✓ Spawn the generated T con
 ✓ Worker executes and produces output
 T language now has self-replication capability!
+FIX: add par_spawn back to t_spawn_worker.t
+Need dynamic flist - use write then read approach
+Write worker_file to temp array file, par_spawn reads it
+BUG: par_spawn returns 0 not 1 - fspawn=[worker_file] in T-
+fspawn is T- static literal ["worker_file"] not dynamic
+par_spawn gets literal string "worker_file" not the value
+CLASSIC T- static vs T0 dynamic issue
+FIX: cannot use T- array with T0 variable
+Use nat_par_spawn_single native OR write worker_file to file then shell spawn
+MILESTONE: T CON SELF-REPLICATION COMPLETE!
+spawn_file native works - dynamic path spawning
+worker_1_done.txt = "worker 1 reporting" ✓
+T con generates new T con → spawns it → runs → output
+TRUE SELF-REPLICATION CONFIRMED

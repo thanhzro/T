@@ -15,5 +15,7 @@ worker_name + "_done.txt" >> done_file
 replace(str=tmpl, from="WORKER_MSG", to=worker_msg) ~> code1
 replace(str=code1, from="WORKER_PATH", to=done_file) ~> final_code
 write_file_t(path=worker_file, content=final_code) ~> ok1
+spawn_file(fpath=worker_file) ~> done
 [T+]
 show shall(worker_file)
+show shall(done)
