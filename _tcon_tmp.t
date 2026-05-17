@@ -1,14 +1,18 @@
 [T-]
 import "lib/basic/std.t"
-import "lib/advanced/t_parser.t"
-line1 = "x + 1 >> r"
-line2 = "foo(a=x, b=y) ~> result"
-line3 = "Gate val (> 0) >> flag"
+instr = "LOAD x"
+stk = ""
 [T0]
-classify_t0_line(line=line1) ~> t1
-classify_t0_line(line=line2) ~> t2
-classify_t0_line(line=line3) ~> t3
+indexOf(str=instr, sub="LOAD ") ~> load_pos
+0 >> is_load
+Gate load_pos (== 0) >> is_load
+slice(str=instr, from=5, to=99) ~> load_var
+_trim_c(str=load_var) ~> load_var
+load_var >> new_stack
+Gate is_load (== 1) >> stk
+new_stack >> stk
 [T+]
-show shall(t1)
-show shall(t2)
-show shall(t3)
+show shall(is_load)
+show shall(load_var)
+show shall(new_stack)
+show shall(stk)

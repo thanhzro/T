@@ -2432,3 +2432,68 @@ VM halted correctly at step 12
 T compiler (written in T) → compiled by t_bc → stage1.bc
 T VM (t_vm_step.t written in T) → executes stage1.bc → HALT
 MỨC 3 ACHIEVED!
+IMPLEMENTING: LOAD and STORE in t_vm_step.t
+State files:
+- vm_stack.txt = comma-separated stack values
+- vm_frame.txt = key=value pairs per line
+- vm_ip.txt = current instruction pointer
+- vm_halt.txt = 0 or 1
+- vm_instr.txt = current instruction
+LOAD var → read vm_frame.txt, find var, push to vm_stack.txt
+STORE var → pop from vm_stack.txt, write var=val to vm_frame.txt
+BUG: LOAD x - stack empty after step 1
+stack_push not working - stack="" after LOAD x
+Gate is_load(==1) >> stack sets stack=1 not new_stack
+CLASSIC Gate overwrite: Gate is_load(==1)>>stack sets stack=1
+then new_stack>>stack sets stack=new_stack but too late
+new_stack already computed from old empty stack
+Need: fix Gate overwrite pattern for stack update
+is_load=1 correct but stack not updated
+Gate is_load(==1) >> stack = sets stack=1 (Gate overwrites!)
+Then new_stack >> stack = overwrites back to "x"
+BUT: write_file_t uses stack AFTER both overwrites
+WAIT: maybe stack_push gets wrong input
+stack="" initially but stack_push(stack=stack) - param name "stack" conflicts with T- var?
+NO: stack is T0 var not T- var
+Real issue: Gate is_load(==1)>>stack sets stack=1
+then new_stack>>stack sets stack="x" - this SHOULD work
+Unless write_file_t runs BEFORE the assignment completes
+TEST: check stack value after Gate chain
+Gate chain works correctly in isolation: stk="x" ✓
+But t_vm_step.t uses stack_push function not direct assign
+stack_push(stack=stk, val=load_var) - param "stack" conflicts with var "stk"?
+No - we pass stk not stack
+REAL ISSUE: stack_push param name is "stack" and we pass stack var
+In t_vm_step: stack_push(stack=stack, val=load_var)
+param "stack" = T0 var "stack" = CLASSIC CONFLICT!
+FIX: rename T0 var from "stack" to "vm_stk"
+BUG: stack still empty after LOAD x
+stack_push function has Gate overwrite issue internally
+stack_push returns "x" in isolation test but not in t_vm_step
+SIMPLER: bypass stack_push function, do inline push directly
+No function call = no param conflict risk
+REDESIGN: split t_vm_step.t into specialized T cons
+t_vm_dispatch.t → read instr → => right handler
+t_vm_load.t → LOAD only, 5 lines
+t_vm_store.t → STORE only, 5 lines
+t_vm_halt.t → HALT only
+No Gate overwrite chain issue
+t_vm_load.t works! stack="x" after LOAD x
+Simple T con approach confirmed
+NEXT: t_vm_store.t, then t_vm_dispatch.t
+BUG: frame="|" not "r=x"
+Gate vm_frm(=="") fires → new_entry="r=x" correct
+But then Gate vm_frm(!="")>>vm_frm fires with vm_frm still=""?
+Actually: Gate vm_frm(=="")>>vm_frm sets vm_frm=1
+Then new_entry>>vm_frm sets vm_frm="r=x"
+Then Gate vm_frm(!="")>>vm_frm fires (vm_frm="r=x"!="") sets vm_frm=1
+Then new_frm>>vm_frm sets vm_frm="|r=x"
+FIX: dont use double Gate chain - use separate flag
+t_vm_load.t ✓ stack="x" after LOAD x
+t_vm_store.t ✓ frame="r=x", stack empty after STORE r
+NEXT: t_vm_dispatch.t - reads ip, fetches instr, routes to right handler
+MILESTONE: T VM pipeline working!
+dispatch → LOAD x → stack="x"
+dispatch → STORE r → frame="r=x"
+T VM executes bytecode correctly via file-based state
+NEXT: build t_vm_master.t to run full loop automatically
