@@ -2689,3 +2689,11 @@ ALL 4 INSTRUCTIONS IMPLEMENTED:
 ✓ JUMP_IF_0 - t_vm_jump.t
 ✓ HALT - t_vm_dispatch.t
 T VM ARMY COMPLETE!
+BUG1: JUMP sets ip=999 but VM keeps running empty instructions
+FIX: t_vm_dispatch.t check ip >= total → auto HALT
+BUG2: CALL pushes RESULT_foo to stack before STORE
+STORE pops RESULT_foo not real result
+FIX: CALL should NOT push to stack - just record in frame
+FIXING BUG1: ip bounds check in t_vm_dispatch.t
+If ip >= total instructions → write HALT to vm_instr.txt
+FIXING BUG2: t_vm_call.t should NOT push to stack

@@ -1,1 +1,1 @@
-val|x|x|EMPTY|RESULT_foo=called
+val|x|x|EMPTY

@@ -8,14 +8,19 @@ file_read(path="vm_program.txt") ~> prog
 fromChar(code=10) ~> nl
 split(str=prog, sep=nl) ~> instrs
 len(val=instrs) ~> total
-get(arr=instrs, idx=ip_num) ~> instr
-_trim_c(str=instr) ~> instr
 ip_num + 1 >> next_ip
 "" + next_ip >> next_ip_s
+get(arr=instrs, idx=ip_num) ~> instr
+_trim_c(str=instr) ~> instr
+"HALT" >> safe_instr
+Gate ip_num (< total) >> safe_instr
+instr >> safe_instr
 write_file_t(path="vm_ip.txt", content=next_ip_s) ~> ok1
-write_file_t(path="vm_instr.txt", content=instr) ~> ok2
-indexOf(str=instr, sub="LOAD ") ~> is_load
-indexOf(str=instr, sub="STORE ") ~> is_store
-indexOf(str=instr, sub="HALT") ~> is_halt
+write_file_t(path="vm_instr.txt", content=safe_instr) ~> ok2
+indexOf(str=safe_instr, sub="HALT") ~> halt_pos
+0 >> is_halt
+Gate halt_pos (== 0) >> is_halt
+"" + is_halt >> halt_s
+write_file_t(path="vm_halt.txt", content=halt_s) ~> ok3
 [T+]
-show shall(instr)
+show shall(safe_instr)
