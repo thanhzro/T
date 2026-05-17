@@ -3095,3 +3095,12 @@ OR: "ws" variable name in T+ section conflicts
 T+ section: join ~> ws then write_file_t(content=ws)
 "ws" might be reserved or conflict
 FIX: rename ws → wstr in training file
+BUG: !EMPTY_COORD(ok) persists - join or write_file_t fails in T+ context
+T+ section processes differently - join in T+ may not work
+FIX: move join+write to T0 section not T+
+MILESTONE: weights saved! tcon_weights.txt has 64 values
+loss=0.00196, weights non-zero ✓
+T+ section cannot use function calls - T0 only
+Training pipeline complete:
+embed → mmv → sub → update → join → save
+NEXT: inference - load weights, predict next char

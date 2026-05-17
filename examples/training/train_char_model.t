@@ -907,8 +907,8 @@ dot_product(a=gg, b=gg) ~> ls
 get(arr=gg, idx=0) ~> gs
 vec_scale(a=ev, s=gs) ~> rg
 mat_update_flat(mat=wmat, grad=rg, lrv=lr) ~> wmat
-[T+]
-show shall(ls)
 join(arr=wmat, sep=",") ~> wstr
 write_file_t(path="tcon_weights.txt", content=wstr) ~> ok
+[T+]
+show shall(ls)
 show shall(ok)
