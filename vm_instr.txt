@@ -1,1 +1,1 @@
-STORE flagHALT
+HALT

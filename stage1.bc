@@ -8,4 +8,5 @@ STORE  result
 LOAD val
 LOAD > 0
 JUMP_IF_0 END
-STORE flagHALT
+STORE flag
+HALT

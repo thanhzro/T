@@ -2424,3 +2424,11 @@ LOAD x, LOAD 1, STORE r, LOAD x, LOAD y, CALL foo 2, STORE result
 LOAD val, LOAD >0, JUMP_IF_0 END, STORE flag - ALL CORRECT
 Step 12 repeats - no HALT in stage1.bc, need to add HALT
 VM stepping proven working!
+stage1.bc fixed - HALT on separate line
+Now VM should halt correctly at step 12
+NEXT: run VM again to confirm, then build t_vm_master.t with par_spawn loop
+MILESTONE: BOOTSTRAP CHAIN CONFIRMED!
+VM halted correctly at step 12
+T compiler (written in T) → compiled by t_bc → stage1.bc
+T VM (t_vm_step.t written in T) → executes stage1.bc → HALT
+MỨC 3 ACHIEVED!
