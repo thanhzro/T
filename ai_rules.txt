@@ -2380,3 +2380,10 @@ gate: LOAD val, LOAD >0, JUMP_IF_0 END, STORE flag ✓
 48/48 tests pass
 t_compiler.t = LEVEL 3 candidate - can compile T0 patterns
 NEXT: build-selfhost.sh to prove bootstrap chain
+DEBT CLEANUP PLAN:
+1. Fix Makefile - wrong src paths
+2. Clean root level temp files → .gitignore
+3. Move train*.t → examples/training/
+4. Build t_vm.t → close bootstrap chain
+BUG: Makefile missing tab separator - heredoc strips tabs
+FIX: write Makefile with python to preserve tabs

@@ -1,25 +1,18 @@
 CC = gcc
-SRC = src/t_lexer.c src/t_parser.c src/t_vm.c src/main.c
-BIN = t
+SRC = src/t_prog_compiler.c
+BIN = t_bc
+LIBS = -lm -lpthread
 
 all: $(BIN)
 
 $(BIN): $(SRC)
-	$(CC) $(SRC) -lm -lcurl -o $(BIN)
+	$(CC) $(SRC) $(LIBS) -o $(BIN)
 
 test: $(BIN)
-	./$(BIN) tests/accumulator.t
-	./$(BIN) tests/filter.t
-	./$(BIN) tests/sumavg.t
-	./$(BIN) tests/basic.t
-
-test-intermediate: $(BIN)
-	./$(BIN) tests/intermediate.t
-
-test-advanced: $(BIN)
-	./$(BIN) tests/advanced.t
-
-test-all: test test-intermediate test-advanced
+	python3 check_runtime.py
 
 clean:
 	rm -f $(BIN)
+
+selfhost: $(BIN)
+	./build_selfhost.sh

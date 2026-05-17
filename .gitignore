@@ -58,3 +58,14 @@ call_dbg.txt
 *_dbg.txt
 .env
 _tmp_*.t
+input.t
+output.bc
+_cl_input.t
+_mini_input.t
+*.input
+*_done.txt
+*_result.txt
+test_*.txt
+new_w.txt
+debug_*.t
+tesst.t
