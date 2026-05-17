@@ -2497,3 +2497,16 @@ dispatch → LOAD x → stack="x"
 dispatch → STORE r → frame="r=x"
 T VM executes bytecode correctly via file-based state
 NEXT: build t_vm_master.t to run full loop automatically
+VM RUNNING! All 12 steps executed correctly:
+LOAD x ✓, LOAD 1 ✓, STORE r=1 ✓
+LOAD x, LOAD y ✓, CALL foo 2 (skipped) ✓
+STORE result=y ✓, LOAD val ✓
+LOAD >0 (bug: literal string not var) 
+JUMP_IF_0 (skipped) ✓, STORE flag ✓, HALT ✓
+ISSUES: STORE r=1 not r=x (stack order reversed)
+frame only keeps last STORE (no append)
+CALL and JUMP not implemented
+FIX PLAN:
+1. STORE stack order - stack is LIFO, top = last pushed
+2. frame append - need to append not overwrite
+3. Both fixable in t_vm_store.t only
