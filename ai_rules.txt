@@ -2510,3 +2510,114 @@ FIX PLAN:
 1. STORE stack order - stack is LIFO, top = last pushed
 2. frame append - need to append not overwrite
 3. Both fixable in t_vm_store.t only
+BUG: STORE order wrong - r=1 should be r=x
+Stack after LOAD x, LOAD 1: "x|1" (x first, 1 on top)
+STORE r should pop TOP = "1" but getting "1" correctly
+Wait: r=1 IS correct! LOAD x then LOAD 1 → stack top = 1
+STORE r pops top = 1 → r=1 ✓
+STORE s pops next = x → s=x but showing s= empty
+BUG: frame not appending - only last entry kept
+frame shows "s=" not "r=1|s=x"
+Gate vm_frm(=="")>>appended overwrites appended=new_entry
+Then appended already correct but write overwrites?
+TEST: check frame after step 3
+BUG: t_vm_load.t stack OVERWRITING not PUSHING
+step 2: LOAD 1 → stack="1" not "x|1"
+t_vm_load.t: "x|1" should be result but getting "1"
+Gate vm_stk(=="") >> s3 fires because vm_stk="x" != ""
+So pushed_with_sep should be used: "x|1"
+But result is "1" - Gate is NOT firing correctly
+OR: vm_stk read from file has newline → trim needed before Gate check
+FOUND: t_vm_load.t logic:
+vm_stk + "|" >> s2        → s2 = "x|"
+s2 + load_var >> s3       → s3 = "x|1" ✓
+Gate vm_stk(=="") >> s3   → fires if empty → s3=1 (Gate overwrites!)
+load_var >> s3             → s3 = "1"
+WHEN vm_stk="x": Gate vm_stk(=="") DOES NOT fire → s3 stays "x|1"
+BUT: output shows stack="1" after LOAD 1
+MEANS: Gate IS firing despite vm_stk="x"
+Maybe trim leaves hidden chars? Or file_read returns "x\n"?
+FIX: after trim add debug - or just swap Gate logic
+If empty → use load_var, else use s3
+SWAP: Gate vm_stk (!= "") >> s3 then s3 = pushed_with_sep
+BUG: "|x" and "|x|1" - leading | because vm_stk="" but Gate(!="") fires
+echo "" > vm_stack.txt creates file with "\n" not truly empty
+_trim_c("\n") = "" but Gate vm_stk(!="") sees "\n" before trim?
+NO: trim happens before Gate
+REAL: Gate(!="") fires on "" because vm_stk after trim = "" 
+But "" != "" is FALSE so Gate should not fire
+WAIT: output is "|x" = Gate(!="") fired on empty string!
+FIX: trim is working but Gate vm_stk(!="") evaluates ORIGINAL vm_stk
+Not the trimmed one - T language evaluates Gate on original var
+Need: save trimmed to new var, Gate on new var
+ROOT CAUSE: Gate vm_stk (!= "") fires even when vm_stk=""
+This is a known T language bug - Gate string comparison with "" unreliable
+FIX: use len() instead of string comparison
+len(vm_stk) > 0 = not empty, reliable
+DEEP BUG: len("") > 0 still fires! len of empty string = 0 but Gate fires
+echo "" > file creates file with content "\n" (1 byte)
+_trim_c("\n") should return "" but len("") = 0
+YET Gate stk_len(>0) fires with stk_len=0???
+OR: _trim_c not removing \n correctly
+OR: len() counts something else
+REAL FIX: write "EMPTY" as sentinel to stack file, check for that
+PROGRESS: EMPTY|x then EMPTY|x|1 - push working!
+EMPTY sentinel stays at bottom of stack
+t_vm_store.t needs to handle EMPTY sentinel
+pop from "EMPTY|x|1": top=1, rest="EMPTY|x" ✓
+pop from "EMPTY|x": top=x, rest="EMPTY" ✓
+pop from "EMPTY": empty stack
+Update t_vm_store.t to use | separator and handle EMPTY
+ROOT BUG: t_vm_store.t pop logic wrong
+Stack "EMPTY|x|1": indexOf("|") = 5 (first |)
+sep=5, top_val = slice(0,5) = "EMPTY" WRONG!
+Should pop from END not beginning
+Stack is: EMPTY|x|1 → top = "1" (rightmost)
+Need: lastIndexOf not indexOf
+FIX: find LAST "|" to pop from top
+STACK PUSH WORKING! 
+x|EMPTY then 1|x|EMPTY - push to FRONT correct
+STORE: pop from front = indexOf("|") gives first sep
+top_val = slice(0, sep) = "1" ✓
+rest = slice(sep+1) = "x|EMPTY" ✓
+t_vm_store.t already uses this logic - should work now
+2 bugs remain:
+1. STORE pops whole stack not just top
+   "1|x|EMPTY" → top should be "1" but getting "1|x|EMPTY"
+   slice(str=vm_stk, from=0, to=sep) wrong - sep is first | position
+   indexOf("1|x|EMPTY", "|") = 1 → slice(0,1) = "1" ✓ SHOULD WORK
+   But output shows r=1|x|EMPTY → slice returning whole string
+2. frame has leading | and wrong entries
+FIX: debug t_vm_store sep and slice values
+slice logic correct in isolation: sep=1, top="1", rest="x|EMPTY" ✓
+BUG must be in t_vm_store.t itself
+file_read returns "1|x|EMPTY" but with trailing newline?
+_trim_c should handle it
+OR: STORE instruction "STORE r" - slice(from=6) correct?
+"STORE r" len=7, from=6 = "r" ✓
+DEBUG: print actual values inside t_vm_store
+File read + slice works correctly: top="1", rest="x|EMPTY" ✓
+BUG must be in t_vm_store.t param conflict
+"store_var" param name conflicts with T0 var?
+OR: slice(from=6) for "STORE r" - but instr read from file has newline?
+Check: instr from vm_instr.txt after trim
+FOUND: t_vm_store.t pops from WRONG end
+indexOf(vm_stk, "|") = finds FIRST | = position 1 in "1|x|EMPTY"
+rest_start = 2, top_val = slice(rest_start, stk_len) = "x|EMPTY" WRONG
+rest_stk = slice(0, sep) = "1" WRONG
+Code has top_val and rest_stk SWAPPED vs what was debugged
+slice(from=rest_start) = "x|EMPTY" → this is rest, not top
+slice(from=0, to=sep) = "1" → this IS top
+But in t_vm_store.t it's reversed!
+FIX: swap top_val and rest_stk slice assignments
+ROOT CAUSE FINALLY:
+Gate sep(==-1) >> top_val → only fires if sep==-1
+vm_stk >> top_val → ALWAYS RUNS! overwrites slice result
+FIX: remove Gate fallback - EMPTY sentinel guarantees | always exists
+No need for sep==-1 fallback since EMPTY is always at bottom
+MILESTONE: LOAD + STORE working correctly!
+r=1, s=x in frame ✓, stack=EMPTY ✓
+LESSON: Gate fallback with >> always runs = classic T bug
+Rule: when using Gate as conditional, NEVER follow with >> same var
+REMAINING: frame has leading | → minor cosmetic issue
+NEXT: run full stage1.bc through VM
