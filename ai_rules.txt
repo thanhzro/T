@@ -2716,3 +2716,26 @@ Stage 0: t_bc (C) compiles T source
 Stage 1: t_compiler.t (T) compiles input.t → stage1.bc
 Stage 2: t_vm_*.t (T) executes stage1.bc → HALT
 MỨC 3: CONFIRMED AND COMPLETE
+IMPLEMENTING: T con self-replication
+T con reads template, fills variables, writes new .t file, spawns it
+Template approach: use placeholder strings in T source
+BUG: echo "42\nhello" doesnt create newline in bash
+echo interprets \n as literal not newline
+FIX: use printf or echo -e
+ALSO: flist=[worker_file] in T- is literal not dynamic
+flist cannot use T0 variable - classic T- static issue
+FIX: use par_spawn with dynamic array via native
+BUG: worker_42.t has literal \n not real newlines
+write_file_t writes \n as text not newline
+Template string in T- uses \\n which becomes \n in file
+FIX: use fromChar(code=10) to get real newline then build template
+OR: write template file first then read and replace
+SIMPLER: write template as actual file not T- string
+MILESTONE: T CON SELF-REPLICATION WORKING!
+t_spawn_worker.t reads template → fills placeholders → writes worker_42.t
+worker_42.t runs → creates worker_42_done.txt = "hello from worker 42"
+T CON ARMY CAN NOW:
+✓ Generate new T source from template
+✓ Spawn the generated T con
+✓ Worker executes and produces output
+T language now has self-replication capability!
