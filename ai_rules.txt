@@ -2703,3 +2703,16 @@ Gate ip_num(< total)>>safe_instr - SAME overwrite bug!
 Gate fires but instr>>safe_instr ALWAYS overwrites
 FIX: dont use Gate for bounds - check halt before dispatch
 OR: t_vm_jump.t write "HALT" directly to vm_instr.txt when jumping
+MILESTONE: T VM ARMY FULLY WORKING v16.1!
+All 12 steps executed correctly:
+LOAD x,1 → STORE r=1 ✓
+LOAD x,y → CALL foo → STORE result=y ✓
+LOAD val, >0 → JUMP_IF_0 → STORE flag ✓
+HALT at step 12 ✓
+frame: FRAME|r=1|CALL:foo(2)|result=y|flag=val ✓
+JUMP correctly skips STORE flag when top=0
+BOOTSTRAP CHAIN COMPLETE:
+Stage 0: t_bc (C) compiles T source
+Stage 1: t_compiler.t (T) compiles input.t → stage1.bc
+Stage 2: t_vm_*.t (T) executes stage1.bc → HALT
+MỨC 3: CONFIRMED AND COMPLETE
