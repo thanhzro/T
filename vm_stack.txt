@@ -1,1 +1,1 @@
-val|x|x|EMPTY
+EMPTY

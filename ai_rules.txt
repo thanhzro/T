@@ -2621,3 +2621,26 @@ LESSON: Gate fallback with >> always runs = classic T bug
 Rule: when using Gate as conditional, NEVER follow with >> same var
 REMAINING: frame has leading | → minor cosmetic issue
 NEXT: run full stage1.bc through VM
+VM v15.7 STATUS:
+✓ LOAD push to stack
+✓ STORE pop to frame  
+✓ HALT stops VM
+✓ Frame accumulates correctly
+✗ Leading | in frame (cosmetic)
+✗ CALL not implemented
+✗ JUMP not implemented
+FIXING: leading | in frame - frm_empty check using len() unreliable
+FIX: use indexOf to check if frame is empty
+THEN: build t_vm_call.t
+BUG: frame only has s=x not r=1|s=x
+Gate frm_has_entry(==-1)>>appended fires when frm has no "=" 
+After STORE r: vm_frm="r=1", frm_has_entry=2 (not -1)
+So Gate does NOT fire → appended = "r=1|s=x" ✓
+But then: new_entry>>appended ALWAYS runs → appended="s=x" !!!
+SAME BUG: >> after Gate always runs
+FIX: save appended before Gate, use different var names
+SAME BUG: new_entry>>with_sep always runs after Gate
+PATTERN: Gate X >> var then Y >> var = Y always wins
+REAL FIX: use FRAME sentinel like EMPTY for stack
+Init frame="FRAME", always append "|new_entry"
+No conditional needed → no Gate overwrite bug
