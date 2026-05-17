@@ -2922,3 +2922,153 @@ CONCLUSION: distributed training only wins on MULTIPLE PHYSICAL DEVICES
 On 1 device: sequential always wins (fork overhead too high)
 On N phones: distributed wins N× (each phone = 1 worker)
 INSIGHT: T con army designed for multi-device not multi-process on 1 device
+GOAL: T con bập bẹ - char-level model dim=32 vocab=95
+Input: 8 chars context → predict next char
+Train on lib/*.t source
+Success = "func " → predict "("
+Using: mat_mmv, softmax_n, argmax_n, embed_n (all exist)
+BUG: loss=0, wo0=[0] - embed_n with hardcoded cid=0 not using actual char ids
+embed_n(cid=0) always embeds same char → no learning signal
+linear_rows takes 4-dim input but e0 is 32-dim → mismatch
+Also: wo0=[0] = only 1 element returned
+REAL FIX: use mat_mmv not linear_rows for dim=32
+mat_mmv(src=wo_flat, sz=32, inp=e0) → 32-dim output
+AND: embed actual char ids not hardcoded 0
+BUG: loss=0 still - dot_product returns 0
+embed_n or mat_mmv returning zeros
+Test embed_n and mat_mmv directly with known values
+embed_n and mat_mmv WORK correctly!
+ev0=[0.9,1.0,1.1,1.2] ✓
+pp0=[1.1,2.78,4.46,6.14] ✓
+BUG must be in training file: cid{step} param conflict?
+cid0=2 in T- but embed_n(cid=cid0) - "cid" is param name!
+CLASSIC PARAM CONFLICT: param "cid" = T- var "cid0"
+FIX: rename T- vars from cid0→xid0 to avoid "cid" prefix conflict
+BUG: loss still 0 after fixing cid→xid
+dot_product(gg, gg) = 0 means gg=[0,0,0,0,0,0,0,0]
+vec_sub returns zeros → pp == tv
+OR: tv{step} defined in T0 as literal but T0 cant use = assignment!
+tv{step} = {tvec} in T0 = WRONG AGAIN!
+FIX: move tv{step} to T- section
+PROGRESS: loss_start=1, loss_end=0 - LOSS IS DECREASING!
+From 1 → 0 in 40 steps = model learning!
+But loss=0 at end means overfit on 40 steps OR loss calc issue
+Need more steps and track intermediate losses
+BUG: ls0=[0], ls24=[], ls49=[], ls74=0, ls99=0
+ls0=[0] = array not scalar - dot_product returning array?
+ls24=[] = empty = variable not set = step 24 not executed?
+String constant limit hit again - 100 steps too many unique var names
+ev0..ev99, pp0..pp99, gg0..gg99 = 300 unique names >> 255 limit
+FIX: use rotating var names - only 5 names, reuse each step
+Store loss to file each step instead
+BUG: ls=0, wmat=[] - rotating vars cause issue
+wmat=[] after mat_update_flat - param "mat" conflicts with var "wmat"
+mat_update_flat(mat=wmat) - param "mat" = T- prefix of "wmat"?
+NO: param is "mat", var is "wmat" - different names
+REAL: dot_product(a=gg, b=gg) returns 0 - gg is wrong
+vec_sub(a=pp, b=tv{step}) - tv{step} has prefix "tv" = param of something?
+CHECK: what are params of vec_sub?
+vec_sub and dot_product work correctly in isolation
+Problem must be specific to training file with rotating vars
+tv{step} in T- but in T0 used as b=tv{step}
+tv prefix = param of vec_sub? param is "b" not "tv"
+Wait: embed_n(cid=xid{step}) - "tbl" param matches "t" prefix in "tv{step}"?
+NO wait: the issue is xid{step} and tv{step} both use step suffix
+ALL 40 xid vars + tv vars + rotating T0 vars = still many string constants
+COUNT: 40 xid + 40 tv = 80 T- strings + emb(big) + wmat = fine
+T0: embed_n, mat_mmv etc = function name strings count too!
+Need to count exact string constants
+114 unique identifiers - under 255 limit
+T0 looks correct - rotating vars working syntactically
+REAL BUG: mat_update_flat(mat=wmat) - param "mat" 
+wmat starts with "mat" - is there prefix matching issue?
+OR: mat_update_flat returns empty array []
+TEST: mat_update_flat directly
+mat_update_flat works! returns updated matrix correctly
+REAL BUG: param "lrv" in mat_update_flat but we pass lr=0.01
+In training file: mat_update_flat(mat=wmat, grad=rg, lrv=lr)
+"lr" is T- var, "lrv" is param name - NO CONFLICT
+BUT: in training file we use "lr" not "lrval"
+Check: is "lr" conflicting with anything?
+Actually test the full chain: embed → mmv → sub → update
+FULL CHAIN WORKS IN ISOLATION!
+ev=[0.5,0.6,0.7,0.8] ✓
+pp=[0.7,1.74,2.78,3.82] ✓
+gg=[-0.3,1.74,2.78,3.82] ✓
+ls=25.4384 ✓
+wmat updated ✓
+BUG IS IN TRAINING FILE ONLY
+Difference: training file has large emb array (95×8=760 values)
+Large T- array may cause parsing issue
+OR: rotating wmat - mat_update_flat(mat=wmat,...) ~> wmat overwrites wmat
+CLASSIC: wmat is reused - after step 1, wmat=updated
+But embed still uses old emb not updated
+This is CORRECT behavior - the chain should work
+TEST: add 2 steps rotating
+2 step rotation WORKS! ls=3.64, wmat updated ✓
+Problem is specifically with large emb array (760 values)
+Large T- array = T- parser hits limit when parsing array values
+FIX: reduce emb size OR split emb into smaller chunks
+OR: use smaller vocab - map to 32 chars not 95
+Try: vocab_size=32, dim=8 → emb=256 values (manageable)
+ROOT CAUSE CONFIRMED: T- array with 256 values returns len=0!
+T- array parser has element limit - large arrays silently fail
+emb=256 values → parsed as empty → embed_n returns zeros → loss=0
+FIX: split large emb into multiple smaller T- arrays
+OR: load emb from file using file_read in T0
+OR: increase T- array limit in compiler
+QUICKEST FIX: increase array limit in src
+ROOT CAUSE: char _inner[512] limits T- array content to 512 chars!
+256 values × ~7 chars each = 1792 chars >> 512 limit
+Array gets truncated at 512 chars → only first ~70 values parsed
+FIX: increase _inner from 512 to 65536
+AND chunk_write _cnt uses uint8_t = max 255 elements!
+OP_PUSH_ARR writes count as 1 byte → max 255 elements
+DOUBLE FIX needed: _inner size AND _cnt encoding
+Still 0 - _inner fix not enough
+strncpy(_inner, expr+1, _rb-expr-1) - strncpy still limited?
+OR: the T- line itself is truncated before reaching compile_expr
+T- parser reads lines with buf[256] limit!
+Line "big_arr = [0.000, 0.001, ...]" with 256 values = very long line
+buf[256] in T- parser cuts the line at 255 chars
+FIX: increase line buffer in T- parser too
+FOUND: char buf[256] in load_lines AND run_file
+fgets(buf, sizeof(buf), f) = reads max 255 chars per line
+Long T- array line truncated at 255 chars
+FIX: increase buf to 65536 in both load_lines and run_file
+Still 0 - buf fix didnt work OR replacement string didnt match
+Check if buf actually changed
+FOUND: chunk_write(c, _cnt) - _cnt is int but chunk_write takes uint8_t
+256 elements → _cnt=256 → uint8_t overflow → 256 mod 256 = 0!
+That's why len=0!
+FIX: use 2-byte encoding for array count
+OR: chunk_write16 for large arrays
+Still 0 - need to debug more carefully
+The array is parsed in compile_expr which is called from T- section
+But T- section uses different parsing path than T0
+Check: how T- var assignments with arrays are parsed
+FOUND: inner_len=0 - _rb = NULL! 
+strncpy(_inner, expr+1, 0) = empty string
+_rb not found = ] bracket not found in expr
+BUT: expr starts AFTER the [ because expr is passed without the full line?
+REAL ISSUE: T- parser passes wrong expr to compile_expr
+T- var "big_arr = [...]" - what gets passed as expr?
+Check how T- assigns arrays - may strip before [
+FOUND ROOT CAUSE: T- var assignment uses val2[1024] limit!
+"big_arr = [0.000, 0.001, ...]" with 256 values = ~1800 chars
+val2[1024] truncates at 1023 chars → array incomplete → ] not found
+FIX: increase val2 from 1024 to 65536
+AND nl2[1200] also too small
+FIXED: T- large array now works! len=256 confirmed
+ROOT CAUSE CHAIN:
+1. T- parser reads line into buf[65536] (fixed earlier)
+2. T- var assignment: val2[1024] truncated "= [...]" at 1023 chars
+   → ] bracket lost → array incomplete → inner_len=0
+3. nl2[1200] too small to hold "[...] >> varname" string
+4. compile_expr never saw valid [] → _rb=NULL → _inner empty
+FIX: val2→65536, nl2→131072 = enough for any T- array
+LESSON: T- section has multiple buffer limits, all need to match
+MILESTONE: char model training WORKING! ls=0.0066, wmat=64 values non-zero!
+Loss > 0 ✓, weights updated ✓
+T- large array now works with 65536 buffer
+CONCERN: static char buffers 65536+131072 on stack = memory usage

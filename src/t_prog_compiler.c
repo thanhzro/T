@@ -112,11 +112,11 @@ void compile_expr(Chunk *c, const char *expr) {
         /* Find matching ] with depth tracking */
         int _depth=0; const char *_p=expr; const char *_rb=NULL;
         for(;*_p;_p++){if(*_p=='[')_depth++;else if(*_p==']'){_depth--;if(_depth==0){_rb=_p;break;}}}
-        char _inner[512]={0};
-        if(_rb) strncpy(_inner,expr+1,_rb-expr-1);
+        char _inner[65536]={0};
+        if(_rb){ int _ilen=_rb-expr-1; if(_ilen>65535)_ilen=65535; strncpy(_inner,expr+1,_ilen); fprintf(stderr,"ARR_DEBUG: inner_len=%d cnt_before_parse\n",_ilen);}
         int _cnt=0;
         /* Split by comma with depth awareness */
-        char *_ip=_inner; char _tok[256]={0}; int _ti=0; int _d2=0;
+        char *_ip=_inner; char _tok[256]={0}; int _ti=0; int _d2=0; int _cnt2=0;
         while(*_ip){
             if(*_ip=='[')_d2++;
             else if(*_ip==']')_d2--;
@@ -131,7 +131,7 @@ void compile_expr(Chunk *c, const char *expr) {
         _tok[_ti]=0; char *_t=_tok; while(*_t==' ')_t++;
         int _tl=strlen(_t); while(_tl>0&&_t[_tl-1]==' ')_t[--_tl]=0;
         if(*_t){compile_expr(c,_t);_cnt++;}
-        chunk_write(c,OP_PUSH_ARR); chunk_write(c,_cnt);
+        chunk_write(c,OP_PUSH_ARR); chunk_write(c,(uint8_t)((_cnt>>8)&0xFF)); chunk_write(c,(uint8_t)(_cnt&0xFF));
         return;
     }
     if(expr[0] == 34) {
@@ -166,7 +166,7 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
 }
 
 void compile_line(Chunk *chunk, const char *line) {
-    char buf[256]; strncpy(buf, line, 255); buf[255]=0;
+    static char buf[65536]; strncpy(buf, line, 65535); buf[65535]=0;
     char *p = buf;
     while(*p == ' ') p++;
     if(*p == 0 || *p == '#') return;
@@ -505,7 +505,7 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n);
 static void load_lines(const char *path, char **lines, int *count){
     FILE *f=fopen(path,"r");
     if(!f) return;
-    char buf[256];
+    char buf[65536];
     while(fgets(buf,sizeof(buf),f) && *count<4096){
         int l=strlen(buf); if(l>0&&buf[l-1]==10)buf[l-1]=0;
         if(strncmp(buf,"[T-]",4)==0||strncmp(buf,"[T0]",4)==0||strncmp(buf,"[T+]",4)==0) continue;
@@ -529,7 +529,7 @@ int run_file(const char *path) {
     
     char **lines = calloc(4096, sizeof(char*));
     int count = 0;
-    char buf[256];
+    char buf[65536];
     
     int section=0; /* 0=T-, 1=T0, 2=T+ */
     int in_func=0;
@@ -606,12 +606,12 @@ int run_file(const char *path) {
                 char *eq2=strchr(buf,'=');
                 char vname[64]={0}; strncpy(vname,buf,eq2-buf);
                 char *vt=vname+strlen(vname)-1; while(vt>vname&&*vt==' ')*vt--=0;
-                char val2[1024]={0}; strncpy(val2,eq2+1,1023);
+                static char val2[65536]={0}; memset(val2,0,sizeof(val2)); strncpy(val2,eq2+1,65535);
                 char *vp=val2; while(*vp==' ')vp++;
                 /* T- only allows literals: numbers, strings, arrays */
                 int is_literal = (vp[0]=='"' || vp[0]=='[' || (vp[0]>=-'0'&&vp[0]<='9') || vp[0]=='-');
                 if(is_literal){
-                    char nl2[1200]; snprintf(nl2,1199,"%s >> %s",vp,vname);
+                    static char nl2[131072]={0}; snprintf(nl2,131071,"%s >> %s",vp,vname);
                     lines[count++]=strdup(nl2);
                 } else {
                     fprintf(stderr,"T- error: '%s' is not a literal - T- only allows literal values\n",vp);

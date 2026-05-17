@@ -446,7 +446,7 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 break;
             }
             case OP_PUSH_ARR:{
-                int n=vm->chunk->code[vm->ip++];
+                int n=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1]; vm->ip+=2;
                 BVal *items=(BVal*)calloc(n,sizeof(BVal));
                 for(int i=n-1;i>=0;i--){
                     vm->top--;
