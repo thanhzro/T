@@ -515,7 +515,7 @@ static void nat_par_spawn(BVal *stack, int argc, BVal *out) {
             chdir("/data/data/com.termux/files/home/t-lang");
             execl("/data/data/com.termux/files/home/t-lang/t_bc","/data/data/com.termux/files/home/t-lang/t_bc",path,NULL);
             exit(1);
-
+        }
     }
     for(int i=0;i<n&&i<256;i++){
         if(pids[i]>0) waitpid(pids[i],NULL,0);

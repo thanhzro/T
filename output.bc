@@ -5,3 +5,7 @@ LOAD x
 LOAD y
 CALL foo 2
 STORE  result
+LOAD val
+LOAD > 0
+JUMP_IF_0 END
+STORE flag

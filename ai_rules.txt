@@ -2364,3 +2364,12 @@ BUG: line 463 still has function definition error - same old misplaced code
 compile_all assign+tilde working (LOAD x, LOAD 1, STORE r, CALL foo 2)
 Gate still missing but assign+tilde = 90% of T0 code
 PRIORITY: fix line 463 error then Gate
+BUG: 3 more brace errors at lines 527, 572, 674 in natives.h
+compile_all function has broken brace structure from previous edits
+Need to view and fix the whole compile_all function
+CRITICAL: 20 errors - missing closing brace somewhere before line 527
+A function is not closed - all subsequent functions seen as nested
+CHECK: line just before 527 - par_spawn or nat_par_spawn missing }
+FOUND: nat_par_spawn missing 2 closing braces
+exit(1); should be followed by } for if(pid==0) then } for for loop
+FIX: add missing braces
