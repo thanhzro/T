@@ -2387,3 +2387,9 @@ DEBT CLEANUP PLAN:
 4. Build t_vm.t → close bootstrap chain
 BUG: Makefile missing tab separator - heredoc strips tabs
 FIX: write Makefile with python to preserve tabs
+FIXED: Makefile correct, train files moved, gitignore updated
+REMAINING DEBT:
+- t_vm.t chưa có → bootstrap not closed
+- root still has: t1.t t2.t worker*.t master.t par_test.t seq_test.t
+- lib/archived/ 26 dead files
+NEXT: build t_vm.t → close bootstrap chain → mức 3
