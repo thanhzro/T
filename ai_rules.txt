@@ -3451,3 +3451,27 @@ Missing: shell execution native
 T con army needs: read file → process → write file → compile → test
 compile + test need shell execution
 Need to add: shell_exec native that returns full output
+BUG: shell_exec returns n2=0 for 500-char string
+len() returns 0 for shell_exec output
+But "hello\nworld\n" displays correctly
+len() may not handle shell_exec output correctly
+OR: shell_exec output has trailing newline stripping issue
+Test: len on known string
+BUG: shell_exec returns empty for python3 -c with quotes
+echo ABCDE works (len=6)
+python3 -c "..." returns empty (len=0)
+Cause: quote escaping in T string literal fails
+\"...\" inside T string → shell gets wrong command
+Test: use script file instead of inline python
+shell_exec WORKS! python3 -c 'print(100)' → "100\n" len=4 correct
+wc -c ai_rules.txt → 218078 correct
+KEY: use single quotes not double quotes in shell cmd
+T string literal uses double quotes → single quotes inside work fine
+shell_exec pattern: shell_exec(cmd="python3 -c 'code here'")
+NOT: shell_exec(cmd="python3 -c \"code here\"")
+T con army foundation COMPLETE:
+- file_read: unlimited ✓
+- shell_exec: works with single quotes ✓
+- write_file_t: works ✓
+- spawn_file: works ✓
+NOW: T cons can read C files, write Python scripts, execute, test
