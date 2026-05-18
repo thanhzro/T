@@ -718,6 +718,81 @@ static void nat_outer_update(BVal *stack, int argc, BVal *out) {
     out->num = rows*cols;
 }
 
+
+static void nat_train_loop(BVal *stack, int argc, BVal *out) {
+    /* train_loop(wmat, emb, xs, ys, lr, steps, dim) */
+    if(argc < 7) { *out = make_num(0); return; }
+    BVal wmat = stack[0];
+    BVal emb  = stack[1];
+    BVal xs   = stack[2]; /* input char ids */
+    BVal ys   = stack[3]; /* target char ids */
+    double lr = stack[4].num;
+    int steps = (int)stack[5].num;
+    int dim   = (int)stack[6].num;
+
+    if(!wmat.arr||!emb.arr||!xs.arr||!ys.arr){*out=make_num(0);return;}
+
+    /* Copy wmat to working buffer */
+    int wsize = dim*dim;
+    double *W = calloc(wsize, sizeof(double));
+    double *E = calloc(wsize, sizeof(double)); /* emb: vocab*dim, use dim*dim */
+    for(int i=0;i<wsize&&i<wmat.arr_len;i++) W[i]=wmat.arr[i].num;
+    for(int i=0;i<wsize&&i<emb.arr_len;i++) E[i]=emb.arr[i].num;
+
+    double last_loss = 0;
+    int n = xs.arr_len < steps ? xs.arr_len : steps;
+
+    for(int s=0;s<n;s++){
+        int xid = (int)xs.arr[s].num;
+        int yid = (int)ys.arr[s].num;
+        if(xid<0||xid>=dim||yid<0||yid>=dim) continue;
+
+        /* Embed: ev = E[xid*dim .. xid*dim+dim] */
+        double ev[64]={0};
+        for(int j=0;j<dim;j++) ev[j]=E[xid*dim+j];
+
+        /* Forward: pp = W @ ev */
+        double pp[64]={0};
+        for(int i=0;i<dim;i++)
+            for(int j=0;j<dim;j++)
+                pp[i]+=W[i*dim+j]*ev[j];
+
+        /* Softmax */
+        double maxv=pp[0];
+        for(int i=1;i<dim;i++) if(pp[i]>maxv) maxv=pp[i];
+        double sum=0;
+        for(int i=0;i<dim;i++){pp[i]=exp(pp[i]-maxv);sum+=pp[i];}
+        for(int i=0;i<dim;i++) pp[i]/=sum;
+
+        /* Error: gg = prob - onehot(yid) */
+        double gg[64]={0};
+        for(int i=0;i<dim;i++) gg[i]=pp[i];
+        gg[yid]-=1.0;
+
+        /* Loss */
+        double ls=0;
+        for(int i=0;i<dim;i++) ls+=gg[i]*gg[i];
+        last_loss=ls;
+
+        /* Outer update: W[i][j] -= lr * gg[i] * ev[j] */
+        for(int i=0;i<dim;i++)
+            for(int j=0;j<dim;j++)
+                W[i*dim+j]-=lr*gg[i]*ev[j];
+    }
+
+    /* Return updated wmat as array */
+    BVal *res = calloc(wsize, sizeof(BVal));
+    for(int i=0;i<wsize;i++){
+        res[i].type=VT_NUM;
+        res[i].num=W[i];
+    }
+    free(W); free(E);
+    out->type=VT_ARR;
+    out->arr=res;
+    out->arr_len=wsize;
+    out->num=last_loss;
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -740,6 +815,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop");f2->is_native=4;f2->native_v=nat_train_loop;f2->param_count=7;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"outer_update");f2->is_native=4;f2->native_v=nat_outer_update;f2->param_count=6;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"err");strcpy(f2->params[2],"inp");strcpy(f2->params[3],"lr");strcpy(f2->params[4],"rows");strcpy(f2->params[5],"cols");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"spawn_file");f2->is_native=4;f2->native_v=nat_spawn_file;f2->param_count=1;strcpy(f2->params[0],"fpath");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"compile_all");f2->is_native=4;f2->native_v=nat_compile_all;f2->param_count=1;strcpy(f2->params[0],"lines");}

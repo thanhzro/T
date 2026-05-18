@@ -3186,3 +3186,17 @@ outer_update(mat, error, inp, lr, rows, cols)
 mat[i][j] -= lr * error[i] * inp[j]
 Updates FULL matrix in 1 call
 Fix backprop completely
+outer_update WORKING! All 16 values updated correctly
+Row 0: 0.0995,0.199,0.2985,0.398 (err[0]=+0.5 → decreased)
+Row 1: 0.5005,0.601,0.7015,0.802 (err[1]=-0.5 → increased)  
+Row 2: 0.8997... (err[2]=+0.3 → decreased)
+Row 3: 1.3003... (err[3]=-0.3 → increased)
+CORRECT: all rows updated by outer product gradient
+NOW: retrain with outer_update - full backprop
+ADDING: train_loop native C - fix 97% overhead
+train_loop(wmat, emb, xs, ys, lr, steps, dim)
+Runs N steps fully in C - no process spawn per step
+Expected speedup: 5000x
+train_loop native added! Compiles clean, 48/48 pass
+Full training loop in C - embed+forward+softmax+loss+outer_update
+Expected 5000x speedup vs 1 spawn per step

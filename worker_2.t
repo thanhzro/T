@@ -1,562 +1,255 @@
 [T-]
 import "lib/basic/std.t"
 import "lib/advanced/ml_t.t"
-emb = [0.0072,0.0946,-0.0243,0.0104,0.0659,0.0237,0.0723,0.0155,0.0409,-0.0908,-0.0544,-0.0421,-0.0840,-0.0534,-0.0798,-0.0444,0.0271,-0.0270,-0.0260,-0.0581,-0.0466,0.0873,0.0296,0.0218,-0.0658,0.0458,-0.0673,-0.0241,0.0979,0.0280,0.0114,0.0369,0.0686,0.0552,-0.0542,-0.0936,-0.0369,-0.0465,-0.0578,0.0886,0.0753,-0.0371,0.0311,-0.0209,0.0829,-0.0082,-0.0470,-0.0507,0.0123,-0.0475,0.0169,0.0796,-0.0201,-0.0561,0.0995,0.0019,-0.0818,-0.0906,-0.0781,0.0255,0.0584,-0.0156,-0.0873,-0.0237]
+emb = [0.0857,0.0690,-0.0677,-0.1170,-0.0461,-0.0581,-0.0723,0.1107,0.0941,-0.0463,0.0389,-0.0261,0.1036,-0.0103,-0.0588,-0.0633,0.0153,-0.0593,0.0211,0.0995,-0.0251,-0.0702,0.1244,0.0024,-0.1023,-0.1132,-0.0976,0.0319,0.0730,-0.0195,-0.1091,-0.0296,0.1240,0.0073,0.1178,0.0902,-0.1221,0.0552,0.0454,0.0092,-0.0583,0.0352,-0.0971,-0.0163,-0.0116,0.1135,0.0940,-0.0592,0.0001,-0.0803,0.1032,0.0926,-0.0504,0.0347,0.0272,-0.0868,0.0656,0.0098,0.0697,0.0076,-0.1249,-0.0440,-0.1201,0.1073]
 edim = 8
-wr0 = [0.102193,-0.310328,-0.170970,-0.195423,0.188029,0.131773,0.296720,-0.286733]
-wr1 = [-0.051256,-0.305013,-0.211257,0.004244,-0.312887,-0.205700,0.127081,0.037592]
-wr2 = [-0.193825,0.091038,0.206473,-0.348288,0.238568,0.147759,-0.091163,-0.237873]
-wr3 = [0.327044,-0.088428,-0.300202,-0.284674,0.267522,0.080618,0.238155,0.168131]
-bv = [0,0,0,0,0,0,0,0]
-lr = 0.003
+wmat = [0.034682,-0.118829,-0.057025,-0.069563,0.059155,0.043891,0.097343,-0.102913,-0.020844,-0.118485,-0.069343,0.003015,-0.117821,-0.074399,0.038773,0.009613,-0.071501,0.021211,0.078558,-0.121336,0.077211,0.050573,-0.038413,-0.088013,0.113205,-0.041582,-0.101043,-0.099428,0.087339,0.026630,0.077859,0.056141,0.008637,0.118124,-0.030141,0.013511,0.082502,0.029902,0.090925,0.018854,0.050360,-0.114111,-0.066915,-0.051326,-0.105297,-0.066307,-0.099259,-0.056191,0.036862,-0.031218,-0.034947,-0.076765,-0.060039,0.107180,0.034637,0.031277,-0.082772,0.056427,-0.083185,-0.028927,0.123331,0.035645,0.014923,0.044688]
+wsz = 8
+lr = 0.005
+nrows = 8
+ncols = 8
 xid0 = 0
-tv0 = [1,0,0,0]
+tv0 = [1,0,0,0,0,0,0,0]
 xid1 = 0
-tv1 = [1,0,0,0]
+tv1 = [1,0,0,0,0,0,0,0]
 xid2 = 0
-tv2 = [1,0,0,0]
+tv2 = [1,0,0,0,0,0,0,0]
 xid3 = 0
-tv3 = [1,0,0,0]
+tv3 = [1,0,0,0,0,0,0,0]
 xid4 = 7
-tv4 = [1,0,0,0]
+tv4 = [1,0,0,0,0,0,0,0]
 xid5 = 0
-tv5 = [1,0,0,0]
+tv5 = [1,0,0,0,0,0,0,0]
 xid6 = 0
-tv6 = [1,0,0,0]
+tv6 = [1,0,0,0,0,0,0,0]
 xid7 = 0
-tv7 = [0,0,0,1]
+tv7 = [0,0,0,1,0,0,0,0]
 xid8 = 0
-tv8 = [1,0,0,0]
+tv8 = [1,0,0,0,0,0,0,0]
 xid9 = 0
-tv9 = [1,0,0,0]
+tv9 = [1,0,0,0,0,0,0,0]
 xid10 = 1
-tv10 = [1,0,0,0]
+tv10 = [0,0,0,0,1,0,0,0]
 xid11 = 0
-tv11 = [1,0,0,0]
+tv11 = [1,0,0,0,0,0,0,0]
 xid12 = 0
-tv12 = [1,0,0,0]
+tv12 = [1,0,0,0,0,0,0,0]
 xid13 = 0
-tv13 = [0,0,0,1]
+tv13 = [0,0,0,1,0,0,0,0]
 xid14 = 0
-tv14 = [0,0,0,1]
+tv14 = [0,0,0,0,0,0,0,1]
 xid15 = 1
-tv15 = [1,0,0,0]
+tv15 = [0,0,0,0,1,0,0,0]
 xid16 = 3
-tv16 = [1,0,0,0]
+tv16 = [1,0,0,0,0,0,0,0]
 xid17 = 0
-tv17 = [1,0,0,0]
+tv17 = [1,0,0,0,0,0,0,0]
 xid18 = 5
-tv18 = [1,0,0,0]
+tv18 = [1,0,0,0,0,0,0,0]
 xid19 = 0
-tv19 = [0,0,0,1]
+tv19 = [0,0,0,0,0,0,0,1]
 xid20 = 0
-tv20 = [1,0,0,0]
+tv20 = [1,0,0,0,0,0,0,0]
 xid21 = 0
-tv21 = [0,0,0,1]
+tv21 = [0,0,0,1,0,0,0,0]
 xid22 = 0
-tv22 = [0,0,1,0]
+tv22 = [0,0,1,0,0,0,0,0]
 xid23 = 0
-tv23 = [1,0,0,0]
+tv23 = [1,0,0,0,0,0,0,0]
 xid24 = 5
-tv24 = [0,1,0,0]
+tv24 = [0,1,0,0,0,0,0,0]
 xid25 = 3
-tv25 = [1,0,0,0]
+tv25 = [1,0,0,0,0,0,0,0]
 xid26 = 0
-tv26 = [0,0,1,0]
+tv26 = [0,0,0,0,0,0,1,0]
 xid27 = 0
-tv27 = [1,0,0,0]
+tv27 = [1,0,0,0,0,0,0,0]
 xid28 = 0
-tv28 = [1,0,0,0]
+tv28 = [1,0,0,0,0,0,0,0]
 xid29 = 5
-tv29 = [0,0,0,1]
+tv29 = [0,0,0,1,0,0,0,0]
 [T0]
 embed_n(cid=xid0, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv0) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv0) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid1, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv1) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv1) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid2, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv2) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv2) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid3, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv3) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv3) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid4, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv4) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv4) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid5, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv5) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv5) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid6, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv6) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv6) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid7, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv7) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv7) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid8, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv8) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv8) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid9, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv9) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv9) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid10, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv10) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv10) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid11, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv11) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv11) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid12, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv12) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv12) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid13, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv13) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv13) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid14, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv14) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv14) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid15, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv15) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv15) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid16, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv16) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv16) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid17, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv17) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv17) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid18, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv18) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv18) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid19, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv19) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv19) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid20, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv20) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv20) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid21, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv21) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv21) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid22, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv22) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv22) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid23, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv23) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv23) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid24, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv24) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv24) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid25, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv25) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv25) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid26, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv26) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv26) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid27, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv27) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv27) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid28, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv28) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv28) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
 embed_n(cid=xid29, tbl=emb, dim=edim) ~> ev
-linear_rows(r0=wr0, r1=wr1, r2=wr2, r3=wr3, bv=bv, x=ev) ~> pp
-vec_sub(a=pp, b=tv29) ~> gg
+mat_mmv(src=wmat, sz=wsz, inp=ev) ~> pp
+softmax_n(arr=pp) ~> prob
+vec_sub(a=prob, b=tv29) ~> gg
 dot_product(a=gg, b=gg) ~> ls
-get(arr=gg, idx=0) ~> gs0
-vec_scale(a=ev, s=gs0) ~> rg0
-sgd_update(weights=wr0, grad=rg0, lr=lr) ~> wr0
-get(arr=gg, idx=1) ~> gs1
-vec_scale(a=ev, s=gs1) ~> rg1
-sgd_update(weights=wr1, grad=rg1, lr=lr) ~> wr1
-get(arr=gg, idx=2) ~> gs2
-vec_scale(a=ev, s=gs2) ~> rg2
-sgd_update(weights=wr2, grad=rg2, lr=lr) ~> wr2
-get(arr=gg, idx=3) ~> gs3
-vec_scale(a=ev, s=gs3) ~> rg3
-sgd_update(weights=wr3, grad=rg3, lr=lr) ~> wr3
-join(arr=wr0, sep=",") ~> wstr0
-write_file_t(path="wr0_2.txt", content=wstr0) ~> ok0
-join(arr=wr1, sep=",") ~> wstr1
-write_file_t(path="wr1_2.txt", content=wstr1) ~> ok1
-join(arr=wr2, sep=",") ~> wstr2
-write_file_t(path="wr2_2.txt", content=wstr2) ~> ok2
-join(arr=wr3, sep=",") ~> wstr3
-write_file_t(path="wr3_2.txt", content=wstr3) ~> ok3
+outer_update(mat=wmat, err=gg, inp=ev, lr=lr, rows=nrows, cols=ncols) ~> wmat
+join(arr=wmat, sep=",") ~> wstr
+write_file_t(path="weights_2.txt", content=wstr) ~> ok
 [T+]
 show shall(ls)
