@@ -5,6 +5,7 @@
 static char _g_current_func[64] = "";
 static int _g_current_ip = 0;
 static const char *_g_current_file = NULL;
+static int _g_current_line = 0;
 
 static void segfault_handler(int sig) {
     fprintf(stderr, "\n[CRASH] Signal %d\n", sig);

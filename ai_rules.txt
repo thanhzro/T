@@ -3301,3 +3301,12 @@ compile_line function cant access lineno from run_file
 Need: global int _g_current_line in t_prog_compiler.c
 Also: ARR_DEBUG still firing - need to remove debug code
 Fix both: declare global properly + remove ARR_DEBUG
+_g_current_file defined in BOTH t_signal.h AND t_prog_compiler.c
+t_signal.h line 7: static const char *_g_current_file = NULL
+→ redefinition when t_prog_compiler.c also declares it
+FIX: remove declaration from t_prog_compiler.c, use t_signal.h's
+Also add _g_current_line to t_signal.h
+PROGRESS: ARR_DEBUG removed! Now shows !EMPTY_COORD(?) instead
+!EMPTY_COORD(?) = T- error trying to assign non-literal
+Need better message: show file + line number
+Also: T- error line tracking not working yet (lineno from run_file not reaching compile_line)

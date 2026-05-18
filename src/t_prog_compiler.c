@@ -13,8 +13,6 @@
 #include <pthread.h>
 #include <sys/wait.h>
 #include <unistd.h>
-static const char *_g_current_file=NULL;
-static int _g_current_line=0;
 
 static char* find_arrow_outside_quotes(const char *s) {
     int in_q=0;

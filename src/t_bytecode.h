@@ -489,7 +489,7 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                     vm->top--;
                     if(vm->stack[vm->top].str) strncpy(_vname,vm->stack[vm->top].str,63);
                 }
-                if(v->type==VT_NIL){printf("!EMPTY_COORD(%s)\n",_vname);break;}
+                if(v->type==VT_NIL){fprintf(stderr,"[Error] %s line %d: variable '%s' not found or empty\n  Check: var defined in T-? Param name conflict?\n",_g_current_file?_g_current_file:"?",_g_current_line,_vname);printf("!EMPTY_COORD(%s)\n",_vname);break;}
                 if(v->type==VT_STR) printf("%s\n",v->str?v->str:"");
                 else if(v->type==VT_ARR){
                     printf("[");
