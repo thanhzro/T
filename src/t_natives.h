@@ -905,6 +905,59 @@ static void nat_vec_concat(BVal *stack, int argc, BVal *out) {
     out->num=n1+n2;
 }
 
+
+static void nat_infer_v2(BVal *stack, int argc, BVal *out) {
+    /* infer_v2(wmat, emb, xs, out_dim, inp_dim) */
+    if(argc < 5) { *out = make_num(0); return; }
+    BVal wmat = stack[0];
+    BVal emb  = stack[1];
+    BVal xs   = stack[2]; /* ctx char ids */
+    int out_dim = (int)stack[3].num;
+    int inp_dim = (int)stack[4].num; /* dim * ctx */
+    int dim = inp_dim / (xs.arr_len > 0 ? xs.arr_len : 1);
+
+    if(!wmat.arr||!emb.arr||!xs.arr){*out=make_num(0);return;}
+
+    int emb_len = emb.arr_len;
+    int ctx = xs.arr_len;
+    int edim = inp_dim / ctx;
+
+    /* Build context vector */
+    double *ev = calloc(inp_dim, sizeof(double));
+    for(int ci=0;ci<ctx;ci++){
+        int xid = (int)xs.arr[ci].num;
+        if(xid<0) xid=0;
+        int emb_start = xid*edim;
+        for(int j=0;j<edim;j++){
+            int ei = emb_start+j;
+            ev[ci*edim+j] = (ei<emb_len) ? emb.arr[ei].num : 0.0;
+        }
+    }
+
+    /* Forward: pp = W @ ev, W is out_dim × inp_dim */
+    double *pp = calloc(out_dim, sizeof(double));
+    for(int i=0;i<out_dim;i++){
+        for(int j=0;j<inp_dim;j++){
+            int wi = i*inp_dim+j;
+            pp[i] += (wi<wmat.arr_len ? wmat.arr[wi].num : 0.0) * ev[j];
+        }
+    }
+
+    /* Softmax */
+    double maxv=pp[0];
+    for(int i=1;i<out_dim;i++) if(pp[i]>maxv) maxv=pp[i];
+    double sum=0;
+    for(int i=0;i<out_dim;i++){pp[i]=exp(pp[i]-maxv);sum+=pp[i];}
+    for(int i=0;i<out_dim;i++) pp[i]/=sum;
+
+    /* Argmax */
+    int best=0;
+    for(int i=1;i<out_dim;i++) if(pp[i]>pp[best]) best=i;
+
+    free(ev); free(pp);
+    *out = make_num(best);
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -927,6 +980,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"infer_v2");f2->is_native=4;f2->native_v=nat_infer_v2;f2->param_count=5;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"odim");strcpy(f2->params[4],"idim");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"vec_concat");f2->is_native=4;f2->native_v=nat_vec_concat;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop_v2");f2->is_native=4;f2->native_v=nat_train_loop_v2;f2->param_count=8;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");strcpy(f2->params[7],"ctx");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop");f2->is_native=4;f2->native_v=nat_train_loop;f2->param_count=7;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");}

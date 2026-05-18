@@ -3206,3 +3206,9 @@ Fix hardcoded ev[64] → malloc(dim)
 BUG: vec_concat missing - inference returns all space
 Need: vec_concat(a, b) → concatenated array
 OR: add infer_loop native same pattern as train_loop
+BUG: mat_mmv(sz=128) expects 128×128 square matrix
+wmat is 32×128=4096 not 128×128=16384
+mat_mmv sz param = square size, not input size
+FIX: add mat_mmv_rect(src, out_dim, inp_dim, inp)
+OR: retrain với wmat=128×128 (too big)
+SIMPLEST: use infer_loop native same as train_loop_v2
