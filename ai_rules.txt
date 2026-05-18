@@ -3200,3 +3200,6 @@ Expected speedup: 5000x
 train_loop native added! Compiles clean, 48/48 pass
 Full training loop in C - embed+forward+softmax+loss+outer_update
 Expected 5000x speedup vs 1 spawn per step
+SCALE UP: dim=32, vocab=32, context=4 chars
+train_loop_v2: dynamic dim, context window
+Fix hardcoded ev[64] → malloc(dim)
