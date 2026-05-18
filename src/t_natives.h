@@ -690,6 +690,34 @@ static void nat_spawn_file(BVal *stack, int argc, BVal *out) {
     *out=make_num(1);
 }
 
+
+static void nat_outer_update(BVal *stack, int argc, BVal *out) {
+    /* outer_update(mat, err, inp, lr, rows, cols) */
+    if(argc < 6) { *out = make_num(0); return; }
+    BVal mat = stack[0];
+    BVal err = stack[1];
+    BVal inp = stack[2];
+    double lr  = stack[3].num;
+    int rows   = (int)stack[4].num;
+    int cols   = (int)stack[5].num;
+    if(!mat.arr || !err.arr || !inp.arr) { *out = make_num(0); return; }
+    /* Create new matrix */
+    BVal *res = calloc(rows*cols, sizeof(BVal));
+    for(int i = 0; i < rows; i++) {
+        double ei = (i < err.arr_len) ? err.arr[i].num : 0.0;
+        for(int j = 0; j < cols; j++) {
+            double wij = (i*cols+j < mat.arr_len) ? mat.arr[i*cols+j].num : 0.0;
+            double xj  = (j < inp.arr_len) ? inp.arr[j].num : 0.0;
+            res[i*cols+j].type = VT_NUM;
+            res[i*cols+j].num  = wij - lr * ei * xj;
+        }
+    }
+    out->type = VT_ARR;
+    out->arr = res;
+    out->arr_len = rows*cols;
+    out->num = rows*cols;
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -712,6 +740,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"outer_update");f2->is_native=4;f2->native_v=nat_outer_update;f2->param_count=6;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"err");strcpy(f2->params[2],"inp");strcpy(f2->params[3],"lr");strcpy(f2->params[4],"rows");strcpy(f2->params[5],"cols");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"spawn_file");f2->is_native=4;f2->native_v=nat_spawn_file;f2->param_count=1;strcpy(f2->params[0],"fpath");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"compile_all");f2->is_native=4;f2->native_v=nat_compile_all;f2->param_count=1;strcpy(f2->params[0],"lines");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fat_arrow");f2->is_native=4;f2->native_v=nat_fat_arrow;f2->param_count=2;strcpy(f2->params[0],"data");strcpy(f2->params[1],"dest");}

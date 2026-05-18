@@ -3181,3 +3181,8 @@ T language v16.8 complete with:
 - Distributed training ✓  
 - T con có não nhỏ (bập bẹ) ✓
 NEXT PHASE: improve T language tools for better training
+ADDING: outer_update native C function
+outer_update(mat, error, inp, lr, rows, cols)
+mat[i][j] -= lr * error[i] * inp[j]
+Updates FULL matrix in 1 call
+Fix backprop completely
