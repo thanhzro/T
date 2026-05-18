@@ -3212,3 +3212,28 @@ mat_mmv sz param = square size, not input size
 FIX: add mat_mmv_rect(src, out_dim, inp_dim, inp)
 OR: retrain với wmat=128×128 (too big)
 SIMPLEST: use infer_loop native same as train_loop_v2
+FOUND ROOT CAUSE: ys has 32% zeros (space = most common char)
+Model learns to always predict 0 = space = correct 32% of time
+= lazy solution, not real learning
+vocab top32: space is most frequent char in T source
+Model stuck at local minimum predicting space always
+FIX: use cross-entropy loss not MSE
+OR: weight classes inversely by frequency
+OR: smaller vocab without space dominance
+SIMPLEST: train on T source only key syntax chars
+ROOT BUG FOUND: ARR_DEBUG inner_len=0 still showing!
+Multi-line array in T- still failing!
+wmat split across 2 lines → parser sees 2 separate arrays
+T- parser reads line by line - array must be on ONE line
+FIX: always put array on single line in T- section
+CONFIRMED: wmat = [] empty in train_v2.t!
+wmat_str was read from tcon_weights32.txt which was EMPTY
+tcon_weights32.txt empty because write_file_t failed in previous session
+Training with empty wmat = random init each epoch = no learning
+FIX: init wmat fresh and verify it's non-empty before training
+BUG: epoch 1 weights broke - write_file_t fails for 4096-value array
+wmat 4096 values joined = very long string
+write_file_t has buffer limit for large strings
+OR: join output too long for T variable
+FIX: dim=32 too large, go back to dim=8 which worked
+train_loop works with dim=8, train_loop_v2 for dim=8 ctx=4
