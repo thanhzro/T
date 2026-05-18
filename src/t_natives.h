@@ -883,6 +883,28 @@ static void nat_train_loop_v2(BVal *stack, int argc, BVal *out) {
     out->num=last_loss;
 }
 
+
+static void nat_vec_concat(BVal *stack, int argc, BVal *out) {
+    if(argc < 2 || !stack[0].arr || !stack[1].arr) {
+        *out = make_num(0); return;
+    }
+    int n1 = stack[0].arr_len;
+    int n2 = stack[1].arr_len;
+    BVal *res = calloc(n1+n2, sizeof(BVal));
+    for(int i=0;i<n1;i++){
+        res[i].type=VT_NUM;
+        res[i].num=stack[0].arr[i].num;
+    }
+    for(int i=0;i<n2;i++){
+        res[n1+i].type=VT_NUM;
+        res[n1+i].num=stack[1].arr[i].num;
+    }
+    out->type=VT_ARR;
+    out->arr=res;
+    out->arr_len=n1+n2;
+    out->num=n1+n2;
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -905,6 +927,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"vec_concat");f2->is_native=4;f2->native_v=nat_vec_concat;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop_v2");f2->is_native=4;f2->native_v=nat_train_loop_v2;f2->param_count=8;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");strcpy(f2->params[7],"ctx");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop");f2->is_native=4;f2->native_v=nat_train_loop;f2->param_count=7;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"outer_update");f2->is_native=4;f2->native_v=nat_outer_update;f2->param_count=6;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"err");strcpy(f2->params[2],"inp");strcpy(f2->params[3],"lr");strcpy(f2->params[4],"rows");strcpy(f2->params[5],"cols");}

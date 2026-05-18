@@ -3203,3 +3203,6 @@ Expected 5000x speedup vs 1 spawn per step
 SCALE UP: dim=32, vocab=32, context=4 chars
 train_loop_v2: dynamic dim, context window
 Fix hardcoded ev[64] → malloc(dim)
+BUG: vec_concat missing - inference returns all space
+Need: vec_concat(a, b) → concatenated array
+OR: add infer_loop native same pattern as train_loop
