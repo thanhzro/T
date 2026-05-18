@@ -958,6 +958,26 @@ static void nat_infer_v2(BVal *stack, int argc, BVal *out) {
     *out = make_num(best);
 }
 
+
+static void nat_shell_exec(BVal *stack, int argc, BVal *out) {
+    if(argc<1||!stack[0].str){*out=make_str("");return;}
+    FILE*fp=popen(stack[0].str,"r");
+    if(!fp){*out=make_str("error:popen_failed");return;}
+    /* Read ALL output dynamically */
+    char *buf=NULL; size_t total=0; size_t cap=4096;
+    buf=(char*)malloc(cap);
+    char tmp[4096];
+    while(fgets(tmp,sizeof(tmp),fp)){
+        size_t l=strlen(tmp);
+        if(total+l+1>cap){cap=(total+l+1)*2;buf=(char*)realloc(buf,cap);}
+        memcpy(buf+total,tmp,l); total+=l;
+    }
+    pclose(fp);
+    if(buf) buf[total]=0;
+    out->type=VT_STR;
+    out->str=buf?buf:strdup("");
+}
+
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -980,6 +1000,7 @@ void register_all_natives(VM *vm) {
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"shell_exec");f2->is_native=4;f2->native_v=nat_shell_exec;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"infer_v2");f2->is_native=4;f2->native_v=nat_infer_v2;f2->param_count=5;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"odim");strcpy(f2->params[4],"idim");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"vec_concat");f2->is_native=4;f2->native_v=nat_vec_concat;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop_v2");f2->is_native=4;f2->native_v=nat_train_loop_v2;f2->param_count=8;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");strcpy(f2->params[7],"ctx");}

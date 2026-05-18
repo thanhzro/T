@@ -3411,3 +3411,43 @@ tdim=8 gets slot 4, tctx=4 gets slot 5 - no overflow!
 48/48 tests still pass
 For random weights (rand_flat): still might overflow if >256 distinct values
 Long-term fix needed: 2-byte OP_PUSH_NUM index properly
+GOAL: T con army autonomously fix OP_PUSH_NUM 2-byte
+Architecture:
+  master.t → orchestrate
+  worker_analyze.t → scan what needs changing
+  worker_fix_vm.t → fix t_bytecode.h
+  worker_fix_compiler.t → fix t_prog_compiler.c  
+  worker_test.t → compile + run tests
+  worker_rollback.t → git restore if fail
+Problem: T can't read files >255 chars
+Solution: T cons write Python scripts → exec
+T con = orchestrator, Python = file manipulation tool
+STRING HEAP ANALYSIS:
+BVal.str = char* (pointer, already heap via strdup!)
+make_str uses strdup → no 255 limit in BVal itself
+String 255 limit must be elsewhere
+Check: str_consts in chunk, native functions, compile_expr
+STRING LIMIT LOCATIONS FOUND:
+1. char buf[256] line 138: string literal parse in compile_expr → "string" max 255 chars
+2. char args[256] line 330: function call args string max 255 chars  
+3. char tok2[256] line 338: each token in args max 255 chars
+4. char _tok[256] line 119: array element token max 255 chars
+5. char _inline[256] line 788: F() inline body max 255 chars
+These are COMPILER limits, not runtime limits
+BVal.str is heap pointer → runtime strings unlimited already!
+Fix: increase compiler buffers or use dynamic allocation
+CONFIRMED: exec_bc returns only 29 chars from 500-char output
+exec_bc native has 255-char output buffer limit
+Need to check nat_exec_bc implementation
+file_read native ALREADY unlimited! Uses malloc(sz+1) + fread
+No 255 limit in file_read at all!
+The 29-char limit was from exec_bc which doesn't exist
+exec_bc call silently failed → returned empty/short string
+Real question: how do T cons call shell commands?
+Need shell execution native for T con army to work
+CONFIRMED: file_read works for 217KB file - UNLIMITED!
+No string limit at runtime for file I/O
+Missing: shell execution native
+T con army needs: read file → process → write file → compile → test
+compile + test need shell execution
+Need to add: shell_exec native that returns full output
