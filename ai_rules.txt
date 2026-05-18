@@ -3270,3 +3270,26 @@ train_loop_v2 params: xs=xdata, ys=ydata
 "xs" as T- var + "xs" as param name = CLASSIC CONFLICT
 FIX: always use xdata/ydata not xs/ys
 Now regenerate all workers with correct names + run army
+CONFIRMED: T passes by param name not position
+train_loop_v2(dim=edim) → T looks for var "dim" not "edim"
+T resolves "dim" from frame = finds var named "dim" = ok if var is "dim"
+_worker_fix.t renamed edim→dim but still empty!
+So param name = var name still fails
+NEXT: the issue is something else entirely
+Test minimal: just call train_loop_v2 with literal values
+wmat2=[] even with correct param names dim=8 ctx=4
+The issue is NOT param names
+xdata has 100 values (25 steps × 4 ctx) but only 28 ydata values
+n = xs.arr_len/ctx = 100/4 = 25 steps
+BUT ydata only has 28 values, steps=25 → y_id for s=28+ would be wrong
+Actually 25 < 28 so ydata is fine
+REAL: check wsize = dim*inp_dim = 8*(8*4) = 8*32 = 256 = wmat has 256 ✓
+Something wrong in nat_train_loop_v2_orig still in file?
+CLASSIC PARAM CONFLICT: dim=dim ctx=ctx steps=steps
+When param name = var name → T resolves param not var → gets 0
+FIX: rename C native params to avoid common var names
+"dim"→"tdim", "ctx"→"tctx", "steps"→"tsteps", "lr"→"tlr"
+Then T call: train_loop_v2(tdim=dim, tctx=ctx, tsteps=steps, tlr=lr)
+SESSION END: cleanup github repo
+Remove temp files, worker files, test files
+Keep only essential source + lib + examples
