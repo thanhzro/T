@@ -3296,3 +3296,8 @@ Keep only essential source + lib + examples
 DEBT: Error messages - only 9 fprintf(stderr) total
 No line numbers, no file names, no param conflict detection
 Plan: add line tracking to compiler, emit useful errors
+BUG: _g_current_line declared in wrong scope
+compile_line function cant access lineno from run_file
+Need: global int _g_current_line in t_prog_compiler.c
+Also: ARR_DEBUG still firing - need to remove debug code
+Fix both: declare global properly + remove ARR_DEBUG

@@ -113,7 +113,7 @@ void compile_expr(Chunk *c, const char *expr) {
         int _depth=0; const char *_p=expr; const char *_rb=NULL;
         for(;*_p;_p++){if(*_p=='[')_depth++;else if(*_p==']'){_depth--;if(_depth==0){_rb=_p;break;}}}
         char _inner[65536]={0};
-        if(_rb){ int _ilen=_rb-expr-1; if(_ilen>65535)_ilen=65535; strncpy(_inner,expr+1,_ilen); fprintf(stderr,"ARR_DEBUG: inner_len=%d cnt_before_parse\n",_ilen);}
+        if(_rb){ int _ilen=_rb-expr-1; if(_ilen>65535)_ilen=65535; strncpy(_inner,expr+1,_ilen);}
         int _cnt=0;
         /* Split by comma with depth awareness */
         char *_ip=_inner; char _tok[256]={0}; int _ti=0; int _d2=0; int _cnt2=0;
