@@ -3310,3 +3310,14 @@ PROGRESS: ARR_DEBUG removed! Now shows !EMPTY_COORD(?) instead
 !EMPTY_COORD(?) = T- error trying to assign non-literal
 Need better message: show file + line number
 Also: T- error line tracking not working yet (lineno from run_file not reaching compile_line)
+FOUND: param conflict happens at line ~351
+char *eq=strchr(tok2,'=');
+if(eq){ char *val=eq+1; ...
+  compile_expr(chunk,val); ← passes val (right side of =)
+}
+param name (left of =) is IGNORED - T just evaluates right side
+So func(dim=edim) → evaluates "edim", passes as next positional arg
+NOT by name! T is POSITIONAL not named params
+The "name=" part is just documentation/ignored!
+FIX: param names in call are cosmetic only
+LESSON: always pass args in REGISTRATION ORDER
