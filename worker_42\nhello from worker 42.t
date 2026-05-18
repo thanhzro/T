@@ -1,1 +1,0 @@
-[T-]\nimport \"lib/basic/std.t\"\nmsg = \"\"\npath = \"worker_42\nhello from worker 42_done.txt\"\n[T0]\nwrite_file_t(path=path, content=msg) ~> ok\n[T+]\nshow shall(ok)
