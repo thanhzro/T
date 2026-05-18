@@ -393,7 +393,12 @@ void nat_write_file(BVal *stack, int argc, BVal *out){
     const char *content=stack[1].str;
     FILE *f=fopen(path,"w");
     if(!f){out->type=VT_NUM;out->num=0;return;}
-    fputs(content,f);
+    /* Interpret \n as actual newline */
+    const char *p=content;
+    while(*p){
+        if(*p=='\\'&&*(p+1)=='n'){fputc('\n',f);p+=2;}
+        else{fputc(*p,f);p++;}
+    }
     fclose(f);
     out->type=VT_NUM; out->num=1; out->str=NULL; out->arr=NULL; out->arr_len=0;
 }

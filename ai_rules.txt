@@ -3475,3 +3475,39 @@ T con army foundation COMPLETE:
 - write_file_t: works ✓
 - spawn_file: works ✓
 NOW: T cons can read C files, write Python scripts, execute, test
+T con army ran! But workers used exec_bc which doesn't exist
+exec_bc returned cmd string instead of running it
+Python scripts were written but NOT executed
+Fix: replace exec_bc with shell_exec in all workers
+Also: army output shows worker results as 1,1,1,1 = write_file_t ok
+Workers still not executing Python scripts!
+worker_analyze shows empty output (no "done" or result)
+worker_fix_vm/compiler show empty output
+Python scripts written but shell_exec returns empty
+Reason: workers write .py file then run it
+But worker_analyze.py only exists, not run
+Check: worker output empty = shell_exec("python3 worker_analyze.py") fails
+Cause: shell_exec runs from ~/t-lang dir but file written there - should work
+Debug: test shell_exec("python3 worker_analyze.py") directly
+ROOT CAUSE: write_file_t writes \n as literal backslash-n, not newline!
+worker_analyze.py has "import subprocess,re\nr=..." on ONE line
+Python sees \n as escape sequence → SyntaxError
+write_file_t does NOT interpret escape sequences
+FIX: write Python scripts line by line OR use heredoc approach
+OR: write script via shell_exec("printf '...' > file.py")
+SIMPLEST: inline Python via shell_exec single-quoted heredoc
+Pattern: shell_exec(cmd="python3 - << 'PYEOF'\ncode\nPYEOF")
+worker_fix_vm returns empty - shell_exec with nested quotes fails
+python3 -c '...' with inner double quotes escaped as \" fails in shell
+Single quote string in shell cannot contain escaped single quotes
+Mixed quote hell: T string(double) → shell(single) → python(double) = conflict
+SOLUTION: write Python script to file using printf with proper escaping
+OR: write script content to file first, then run with python3 script.py
+PATTERN: shell_exec("printf '%s' 'code' > script.py && python3 script.py")
+BETTER: use separate T- vars for each line, write_file_t, fix \n issue in write_file_t
+ROOT FIX: make write_file_t interpret \n as actual newline
+write_file_t now interprets \n as actual newline!
+line1\nline2\nline3 → 3 lines correctly, len=18
+T con army can now write real Python scripts with newlines
+Pattern: content = "import os\nprint('hello')\n"
+write_file_t(path="script.py", content=content) → real Python file
