@@ -135,10 +135,10 @@ void compile_expr(Chunk *c, const char *expr) {
         return;
     }
     if(expr[0] == 34) {
-        char buf[256]; strncpy(buf, expr+1, 255);
+        static char buf[65536]; strncpy(buf, expr+1, 65535);
         int l=strlen(buf); if(l>0&&buf[l-1]==34) buf[l-1]=0;
         int idx=chunk_add_str(c, buf);
-        chunk_write(c, OP_PUSH_STR); chunk_write(c, idx);
+        chunk_write(c, OP_PUSH_STR); chunk_write(c,(idx>>8)&0xFF); chunk_write(c,idx&0xFF);
         return;
     }
     char *end;
@@ -149,7 +149,7 @@ void compile_expr(Chunk *c, const char *expr) {
         return;
     }
     int idx = chunk_add_str(c, expr);
-    chunk_write(c, OP_LOAD); chunk_write(c, idx);
+    chunk_write(c, OP_LOAD); chunk_write(c,(idx>>8)&0xFF); chunk_write(c,idx&0xFF);
 }
 
 void compile_assign(Chunk *c, const char *a, char op, const char *b, const char *target) {
@@ -162,7 +162,7 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
         case '%': chunk_write(c,OP_MOD); break;
     }
     int idx=chunk_add_str(c,target);
-    chunk_write(c,OP_STORE); chunk_write(c,idx);
+    chunk_write(c,OP_STORE); chunk_write(c,((idx)>>8)&0xFF); chunk_write(c,(idx)&0xFF);
 }
 
 void compile_line(Chunk *chunk, const char *line) {
@@ -196,7 +196,7 @@ void compile_line(Chunk *chunk, const char *line) {
         compile_expr(chunk,rhs);
         chunk_write(chunk,OP_NEQ);
         int it=chunk_add_str(chunk,tgt);
-        chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
         return;
     }
     /* show X */
@@ -210,7 +210,7 @@ void compile_line(Chunk *chunk, const char *line) {
         /* push var name as string first, then value */
         char *vn=p+11; while(*vn==" "[0])vn++;
         int isn=chunk_add_str(chunk,vn);
-        chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,isn);
+        chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,((isn)>>8)&0xFF); chunk_write(chunk,(isn)&0xFF);
         compile_expr(chunk, vn);
         chunk_write(chunk, OP_SHOW);
         return;
@@ -232,9 +232,9 @@ void compile_line(Chunk *chunk, const char *line) {
             if(ve){strncpy(vn,vs,ve-vs);vn[ve-vs]=0;}
             compile_expr(chunk,vn);
             int ifn2=chunk_add_str(chunk,fn);
-            chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,ifn2);
+            chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,((ifn2)>>8)&0xFF); chunk_write(chunk,(ifn2)&0xFF);
             int iw2=chunk_add_str(chunk,"write_file_t");
-            chunk_write(chunk,OP_CALL); chunk_write(chunk,iw2); chunk_write(chunk,2);
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,((iw2)>>8)&0xFF); chunk_write(chunk,(iw2)&0xFF); chunk_write(chunk,2);
         }
         return;
     }
@@ -252,14 +252,14 @@ void compile_line(Chunk *chunk, const char *line) {
                 char fname[64]={0}; strncpy(fname,vn+1,strlen(vn)-2);
                 int ifr=chunk_add_str(chunk,"file_read");
                 int ipath=chunk_add_str(chunk,fname);
-                chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,ipath);
-                chunk_write(chunk,OP_CALL); chunk_write(chunk,ifr); chunk_write(chunk,1);
+                chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,((ipath)>>8)&0xFF); chunk_write(chunk,(ipath)&0xFF);
+                chunk_write(chunk,OP_CALL); chunk_write(chunk,((ifr)>>8)&0xFF); chunk_write(chunk,(ifr)&0xFF); chunk_write(chunk,1);
             } else {
                 /* variable name = load from frame */
                 compile_expr(chunk,vn);
             }
             int it=chunk_add_str(chunk,tgt);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
         }
         return;
     }
@@ -277,18 +277,18 @@ void compile_line(Chunk *chunk, const char *line) {
             char *target=tilde_ai+2; while(*target==' ')target++;
             int iget=chunk_add_str(chunk,"get");
             int iarr=chunk_add_str(chunk,arrname);
-            chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);
+            chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iarr)>>8)&0xFF); chunk_write(chunk,(iarr)&0xFF);
             char *iend; double ival=strtod(idxstr,&iend);
             if(iend!=idxstr&&*iend==0){
                 int iidx=chunk_add_num(chunk,ival);
                 chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iidx);
             } else {
                 int iidx=chunk_add_str(chunk,idxstr);
-                chunk_write(chunk,OP_LOAD); chunk_write(chunk,iidx);
+                chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iidx)>>8)&0xFF); chunk_write(chunk,(iidx)&0xFF);
             }
-            chunk_write(chunk,OP_CALL); chunk_write(chunk,iget); chunk_write(chunk,2);
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,((iget)>>8)&0xFF); chunk_write(chunk,(iget)&0xFF); chunk_write(chunk,2);
             int it=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
             return;
         }
     }
@@ -305,18 +305,18 @@ void compile_line(Chunk *chunk, const char *line) {
             char *target=tilde+2; while(*target==' ')target++;
             int iget=chunk_add_str(chunk,"get");
             int iarr=chunk_add_str(chunk,arrname);
-            chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);
+            chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iarr)>>8)&0xFF); chunk_write(chunk,(iarr)&0xFF);
             char *iend; double ival=strtod(idxstr,&iend);
             if(iend!=idxstr&&*iend==0){
                 int iidx=chunk_add_num(chunk,ival);
                 chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iidx);
             } else {
                 int iidx=chunk_add_str(chunk,idxstr);
-                chunk_write(chunk,OP_LOAD); chunk_write(chunk,iidx);
+                chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iidx)>>8)&0xFF); chunk_write(chunk,(iidx)&0xFF);
             }
-            chunk_write(chunk,OP_CALL); chunk_write(chunk,iget); chunk_write(chunk,2);
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,((iget)>>8)&0xFF); chunk_write(chunk,(iget)&0xFF); chunk_write(chunk,2);
             int it=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
             return;
         }
     }
@@ -355,9 +355,9 @@ void compile_line(Chunk *chunk, const char *line) {
                 }
             }
             int ifn=chunk_add_str(chunk,fn);
-            chunk_write(chunk,OP_CALL); chunk_write(chunk,ifn); chunk_write(chunk,argc);
+            chunk_write(chunk,OP_CALL); chunk_write(chunk,((ifn)>>8)&0xFF); chunk_write(chunk,(ifn)&0xFF); chunk_write(chunk,argc);
             int it=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
         }
         return;
     }
@@ -383,7 +383,7 @@ void compile_line(Chunk *chunk, const char *line) {
             }
             char *tgt=arr+2; while(*tgt==' ')tgt++;
             int iv=chunk_add_str(chunk,v);
-            chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv);
+            chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iv)>>8)&0xFF); chunk_write(chunk,(iv)&0xFF);
             if(strcmp(op_str,"is_num")==0){chunk_write(chunk,OP_TYPE_NUM);}
             else if(strcmp(op_str,"is_str")==0){chunk_write(chunk,OP_TYPE_STR);}
             else if(strcmp(op_str,"is_arr")==0){chunk_write(chunk,OP_TYPE_ARR);}
@@ -394,10 +394,10 @@ void compile_line(Chunk *chunk, const char *line) {
                 char *_end2; double dval=strtod(val_str,&_end2);
                 if(_is_str_lit){
                     int iv3=chunk_add_str(chunk,val_str);
-                    chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,iv3);
+                    chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,((iv3)>>8)&0xFF); chunk_write(chunk,(iv3)&0xFF);
                 } else if(_end2==val_str||*_end2!=0){
                     int iv3=chunk_add_str(chunk,val_str);
-                    chunk_write(chunk,OP_LOAD); chunk_write(chunk,iv3);
+                    chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iv3)>>8)&0xFF); chunk_write(chunk,(iv3)&0xFF);
                 } else {
                     int iv2=chunk_add_num(chunk,dval);
                     chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
@@ -409,11 +409,11 @@ void compile_line(Chunk *chunk, const char *line) {
                 else if(strcmp(op_str,"<=")==0) chunk_write(chunk,OP_LE);
                 else if(strcmp(op_str,"!=")==0) chunk_write(chunk,OP_NEQ);
             }
-            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,4);
+            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,5);
             int i1g=chunk_add_num(chunk,1);
             chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,i1g);
             int it=chunk_add_str(chunk,tgt);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
         }
         return;
     }
@@ -442,7 +442,7 @@ void compile_line(Chunk *chunk, const char *line) {
                 compile_expr(chunk,expr);
             }
             int it3=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it3);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it3)>>8)&0xFF); chunk_write(chunk,(it3)&0xFF);
             return;
         }
         /* var + var or var + "string" concat */
@@ -467,7 +467,7 @@ void compile_line(Chunk *chunk, const char *line) {
             else
                 chunk_write(chunk,OP_ADD);
             int it4=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it4);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it4)>>8)&0xFF); chunk_write(chunk,(it4)&0xFF);
             return;
         }
         if(0&&plus_q&&plus_q[3]==34) {
@@ -479,13 +479,13 @@ void compile_line(Chunk *chunk, const char *line) {
             compile_expr(chunk,bv);
             chunk_write(chunk,OP_CONCAT);
             int it4=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE); chunk_write(chunk,it4);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,((it4)>>8)&0xFF); chunk_write(chunk,(it4)&0xFF);
             return;
         }
         if(expr[0]=='['){
             compile_expr(chunk,expr);
             int _ia=chunk_add_str(chunk,target);
-            chunk_write(chunk,OP_STORE);chunk_write(chunk,_ia);
+            chunk_write(chunk,OP_STORE); chunk_write(chunk,(_ia>>8)&0xFF); chunk_write(chunk,_ia&0xFF);
             return;
         } else if(sscanf(expr,"%s %c %s",a,&op,b)==3) {
             compile_expr(chunk,a);
@@ -501,7 +501,7 @@ void compile_line(Chunk *chunk, const char *line) {
             compile_expr(chunk,expr);
         }
         int idx=chunk_add_str(chunk,target);
-        chunk_write(chunk,OP_STORE); chunk_write(chunk,idx);
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,((idx)>>8)&0xFF); chunk_write(chunk,(idx)&0xFF);
     }
 }
 
@@ -638,7 +638,10 @@ int run_file(const char *path) {
     /* _g_vm=vm; */ _g_current_file=path;
     register_all_natives(vm);
     compile_program(vm, &chunk, (const char**)lines, count);
-    run(vm);
+    fprintf(stderr,"CHUNK[%d]: ",vm->chunk->count);
+for(int _di=0;_di<vm->chunk->count&&_di<20;_di++) fprintf(stderr,"%d ",vm->chunk->code[_di]);
+fprintf(stderr,"\n");
+run(vm);
     free(vm);
     for(int i=0;i<count;i++) free(lines[i]);
     return 0;
@@ -687,20 +690,20 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         /* caller must pre-init target */
         /* Load array and start iter */
         int iarr=chunk_add_str(chunk,arr_var);
-        chunk_write(chunk,OP_LOAD); chunk_write(chunk,iarr);
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iarr)>>8)&0xFF); chunk_write(chunk,(iarr)&0xFF);
         int inow=chunk_add_str(chunk,"now");
-        chunk_write(chunk,OP_ITER_START); chunk_write(chunk,inow);
+        chunk_write(chunk,OP_ITER_START); chunk_write(chunk,(inow>>8)&0xFF); chunk_write(chunk,inow&0xFF);
         int body_start=chunk->count;
         /* Compile condition - load gate subject (now or idx) */
         int inow2=chunk_add_str(chunk,_gate_subj[0]?_gate_subj:"now");
-        chunk_write(chunk,OP_LOAD); chunk_write(chunk,inow2);
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,((inow2)>>8)&0xFF); chunk_write(chunk,(inow2)&0xFF);
         if(strcmp(gate_op,"is_num")==0){chunk_write(chunk,OP_TYPE_NUM);}
         else if(strcmp(gate_op,"is_str")==0){chunk_write(chunk,OP_TYPE_STR);}
         else if(strcmp(gate_op,"is_arr")==0){chunk_write(chunk,OP_TYPE_ARR);}
         else {
         if(gate_is_str_lit){
             int iv2=chunk_add_str(chunk,gate_val_str);
-            chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,iv2);
+            chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,((iv2)>>8)&0xFF); chunk_write(chunk,(iv2)&0xFF);
         } else {
             int iv2=chunk_add_num(chunk,gate_val);
             chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
@@ -719,23 +722,23 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         /* push(arr=target, val=now) */
         int ipush=chunk_add_str(chunk,"push");
         int itgt2=chunk_add_str(chunk,gate_tgt);
-        chunk_write(chunk,OP_LOAD); chunk_write(chunk,itgt2); /* arr */
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,((itgt2)>>8)&0xFF); chunk_write(chunk,(itgt2)&0xFF); /* arr */
         int inow3=chunk_add_str(chunk,"now");
-        chunk_write(chunk,OP_LOAD); chunk_write(chunk,inow3); /* val */
-        chunk_write(chunk,OP_CALL); chunk_write(chunk,ipush); chunk_write(chunk,2);
-        chunk_write(chunk,OP_STORE); chunk_write(chunk,itgt2);
+        chunk_write(chunk,OP_LOAD); chunk_write(chunk,((inow3)>>8)&0xFF); chunk_write(chunk,(inow3)&0xFF); /* val */
+        chunk_write(chunk,OP_CALL); chunk_write(chunk,((ipush)>>8)&0xFF); chunk_write(chunk,(ipush)&0xFF); chunk_write(chunk,2);
+        chunk_write(chunk,OP_STORE); chunk_write(chunk,((itgt2)>>8)&0xFF); chunk_write(chunk,(itgt2)&0xFF);
         /* Patch jump offset */
         chunk->code[_jmp_pos+1]=(uint8_t)(chunk->count-_push_start);
         /* ITER_NEXT */
         chunk_write(chunk,OP_ITER_NEXT);
-        chunk_write(chunk,inow);
-        chunk_write(chunk,(uint8_t)body_start);
+        chunk_write(chunk,(inow>>8)&0xFF); chunk_write(chunk,inow&0xFF);
+        chunk_write(chunk,(body_start>>8)&0xFF); chunk_write(chunk,body_start&0xFF);
         return;
     }
     int iarr = chunk_add_str(chunk, arr_var);
-    chunk_write(chunk, OP_LOAD); chunk_write(chunk, iarr);
+    chunk_write(chunk, OP_LOAD); chunk_write(chunk,(iarr>>8)&0xFF); chunk_write(chunk,iarr&0xFF);
     int inow = chunk_add_str(chunk, "now");
-    chunk_write(chunk, OP_ITER_START); chunk_write(chunk, inow);
+    chunk_write(chunk, OP_ITER_START); chunk_write(chunk,(inow>>8)&0xFF); chunk_write(chunk,inow&0xFF);
     int body_start = chunk->count;
     for(int i=0;i<body_count;i++){
         const char *_bl=body[i]; while(*_bl==' '||*_bl=='\t')_bl++;
@@ -758,8 +761,8 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
         }
     }
     chunk_write(chunk, OP_ITER_NEXT);
-    chunk_write(chunk, inow);
-    chunk_write(chunk, (uint8_t)body_start);
+    chunk_write(chunk,(inow>>8)&0xFF); chunk_write(chunk,inow&0xFF);
+    chunk_write(chunk,(body_start>>8)&0xFF); chunk_write(chunk,body_start&0xFF);
 }
 
 void compile_func(VM *vm, const char *name, const char **params, int nparams,
@@ -822,7 +825,7 @@ void compile_func(VM *vm, const char *name, const char **params, int nparams,
         }
     }
     int iout = chunk_add_str(&f->chunk, _retvar);
-    chunk_write(&f->chunk, OP_LOAD); chunk_write(&f->chunk, iout);
+    chunk_write(&f->chunk, OP_LOAD); chunk_write(&f->chunk,(iout>>8)&0xFF); chunk_write(&f->chunk,iout&0xFF);
     chunk_write(&f->chunk, OP_RETURN);
 
 }

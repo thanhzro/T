@@ -3511,3 +3511,115 @@ line1\nline2\nline3 → 3 lines correctly, len=18
 T con army can now write real Python scripts with newlines
 Pattern: content = "import os\nprint('hello')\n"
 write_file_t(path="script.py", content=content) → real Python file
+write_file_t works for short strings (print hello = ok)
+worker_fix_vm.t script string is 159 chars - under 255 limit
+BUT worker_fix_vm.t T- string literal is MUCH longer (full script)
+T- string literal limit = 255 chars in compile_expr buf[256]
+Full script string in T- = ~500+ chars → TRUNCATED → empty content → no file
+FIX: T- string literal limit must increase from 255 to 65535
+Fix location: compile_expr char buf[256] line 138
+OP_PUSH_STR uses SINGLE BYTE index too!
+Same problem as OP_PUSH_NUM - but for strings
+With std.t imported: 100+ functions × 2-3 params = 200+ unique strings
+Script string gets index 200+ → wraps to 0 → wrong string → empty file
+ALL opcodes using str_consts have 1-byte limit: OP_PUSH_STR, OP_LOAD, OP_STORE, OP_CALL
+This is THE fundamental limitation blocking T con army
+Need 2-byte index for ALL str/num const opcodes
+CONFIRMED: without std.t import → works perfectly (1 VM_TEST)
+With std.t import → str_consts overflow → wrong string → empty
+Root fix: 2-byte index for OP_PUSH_STR + OP_LOAD + OP_STORE + OP_CALL
+Must change ALL consistently compiler + VM together
+2-byte ITER fix: x=42 now returns empty (not crash!)
+Progress: was CRASH, now silent fail
+Still 48 fail - more 1-byte opcodes remaining
+Need systematic audit: find ALL places VM reads 1 byte from chunk
+grep all vm->chunk->code[vm->ip++] patterns
+REMAINING 1-byte reads in VM:
+1. OP_PUSH_NUM line 160 - already dedup-fixed, but still 1-byte
+2. OP_JUMP_IF_0 line 260 - offset, OK as 1-byte (relative jump)
+3. OP_JUMP line 261 - signed offset, OK as 1-byte
+4. OP_CALL ni line 263 - STILL 1-byte! previous fix didn't apply
+5. OP_CALL argc line 264 - argc OK as 1-byte (max 8 args)
+OP_CALL ni must be 2-byte! This is the crash cause for x=42
+x=42 → "42 >> x" → OP_PUSH_NUM(42) OP_STORE("x")
+wait x=42 returns empty not crash... check OP_SHOW
+CRITICAL: 2-byte change broke even simplest case x=42
+Trace: IP:0 OP:0 → IP:2 OP:4 → IP:5 OP:1 → IP:8 OP:3 → CRASH Signal 11
+OP codes: 0=PUSH_NUM, 1=PUSH_STR, 3=LOAD, 4=STORE
+IP:0 PUSH_NUM reads 1 byte → IP:1+1=2 ✓
+IP:2 STORE reads 2 bytes → IP:2+1+2=5 ✓
+IP:5 PUSH_STR reads 2 bytes → IP:5+1+2=8 ✓
+IP:8 LOAD reads 2 bytes → IP:8+1+2=11 → but CRASH at IP:8!
+CRASH at OP_LOAD IP:8 → str_consts index out of bounds
+str_consts[i] where i is garbage → null ptr → Signal 11
+Cause: OP_LOAD 2-byte reads code[8]<<8 | code[9]
+But code[8]=OP_LOAD(3), code[9]=? code[10]=?
+Check: what bytes are at positions 8,9,10
+TRACE ANALYSIS with correct opcodes:
+OP_PUSH_NUM=0 OP_PUSH_STR=1 OP_PUSH_ARR=3 OP_LOAD=4 OP_STORE=5
+Actual: IP:0 OP:0(PUSH_NUM), IP:2 OP:4(LOAD), IP:5 OP:1(PUSH_STR), IP:8 OP:3(PUSH_ARR=CRASH)
+Expected: PUSH_NUM, STORE, PUSH_STR, LOAD, SHOW
+LOAD instead of STORE at IP:2 = "42 >> x" compiles "42 " with trailing space!
+strtod("42 ") → end points to space → *end!='0' → treated as VARIABLE not NUMBER
+→ OP_LOAD("42 ") instead of OP_PUSH_NUM(42)
+BUG: >> path doesn't trim right side of left operand
+Trace: IP:8 OP:3(PUSH_ARR) should be OP:4(LOAD)
+find_arrow returns s+i where s[i]='>' correctly
+show_named should emit PUSH_STR(1)+LOAD(4)+SHOW(28)
+But IP:8=3 means PUSH_ARR emitted instead of LOAD
+SUSPECT: OP_LOAD 2-byte regex might have broken show_named
+OR: compile_expr emitting wrong opcode for "x"
+Need: dump actual bytes of chunk
+BYTECODE DUMP: 0 0 4 0 0 1 0 0 3 0 27 28
+byte[2]=4(LOAD) not 5(STORE) - compiler bug!
+byte[8]=3(PUSH_ARR) not 4(LOAD) - everything off by 1!
+Pattern: every opcode N appears as N-1
+Means: enum values shifted? Or wrong opcode being written?
+STORE=5 written as 4, LOAD=4 written as 3
+Need to check where 42>>x is actually compiled
+DEBUG: arrow IS found for "42 >> x", enters if(arrow) block
+But bytecode still shows LOAD(4) at pos 2 instead of STORE(5)
+Every opcode appears as N-1: STORE→LOAD, LOAD→PUSH_ARR
+Pattern suggests: enum shifted by 1 OR chunk_write writes (op-1)
+Need: verify actual OP_STORE value in compiled binary
+ROOT CAUSE FOUND!
+Actual enum: PUSH_NUM=0 PUSH_STR=1 PUSH_ARR=2 LOAD=3 STORE=4 SHOW=27
+PUSH_NIL missing from enum! All values shifted from expected
+Bytecode decode with correct enum:
+  [0,0] = PUSH_NUM(0) idx=0 ✓
+  [4,0,0] = STORE(4) x=0 ✓
+  [1,0,0] = PUSH_STR(1) x=0 ✓
+  [3,0] = LOAD(3) idx=0 (1-BYTE! not 2-byte)
+  [27] = SHOW(27) ✓
+  [28] = HALT(28) ✓
+compile_expr still emits LOAD with 1-byte arg!
+Regex failed: pattern has no space "chunk_write(c,OP_LOAD)"
+But actual code has space: "chunk_write(c, OP_LOAD)"
+VM reads 2 bytes for LOAD → (0<<8)|27 = 27 → str_consts[27]=NULL → CRASH
+CONFIRMED: compile_expr uses space "chunk_write(c, OP_LOAD)" style
+Regex pattern had no space → MISSED these lines
+Line 141: PUSH_STR still 1-byte
+Line 152: LOAD still 1-byte
+Only line 165 (STORE from arrow handler) was correctly transformed
+Need to fix lines 141 and 152 to 2-byte
+BUG: compile_func final LOAD for return var still 1-byte
+Line 828: chunk_write(&f->chunk, OP_LOAD); chunk_write(&f->chunk, iout); → 1-byte
+VM reads 2 bytes → reads OP_RETURN opcode as part of idx → crash
+Fix: change to 2-byte LOAD emit in compile_func return
+BUG: Gate handler JUMP_IF_0 offset hardcoded to 4
+Old: PUSH_NUM(1) + 1-byte idx(1) + STORE(1) + 1-byte idx(1) = 4 bytes to skip
+New: PUSH_NUM(1) + 1-byte idx(1) + STORE(1) + 2-byte idx(2) = 5 bytes to skip
+Gate JUMP_IF_0 offset must change from 4 → 5
+BUG: line 490 if(expr[0]=='[') branch uses 1-byte STORE
+chunk_write(chunk,OP_STORE);chunk_write(chunk,_ia); - no space, regex missed
+[] >> arr → PUSH_ARR(2-byte) + STORE(1-byte) → VM reads 2-byte idx garbage → crash IP:15
+Fix: change to 2-byte STORE emit
+PROGRESS: 32/48 after array branch STORE fix
+abs now works (returns 5 correctly)
+Remaining 16 failures: pow, contains, str_reverse, str_starts, str_ends, sum, avg, any_arr, is_palindrome
+Pattern: functions using F() loop or string operations
+Next: check sum/avg which use F() - likely F() loop has 1-byte issue
+BUG: F() loop OP_LOAD for array var still 1-byte
+Line 742: chunk_write(chunk, OP_LOAD); chunk_write(chunk, iarr); → 1-byte
+sum crash at IP:6: LOAD reads 2 bytes → (iarr_val<<8)|ITER_START = garbage idx → NULL → crash
+Fix: 2-byte LOAD for iarr in F() handler

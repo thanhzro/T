@@ -158,9 +158,9 @@ void run(VM*vm){
         extern int _g_trace; if(_g_trace) fprintf(stderr,"IP:%d OP:%d\n",_g_current_ip,op);
         switch(op){
             case OP_PUSH_NUM:{int i=vm->chunk->code[vm->ip++];push(vm,make_num(vm->chunk->num_consts[i]));break;}
-            case OP_PUSH_STR:{int i=vm->chunk->code[vm->ip++];push(vm,make_str(vm->chunk->str_consts[i]));break;}
-            case OP_LOAD:{int i=vm->chunk->code[vm->ip++];BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
-            case OP_STORE:{int i=vm->chunk->code[vm->ip++];vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
+            case OP_PUSH_STR:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;push(vm,make_str(vm->chunk->str_consts[i]));break;}
+            case OP_LOAD:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
+            case OP_STORE:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
             case OP_ADD:{
     vm->top--;
     BVal *rb=&vm->stack[vm->top];
@@ -260,7 +260,7 @@ case OP_NEG:{
 case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->top].num;if(v==0)vm->ip+=off;break;}
             case OP_JUMP:{int off=(int8_t)vm->chunk->code[vm->ip++];vm->ip+=off;break;}
             case OP_CALL:{
-                int ni=vm->chunk->code[vm->ip++];
+                int ni=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;
                 int argc=vm->chunk->code[vm->ip++];
                 const char*fname=vm->chunk->str_consts[ni];
                 /* inline find - avoid vm_find_func return bug */
@@ -368,7 +368,7 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 vm->top--;
                 BVal *arr=&vm->stack[vm->top];
                 int n=arr->arr_len>0?arr->arr_len:(int)arr->num;
-                int inow=vm->chunk->code[vm->ip++];
+                int inow=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;
                 /* Save outer now/idx before inner F() */
                 char _saved_now_key[32]; snprintf(_saved_now_key,31,"_now_%d",vm->iter_top);
                 char _saved_idx_key[32]; snprintf(_saved_idx_key,31,"_idx_%d",vm->iter_top);
@@ -398,8 +398,8 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 break;
             }
             case OP_ITER_NEXT:{
-                int inow=vm->chunk->code[vm->ip++];
-                int body=vm->chunk->code[vm->ip++];
+                int inow=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;
+                int body=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;
                 int top=vm->iter_top-1;
                 /* Write now back to array (F() mutate pattern) */
                 if(_g_iter_is_arr[top] && _g_iter_arr[top]){
