@@ -168,6 +168,13 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
 void compile_line(Chunk *chunk, const char *line) {
     static char buf[65536]; strncpy(buf, line, 65535); buf[65535]=0;
     char *p = buf;
+    /* Extract line number prefix #Lnnn */
+    if(p[0]=='#' && p[1]=='L'){
+        p+=2; int ln=0;
+        while(*p>='0'&&*p<='9') ln=ln*10+(*p++)-'0';
+        _g_current_line=ln;
+        while(*p==' ')p++;
+    }
     while(*p == ' ') p++;
     if(*p == 0 || *p == '#') return;
 
@@ -533,7 +540,9 @@ int run_file(const char *path) {
     
     int section=0; /* 0=T-, 1=T0, 2=T+ */
     int in_func=0;
+    int lineno=0;
     while(fgets(buf, sizeof(buf), f) && count < 4096) {
+        lineno++;
         int len = strlen(buf);
         if(len > 0 && buf[len-1] == '\n') buf[len-1] = 0;
         if(strncmp(buf,"[T-]",4)==0){section=0;continue;}
@@ -581,7 +590,7 @@ int run_file(const char *path) {
             continue;
         }
         /* T0: processing only */
-        if(section==1) lines[count++]=strdup(buf);
+        if(section==1){ char _lb[65600]; snprintf(_lb,65599,"#L%d %s",lineno,buf); lines[count++]=strdup(_lb); }
         /* T-: static data + func definitions */
         if(section==0){
             /* Track if inside func block */
@@ -614,7 +623,7 @@ int run_file(const char *path) {
                     static char nl2[131072]={0}; snprintf(nl2,131071,"%s >> %s",vp,vname);
                     lines[count++]=strdup(nl2);
                 } else {
-                    fprintf(stderr,"T- error: '%s' is not a literal - T- only allows literal values\n",vp);
+                    fprintf(stderr,"[T- Error] %s line %d: '%s' is not a literal\n  Only numbers, strings, arrays allowed in T- section\n",_g_current_file?_g_current_file:"?",lineno,vp);
                 }
             }
             } /* end !_hasparen */

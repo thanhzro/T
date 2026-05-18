@@ -3293,3 +3293,6 @@ Then T call: train_loop_v2(tdim=dim, tctx=ctx, tsteps=steps, tlr=lr)
 SESSION END: cleanup github repo
 Remove temp files, worker files, test files
 Keep only essential source + lib + examples
+DEBT: Error messages - only 9 fprintf(stderr) total
+No line numbers, no file names, no param conflict detection
+Plan: add line tracking to compiler, emit useful errors
