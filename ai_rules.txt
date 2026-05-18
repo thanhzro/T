@@ -3237,3 +3237,36 @@ write_file_t has buffer limit for large strings
 OR: join output too long for T variable
 FIX: dim=32 too large, go back to dim=8 which worked
 train_loop works with dim=8, train_loop_v2 for dim=8 ctx=4
+ARR_DEBUG inner_len=0 in workers!
+Worker files have xs and ys arrays
+xs = 100*4 = 400 values, ys = 100 values
+These are large arrays hitting the T- line parser
+BUT: wmat and emb work fine (shown in head -5)
+xs and ys must be on separate lines or hitting limit
+CHECK: how long is the xs line in worker file
+ARR_DEBUG inner_len=0 in workers!
+Worker files have xs and ys arrays
+xs = 100*4 = 400 values, ys = 100 values
+These are large arrays hitting the T- line parser
+BUT: wmat and emb work fine (shown in head -5)
+xs and ys must be on separate lines or hitting limit
+CHECK: how long is the xs line in worker file
+xs=807 chars, ys=207 chars, wmat=1930 chars
+wmat=1930 works fine but xs=807 fails!
+BUG: ARR_DEBUG fires for xs AND ys but not wmat
+Difference: wmat has float values, xs/ys have integers
+"xs = [0,1,2,3,...]" - integer array parsing different?
+OR: variable name "xs" conflicts with something?
+OR: "ys" conflicts with param name?
+TEST: rename xs->xdata, ys->ydata
+CONFIRMED: xs/ys variable names conflict with something
+After rename to xdata/ydata → worker returns 1 (ok)
+BUT weights still empty! write_file_t still failing
+Need to check if wmat2 output is correct after train_loop_v2
+train_loop_v2 + write_file_t WORKS with xdata/ydata!
+ok=1, weights_test.txt has correct values
+BUG was: variable names xs/ys conflict with param names
+train_loop_v2 params: xs=xdata, ys=ydata
+"xs" as T- var + "xs" as param name = CLASSIC CONFLICT
+FIX: always use xdata/ydata not xs/ys
+Now regenerate all workers with correct names + run army
