@@ -3321,3 +3321,93 @@ NOT by name! T is POSITIONAL not named params
 The "name=" part is just documentation/ignored!
 FIX: param names in call are cosmetic only
 LESSON: always pass args in REGISTRATION ORDER
+train_loop_v2 WORKS with small input dim=2 ctx=1!
+Returns non-empty array [0.101418, 0.20189, ...]
+Problem was NOT the function itself
+Problem was LARGE files: when xs has 400 values
+the T- array parser might fail silently
+OR: wmat size too large for write_file_t buffer
+Test: dim=8 ctx=4 with small steps=3
+dim=2 ctx=1 works, dim=8 ctx=4 fails!
+wmat 256 values vs 4 values
+emb 64 values vs 4 values
+HYPOTHESIS: line too long in T- causes silent parse fail
+wmat line = 256 values × ~6 chars = ~1536 chars
+Check: what is the compile_line buffer limit?
+grep val2 buffer size
+CRITICAL BUG FOUND:
+nw=260 (should be 256) - wmat over-parsed!
+dim=-0.1 (wmat[1] value!) - dim var getting wmat value
+ctx=0.2 (wmat[2] value!) - ctx var getting wmat value
+CAUSE: variable name "dim" conflicts with something in frame
+When wmat is large array, frame overflow → dim/ctx overwrite wmat slots
+FIX: avoid short common names like dim/ctx
+Use longer unique names: tdim, tctx
+tdim=-0.1 và tctx=0.2 - renaming không fix được!
+wmat=260 values thay vì 256 - parser đọc thừa!
+Root cause: wmat array bị parse sai, đọc qua boundary
+wmat có 256 values nhưng T đọc 260 values
+→ 4 values tiếp theo (emb[0..3]) bị gộp vào wmat
+→ frame slot của tdim/tctx bị emb values ghi đè
+THẬT SỰ: array parser đọc quá giới hạn khi wmat lớn
+Cần check: T- array parser có giới hạn số phần tử không?
+wmat=256 OK, emb=64 OK
+BUT tdim=-0.1 tctx=0.2 STILL WRONG
+Not array overflow - frame slot collision!
+T- frame has limited slots
+std.t + ml_t.t fill up many slots
+wmat(1) + emb(1) + xdata(1) + ydata(1) + tlr(1) + tsteps(1) = 6 slots
++ all lib functions = frame full
+tdim and tctx overflow → overwrite wmat array elements!
+FIX: check frame capacity in t_bytecode.h
+FRAME_MAX=2048 - không phải frame capacity issue
+Frame đủ lớn. Problem elsewhere.
+NEW HYPOTHESIS: frame_set overwrites when key hash collision?
+OR: T- parser reads "tdim = 8" but parses "8" as part of wmat?
+T- parser: sees "tdim = 8", strips "8" → strtod("8") = 8 OK
+BUT: what if previous wmat line ended WITHOUT ] ?
+Check: T- multiline parse
+CRITICAL BUG FOUND: array size >= 256 corrupts next variable!
+n=255: works perfectly (wmat=255, tdim=8)
+n=256: wmat=256 OK but tdim=0.1 (wmat[0]!)
+n=257: wmat=257 OK but tdim=-0.1 (wmat[1]!)
+ROOT CAUSE: OP_PUSH_ARR stores count as 2 bytes (uint16)
+BUT compile_expr counts elements in _cnt (int)
+When _cnt=256: (256>>8)&0xFF=1, 256&0xFF=0
+VM reads: (1<<8)|0 = 256 ✓
+WAIT - encoding is correct!
+Real cause: chunk_write uses uint8_t
+chunk has code[] array
+The OPCODES between elements might overflow chunk capacity
+OR: _tok[256] buffer overflow when _ti hits 255
+Each element push emits multiple opcodes
+256 elements × ~3 opcodes = 768 opcodes just for elements
+Check chunk capacity limit
+chunk_write uses dynamic realloc - not capacity issue
+uint8_t code[] - BUT str_consts and num_consts may overflow!
+Check: chunk_add_str and chunk_add_num have capacity limits?
+Each array element needs a str_const or num_const slot
+256 elements = 256 const slots needed
+ROOT CAUSE FOUND!!!
+OP_PUSH_NUM reads index as SINGLE BYTE: vm->chunk->code[vm->ip++]
+chunk_add_num returns index 0,1,2...255,256,257...
+But chunk_write stores as uint8_t!
+Index 256 → wraps to 0 → reads num_consts[0] = 0.1 (first wmat value!)
+Index 257 → wraps to 1 → reads num_consts[1] = -0.1
+THAT'S why tdim=0.1 and tctx=-0.1!
+FIX: chunk_add_num needs dedup OR OP_PUSH_NUM needs 2-byte index
+BEST: both - dedup reduces slots + 2-byte index for safety
+2-byte OP_PUSH_NUM fix broke everything!
+CRASH Signal 11, abs returns 0, x=42 gives EMPTY_COORD
+Problem: OP_PUSH_NUM 2-byte change affects ALL num pushes
+Including simple cases like x=42
+The dedup fix alone might be sufficient without 2-byte change
+REVERT 2-byte fix, keep only dedup fix
+FIXED! Dedup alone fixes the 256 overflow bug!
+n=255,256,257 all correct now: wmat=correct, tdim=8
+chunk_add_num dedup: same value reuses slot instead of new slot
+wmat has only 4 distinct values (0.1,-0.1,0.2,-0.2) = 4 slots only
+tdim=8 gets slot 4, tctx=4 gets slot 5 - no overflow!
+48/48 tests still pass
+For random weights (rand_flat): still might overflow if >256 distinct values
+Long-term fix needed: 2-byte OP_PUSH_NUM index properly

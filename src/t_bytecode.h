@@ -59,7 +59,7 @@ void chunk_write(Chunk*c,uint8_t b){
     if(c->count>=c->capacity){c->capacity=c->capacity?c->capacity*2:8;c->code=realloc(c->code,c->capacity);}
     c->code[c->count++]=b;
 }
-int chunk_add_num(Chunk*c,double v){c->num_consts=realloc(c->num_consts,sizeof(double)*(c->num_count+1));c->num_consts[c->num_count]=v;return c->num_count++;}
+int chunk_add_num(Chunk*c,double v){for(int _i=0;_i<c->num_count;_i++){if(c->num_consts[_i]==v)return _i;}c->num_consts=realloc(c->num_consts,sizeof(double)*(c->num_count+1));c->num_consts[c->num_count]=v;return c->num_count++;}
 int chunk_add_str(Chunk*c,const char*s){for(int _i=0;_i<c->str_count;_i++){if(strcmp(c->str_consts[_i],s)==0)return _i;}c->str_consts=realloc(c->str_consts,sizeof(char*)*(c->str_count+1));c->str_consts[c->str_count]=strdup(s);return c->str_count++;}
 
 /* ===== FRAME ===== */
