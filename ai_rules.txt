@@ -3623,3 +3623,34 @@ BUG: F() loop OP_LOAD for array var still 1-byte
 Line 742: chunk_write(chunk, OP_LOAD); chunk_write(chunk, iarr); → 1-byte
 sum crash at IP:6: LOAD reads 2 bytes → (iarr_val<<8)|ITER_START = garbage idx → NULL → crash
 Fix: 2-byte LOAD for iarr in F() handler
+worker_fix_vm.t returns empty - wfvm.py not created
+script string in T- is very long (500+ chars)
+T- string literal buf increased to 65536 - should work now
+But worker returns empty - write_file_t might fail for long strings
+OR: shell_exec result empty means python3 wfvm.py not executed
+Debug: test write_file_t with long string directly
+script string = 451 chars - under 65536 limit
+write_file_t works for short strings
+Problem: script has single quotes inside double quotes → shell/T string conflict
+worker_fix_vm.t script contains: open('src/t_bytecode.h') - single quotes in T- string
+T- string uses double quotes, content has single quotes → should be fine
+BUT: script also contains -> operator which might confuse T parser
+Real issue: script string 451 chars but T- buf was 65536 → should work
+Test: copy exact script string and test directly
+CONFIRMED: short string with \n works fine
+len=24 (correct: "short test\nwith newline" = 24 chars with literal \n)
+write_file_t works, Gate works
+Problem must be specific to very long strings in T- section
+T- string with -> and complex content might overflow somewhere
+Next: test with exact worker_fix_vm script content piece by piece
+ROOT CAUSE FOUND by tcon!
+T- section: _inq check tracks BOTH " (34) AND ' (39)
+if(*_cp=='"'||*_cp==39)_inq=!_inq
+Script string "...open('file')..." has single quotes inside double quotes
+When _inq hits single quote → _inq=0 → thinks we left the string
+Then sees ( → _hasparen=1 → skips T- assignment block!
+Fix: only track double quotes in _inq, not single quotes
+FIX: T- _hasparen check: only track double quotes not single quotes
+if(*_cp=='"'||*_cp==39) → if(*_cp=='"')
+Single quotes inside T- double-quoted strings no longer break parsing
+This was causing script="..." with open('file') to silently fail

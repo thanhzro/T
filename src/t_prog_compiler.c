@@ -610,7 +610,7 @@ int run_file(const char *path) {
             if(!arr2&&!tilde2&&strchr(buf,'=')){
                 /* Check ( only outside quotes */
                 int _hasparen=0; int _inq=0;
-                for(char *_cp=buf;*_cp;_cp++){if(*_cp=='"'||*_cp==39)_inq=!_inq;if(!_inq&&*_cp=='(')_hasparen=1;}
+                for(char *_cp=buf;*_cp;_cp++){if(*_cp=='"')_inq=!_inq;if(!_inq&&*_cp=='(')_hasparen=1;}
                 if(!_hasparen){
                 char *eq2=strchr(buf,'=');
                 char vname[64]={0}; strncpy(vname,buf,eq2-buf);
