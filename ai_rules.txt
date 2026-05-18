@@ -3654,3 +3654,8 @@ FIX: T- _hasparen check: only track double quotes not single quotes
 if(*_cp=='"'||*_cp==39) → if(*_cp=='"')
 Single quotes inside T- double-quoted strings no longer break parsing
 This was causing script="..." with open('file') to silently fail
+CRITICAL: worker_fix_vm.t actually applied OP_PUSH_NUM 2-byte to t_bytecode.h!
+VM now reads 2-byte PUSH_NUM but compiler still emits 1-byte → 41 failures
+VM_ALREADY_FIXED = second run, already changed
+Must revert t_bytecode.h to 1-byte PUSH_NUM (dedup is enough)
+Also: CHUNK debug output still in code, _dbg.t committed by accident
