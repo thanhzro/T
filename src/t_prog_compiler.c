@@ -618,7 +618,7 @@ int run_file(const char *path) {
                 static char val2[65536]={0}; memset(val2,0,sizeof(val2)); strncpy(val2,eq2+1,65535);
                 char *vp=val2; while(*vp==' ')vp++;
                 /* T- only allows literals: numbers, strings, arrays */
-                int is_literal = (vp[0]=='"' || vp[0]=='[' || (vp[0]>=-'0'&&vp[0]<='9') || vp[0]=='-');
+                int is_literal = (vp[0]=='"' || vp[0]=='[' || (vp[0]>='0'&&vp[0]<='9') || vp[0]=='-');
                 if(is_literal){
                     static char nl2[131072]={0}; snprintf(nl2,131071,"%s >> %s",vp,vname);
                     lines[count++]=strdup(nl2);
@@ -660,7 +660,7 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
     if(body_count==1 && strncmp(_bg,"Gate ",5)==0) {
         const char *p=_bg;
         char *lp=strchr(p,'('),*rp=strchr(p,')'),*arr=find_arrow_outside_quotes(p);
-        if(lp) {char *_sp=p+5; while(*_sp==' ')_sp++; int _sl=lp-_sp; while(_sl>0&&_gate_subj[0]==0&&_sp[_sl-1]==' ')_sl--; if(_sl>0&&_sl<16){strncpy(_gate_subj,_sp,_sl);_gate_subj[_sl]=0;} int _tsl=strlen(_gate_subj); while(_tsl>0&&_gate_subj[_tsl-1]==' ')_gate_subj[--_tsl]=0;}
+        if(lp) {const char *_sp=p+5; while(*_sp==' ')_sp++; int _sl=lp-_sp; while(_sl>0&&_gate_subj[0]==0&&_sp[_sl-1]==' ')_sl--; if(_sl>0&&_sl<16){strncpy(_gate_subj,_sp,_sl);_gate_subj[_sl]=0;} int _tsl=strlen(_gate_subj); while(_tsl>0&&_gate_subj[_tsl-1]==' ')_gate_subj[--_tsl]=0;}
         if(lp&&rp&&arr) {
             char inside[64]; strncpy(inside,lp+1,rp-lp-1); inside[rp-lp-1]=0;
             char val_str[64]={0};
