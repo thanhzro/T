@@ -1,4 +1,0 @@
-LOAD x
-LOAD +
-LOAD 1
-STORE r
