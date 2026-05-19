@@ -3662,3 +3662,12 @@ Also: CHUNK debug output still in code, _dbg.t committed by accident
 CHUNK debug output still in t_prog_compiler.c lines 641-642
 Must remove before shipping - pollutes stderr output
 Pattern: fprintf(stderr,"CHUNK[%d]: "...) and loop printing bytes
+VM OP_PUSH_NUM already 2-byte (worker_fix_vm applied it)
+Compiler still emits 1-byte → fix compiler to match VM
+chunk_write(c, OP_PUSH_NUM); chunk_write(c, idx); → 2-byte
+Also fix chunk_write(chunk, OP_PUSH_NUM) patterns
+OP_PUSH_NUM 2-byte: 40/48 pass
+Remaining 8 fail likely Gate JUMP_IF_0 offset wrong again
+PUSH_NUM now 3 bytes (opcode+2) instead of 2 bytes (opcode+1)
+Gate offset was 5 (for 2-byte PUSH_NUM + 3-byte STORE = 5)
+Now needs 6 (for 3-byte PUSH_NUM + 3-byte STORE = 6)

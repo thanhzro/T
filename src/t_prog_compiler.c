@@ -145,7 +145,7 @@ void compile_expr(Chunk *c, const char *expr) {
     double val = strtod(expr, &end);
     if(end != expr && *end == 0) {
         int idx = chunk_add_num(c, val);
-        chunk_write(c, OP_PUSH_NUM); chunk_write(c, idx);
+        chunk_write(c, OP_PUSH_NUM); chunk_write(c,(idx)>>8&0xFF); chunk_write(c,(idx)&0xFF);
         return;
     }
     int idx = chunk_add_str(c, expr);
@@ -281,7 +281,7 @@ void compile_line(Chunk *chunk, const char *line) {
             char *iend; double ival=strtod(idxstr,&iend);
             if(iend!=idxstr&&*iend==0){
                 int iidx=chunk_add_num(chunk,ival);
-                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iidx);
+                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,(iidx)>>8&0xFF); chunk_write(chunk,(iidx)&0xFF);
             } else {
                 int iidx=chunk_add_str(chunk,idxstr);
                 chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iidx)>>8)&0xFF); chunk_write(chunk,(iidx)&0xFF);
@@ -309,7 +309,7 @@ void compile_line(Chunk *chunk, const char *line) {
             char *iend; double ival=strtod(idxstr,&iend);
             if(iend!=idxstr&&*iend==0){
                 int iidx=chunk_add_num(chunk,ival);
-                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iidx);
+                chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,(iidx)>>8&0xFF); chunk_write(chunk,(iidx)&0xFF);
             } else {
                 int iidx=chunk_add_str(chunk,idxstr);
                 chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iidx)>>8)&0xFF); chunk_write(chunk,(iidx)&0xFF);
@@ -400,7 +400,7 @@ void compile_line(Chunk *chunk, const char *line) {
                     chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iv3)>>8)&0xFF); chunk_write(chunk,(iv3)&0xFF);
                 } else {
                     int iv2=chunk_add_num(chunk,dval);
-                    chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+                    chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,(iv2)>>8&0xFF); chunk_write(chunk,(iv2)&0xFF);
                 }
                 if(strcmp(op_str,">")==0)  chunk_write(chunk,OP_GT);
                 else if(strcmp(op_str,"<")==0)  chunk_write(chunk,OP_LT);
@@ -409,9 +409,9 @@ void compile_line(Chunk *chunk, const char *line) {
                 else if(strcmp(op_str,"<=")==0) chunk_write(chunk,OP_LE);
                 else if(strcmp(op_str,"!=")==0) chunk_write(chunk,OP_NEQ);
             }
-            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,5);
+            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,6);
             int i1g=chunk_add_num(chunk,1);
-            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,i1g);
+            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,(i1g)>>8&0xFF); chunk_write(chunk,(i1g)&0xFF);
             int it=chunk_add_str(chunk,tgt);
             chunk_write(chunk,OP_STORE); chunk_write(chunk,((it)>>8)&0xFF); chunk_write(chunk,(it)&0xFF);
         }
@@ -703,7 +703,7 @@ void compile_f_block(Chunk *chunk, const char *arr_var, const char **body, int b
             chunk_write(chunk,OP_PUSH_STR); chunk_write(chunk,((iv2)>>8)&0xFF); chunk_write(chunk,(iv2)&0xFF);
         } else {
             int iv2=chunk_add_num(chunk,gate_val);
-            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,iv2);
+            chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,(iv2)>>8&0xFF); chunk_write(chunk,(iv2)&0xFF);
         }
         if(strcmp(gate_op,">")==0)  chunk_write(chunk,OP_GT);
         else if(strcmp(gate_op,"<")==0)  chunk_write(chunk,OP_LT);
