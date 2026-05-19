@@ -3659,3 +3659,6 @@ VM now reads 2-byte PUSH_NUM but compiler still emits 1-byte → 41 failures
 VM_ALREADY_FIXED = second run, already changed
 Must revert t_bytecode.h to 1-byte PUSH_NUM (dedup is enough)
 Also: CHUNK debug output still in code, _dbg.t committed by accident
+CHUNK debug output still in t_prog_compiler.c lines 641-642
+Must remove before shipping - pollutes stderr output
+Pattern: fprintf(stderr,"CHUNK[%d]: "...) and loop printing bytes

@@ -638,9 +638,6 @@ int run_file(const char *path) {
     /* _g_vm=vm; */ _g_current_file=path;
     register_all_natives(vm);
     compile_program(vm, &chunk, (const char**)lines, count);
-    fprintf(stderr,"CHUNK[%d]: ",vm->chunk->count);
-for(int _di=0;_di<vm->chunk->count&&_di<20;_di++) fprintf(stderr,"%d ",vm->chunk->code[_di]);
-fprintf(stderr,"\n");
 run(vm);
     free(vm);
     for(int i=0;i<count;i++) free(lines[i]);
