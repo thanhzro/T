@@ -3686,3 +3686,7 @@ Fix: grep "^FAIL" only matches lines starting with FAIL (actual failures)
 worker_test.t fixed: grep '^FAIL' not grep FAIL
 build_ok=1 test_ok=1 when 48/48 pass
 tcon_master.t loop: Gate status (== "1") >> done
+tcon_master.t done=1 tries=1 status=1 WORKING!
+But workers pollute stdout: VM_ALREADY_FIXED, COMPILER_NOTHING, extra 1s
+Workers should use => to pass results, not show
+T con army: workers silent, master speaks

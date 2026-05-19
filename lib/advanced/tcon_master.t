@@ -9,7 +9,7 @@ loop {
     spawn_file(fpath="lib/advanced/worker_fix_vm.t") ~> r1
     spawn_file(fpath="lib/advanced/worker_fix_compiler.t") ~> r2
     spawn_file(fpath="lib/advanced/worker_test.t") ~> status
-    Gate status (== "1") >> done
+    Gate status (== 1) >> done
     Gate tries (>= max_try) >> done
 }
 [T+]
