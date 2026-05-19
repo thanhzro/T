@@ -1,13 +1,18 @@
 [T-]
 import "lib/basic/std.t"
-goal = "fix OP_PUSH_NUM 2-byte index"
+max_try = 3
 [T0]
-spawn_file(fpath="lib/advanced/worker_analyze.t") ~> r0
-spawn_file(fpath="lib/advanced/worker_fix_vm.t") ~> r1
-spawn_file(fpath="lib/advanced/worker_fix_compiler.t") ~> r2
-spawn_file(fpath="lib/advanced/worker_test.t") ~> r3
+0 >> done
+0 >> tries
+loop {
+    tries + 1 >> tries
+    spawn_file(fpath="lib/advanced/worker_fix_vm.t") ~> r1
+    spawn_file(fpath="lib/advanced/worker_fix_compiler.t") ~> r2
+    spawn_file(fpath="lib/advanced/worker_test.t") ~> status
+    Gate status (== "1") >> done
+    Gate tries (>= max_try) >> done
+}
 [T+]
-show shall(r0)
-show shall(r1)
-show shall(r2)
-show shall(r3)
+show shall(done)
+show shall(tries)
+show shall(status)

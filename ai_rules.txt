@@ -3671,3 +3671,18 @@ Remaining 8 fail likely Gate JUMP_IF_0 offset wrong again
 PUSH_NUM now 3 bytes (opcode+2) instead of 2 bytes (opcode+1)
 Gate offset was 5 (for 2-byte PUSH_NUM + 3-byte STORE = 5)
 Now needs 6 (for 3-byte PUSH_NUM + 3-byte STORE = 6)
+tcon_master.t retry loop works!
+VM_ALREADY_FIXED + COMPILER_NOTHING = already at target state
+48/48 pass in 1 iteration
+Issue: done = !EMPTY_COORD → Gate not setting done correctly
+Gate status (== "All tests passed!") needs exact string match
+worker_test.t returns "PASS: 48 | FAIL: 0 | Total: 48\nAll tests passed!"
+Gate compares full string → "All tests passed!" is last line not full output
+Fix: worker_test.t should return just "PASS" or "FAIL" as status
+grep -c FAIL returns 1 even when 48/48 pass
+Because "PASS: 48 | FAIL: 0 | Total: 48" contains word "FAIL"
+grep -c counts lines with FAIL including the summary line
+Fix: grep "^FAIL" only matches lines starting with FAIL (actual failures)
+worker_test.t fixed: grep '^FAIL' not grep FAIL
+build_ok=1 test_ok=1 when 48/48 pass
+tcon_master.t loop: Gate status (== "1") >> done
