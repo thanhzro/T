@@ -3699,3 +3699,16 @@ Workers run correctly: wfvm.py VM_ALREADY_FIXED, wfcomp.py COMPILER_NOTHING
 shall() in T+ = silent check, no output
 T con army fully working: workers silent, master controls output
 Verify worker execution: check .py files created + run them manually
+std.t imports string.t which has upper/lower in pure T
+C natives nat_upper/nat_lower are redundant
+C native registered first → takes priority over T lib version
+Migration: remove C native registration → T lib version used
+Test first before removing implementation
+T version of upper() has bug: garbled output "H?????"
+Gate O1 (>= 97 && <= 122) compound condition may not work correctly
+OR: join/chars/fromChar memory issue in T version
+C native upper/lower works correctly
+Migration failed: revert upper/lower to C native
+RULE: after compile, run: python3 check_runtime.py 2>&1 | grep "^FAIL"
+If no output = 48/48 pass. No need to check tail -2
+Faster feedback loop
