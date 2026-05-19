@@ -3690,3 +3690,12 @@ tcon_master.t done=1 tries=1 status=1 WORKING!
 But workers pollute stdout: VM_ALREADY_FIXED, COMPILER_NOTHING, extra 1s
 Workers should use => to pass results, not show
 T con army: workers silent, master speaks
+shall() in T+ = check value exists, no output
+Workers now silent: shall(result) not show shall(result)
+But need to verify workers actually execute, not just silent
+Check: wfvm.py and wfcomp.py created and run correctly
+spawn_file() returns 1 = success, not worker stdout
+Workers run correctly: wfvm.py VM_ALREADY_FIXED, wfcomp.py COMPILER_NOTHING
+shall() in T+ = silent check, no output
+T con army fully working: workers silent, master controls output
+Verify worker execution: check .py files created + run them manually

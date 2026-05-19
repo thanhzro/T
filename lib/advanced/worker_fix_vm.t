@@ -4,5 +4,6 @@ script = "with open('src/t_bytecode.h') as f:\n    c=f.read()\nold='case OP_PUSH
 [T0]
 write_file_t(path="wfvm.py", content=script) ~> ok
 shell_exec(cmd="python3 wfvm.py") ~> result
+trim(str=result) ~> result
 [T+]
-show shall(result)
+shall(result)
