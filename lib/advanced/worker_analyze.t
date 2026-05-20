@@ -1,10 +1,16 @@
 [T-]
 import "lib/basic/std.t"
-py_script = "import subprocess,re\nr=subprocess.run(['grep','-n','OP_PUSH_NUM','src/t_bytecode.h','src/t_prog_compiler.c'],capture_output=True,text=True)\nopen('worker_analyze_result.txt','w').write(r.stdout)\nprint('done')\n"
 [T0]
-write_file_t(path="worker_analyze.py", content=py_script) ~> ok
-shell_exec(cmd="python3 worker_analyze.py") ~> result
-file_read(path="worker_analyze_result.txt") ~> analysis
+shell_exec(cmd="python3 check_runtime.py 2>&1 | grep '^FAIL'") ~> fails
+trim(str=fails) ~> fails
+tcon_query(query=fails) ~> rule
+shell_exec(cmd="python3 check_runtime.py 2>&1 | grep -c '^FAIL'") ~> fail_count
+trim(str=fail_count) ~> fail_count
+toString(val=fail_count) ~> fail_str
+write_file_t(path="army_report.txt", content=fail_str) ~> ok
+Gate fail_count (== "0") {
+    write_file_t(path="army_report.txt", content="ALL_PASS") ~> ok
+}
 [T+]
-show shall(result)
-show shall(analysis)
+shall(fails)
+shall(rule)
