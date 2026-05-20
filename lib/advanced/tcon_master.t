@@ -24,6 +24,7 @@ loop {
     Gate score3 (>= 0) {
         spawn_file(fpath="lib/advanced/worker_test.t") ~> status
     }
+    spawn_file(fpath="lib/advanced/worker_analyze.t") ~> analyze
     spawn_file(fpath="lib/advanced/worker_score_update.t") ~> sc
     Gate status (== 1) >> done
     Gate tries (>= max_try) >> done
