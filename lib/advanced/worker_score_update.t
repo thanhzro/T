@@ -17,5 +17,5 @@ get(arr=opts, idx=passed) ~> new_score
 toString(val=new_score) ~> score_str
 write_file_t(path="scores/worker_test.score", content=score_str) ~> ok
 [T+]
-show shall(new_score)
-show shall(status)
+shall(new_score)
+shall(status)

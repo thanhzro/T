@@ -15,15 +15,15 @@ loop {
     toNumber(val=s1) ~> score1
     toNumber(val=s2) ~> score2
     toNumber(val=s3) ~> score3
-    0 >> ok1
-    0 >> ok2
-    0 >> ok3
-    Gate score1 (>= 0) >> ok1
-    Gate score2 (>= 0) >> ok2
-    Gate score3 (>= 0) >> ok3
-    spawn_file(fpath="lib/advanced/worker_fix_vm.t") ~> r1
-    spawn_file(fpath="lib/advanced/worker_fix_compiler.t") ~> r2
-    spawn_file(fpath="lib/advanced/worker_test.t") ~> status
+    Gate score1 (>= 0) {
+        spawn_file(fpath="lib/advanced/worker_fix_vm.t") ~> r1
+    }
+    Gate score2 (>= 0) {
+        spawn_file(fpath="lib/advanced/worker_fix_compiler.t") ~> r2
+    }
+    Gate score3 (>= 0) {
+        spawn_file(fpath="lib/advanced/worker_test.t") ~> status
+    }
     spawn_file(fpath="lib/advanced/worker_score_update.t") ~> sc
     Gate status (== 1) >> done
     Gate tries (>= max_try) >> done
