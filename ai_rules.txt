@@ -3760,3 +3760,7 @@ Master should only spawn workers with score >= 0
 toString() fixed: use A1 + "" instead of "{A1}" - string interpolation bug
 worker_test.t silent: shall() not show shall() in T+
 worker_score_update.t working: score increments correctly
+tcon_master.t: score check implemented but spawn still runs all workers
+Selection pressure via score: worker score < -3 = deprecated, human removes
+spawn_file cannot be conditionally called via opts pattern
+Score update integrated into master loop
