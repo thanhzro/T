@@ -1015,8 +1015,8 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"compile_all");f2->is_native=4;f2->native_v=nat_compile_all;f2->param_count=1;strcpy(f2->params[0],"lines");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fat_arrow");f2->is_native=4;f2->native_v=nat_fat_arrow;f2->param_count=2;strcpy(f2->params[0],"data");strcpy(f2->params[1],"dest");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"par_spawn");f2->is_native=4;f2->native_v=nat_par_spawn;f2->param_count=1;strcpy(f2->params[0],"files");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"lower");f2->is_native=2;f2->native_s=nat_lower;f2->param_count=1;strcpy(f2->params[0],"str");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"upper");f2->is_native=2;f2->native_s=nat_upper;f2->param_count=1;strcpy(f2->params[0],"str");}
+    /* migrated to lib/basic/string.t */
+    /* migrated to lib/basic/string.t */
 
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"softmax_n");f2->is_native=4;f2->native_v=native_softmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"embed_n");f2->is_native=4;f2->native_v=native_embed_n;f2->param_count=3;strcpy(f2->params[0],"cid");strcpy(f2->params[1],"tbl");strcpy(f2->params[2],"dim");}

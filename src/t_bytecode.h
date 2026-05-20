@@ -160,7 +160,7 @@ void run(VM*vm){
             case OP_PUSH_NUM:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;push(vm,make_num(vm->chunk->num_consts[i]));break;}
             case OP_PUSH_STR:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;push(vm,make_str(vm->chunk->str_consts[i]));break;}
             case OP_LOAD:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
-            case OP_STORE:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;vm->top--;fprintf(stderr,"STORE[%s]=%g\n",vm->chunk->str_consts[i],vm->stack[vm->top].num);frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
+            case OP_STORE:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
             case OP_ADD:{
     vm->top--;
     BVal *rb=&vm->stack[vm->top];

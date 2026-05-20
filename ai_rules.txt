@@ -3742,3 +3742,13 @@ Body collection also strips #L before checking { and }
 F() map mode: now*2>>now IS valid T syntax - has_now_assign detected
 F() modes: 1.Accumulator 2.Filter 3.Filter+Transform 4.Conditional Transform
 RULE: đọc PLang_T.md TRƯỚC khi debug T language bugs
+CONFIRMED: upper("hello") = "HELLO" works after #L prefix fix
+F() map mode via ~> now works correctly in T functions
+upper() in string.t uses F() with charCode/Gate/fromChar ~> now pattern
+This was broken before because F() body not recognized due to #L prefix
+capitalize uses upper() and lower() from T lib
+capitalize("hello") should return "Hello"
+But capitalize returns "hello world" instead
+Issue: T lib upper/lower may conflict with C native priority
+After migration: T lib version used first → works
+But capitalize test fails → check if string2.t is imported in check_runtime.py

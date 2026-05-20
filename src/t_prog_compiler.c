@@ -408,6 +408,25 @@ void compile_line(Chunk *chunk, const char *line) {
                 else if(strcmp(op_str,">=")==0) chunk_write(chunk,OP_GE);
                 else if(strcmp(op_str,"<=")==0) chunk_write(chunk,OP_LE);
                 else if(strcmp(op_str,"!=")==0) chunk_write(chunk,OP_NEQ);
+                char *_and=strstr(inside," && ");
+                if(_and){
+                    char op2[8]={0}; char val2[64]={0};
+                    char *_p2=_and+4;
+                    sscanf(_p2,"%7s",op2);
+                    char *_v2=_p2+strlen(op2); while(*_v2==' ')_v2++;
+                    sscanf(_v2,"%63s",val2);
+                    chunk_write(chunk,OP_LOAD); chunk_write(chunk,((iv)>>8)&0xFF); chunk_write(chunk,(iv)&0xFF);
+                    char *_e2; double dv2=strtod(val2,&_e2);
+                    if(_e2==val2||*_e2!=0){int _iv2=chunk_add_str(chunk,val2);chunk_write(chunk,OP_LOAD);chunk_write(chunk,((_iv2)>>8)&0xFF);chunk_write(chunk,(_iv2)&0xFF);}
+                    else{int _iv2=chunk_add_num(chunk,dv2);chunk_write(chunk,OP_PUSH_NUM);chunk_write(chunk,(_iv2)>>8&0xFF);chunk_write(chunk,(_iv2)&0xFF);}
+                    if(strcmp(op2,">")==0) chunk_write(chunk,OP_GT);
+                    else if(strcmp(op2,"<")==0) chunk_write(chunk,OP_LT);
+                    else if(strcmp(op2,"==")==0) chunk_write(chunk,OP_EQ);
+                    else if(strcmp(op2,">=")==0) chunk_write(chunk,OP_GE);
+                    else if(strcmp(op2,"<=")==0) chunk_write(chunk,OP_LE);
+                    else if(strcmp(op2,"!=")==0) chunk_write(chunk,OP_NEQ);
+                    chunk_write(chunk,OP_MUL);
+                }
             }
             chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,6);
             int i1g=chunk_add_num(chunk,1);
@@ -419,11 +438,11 @@ void compile_line(Chunk *chunk, const char *line) {
     }
 
     /* A op B >> target */
-    char *arrow = find_arrow(buf);
+    char *arrow = find_arrow_outside_quotes(p);
     if(arrow) {
         *arrow=0;
         char *target=arrow+2; while(*target==' ')target++;
-        char *expr=buf; while(*expr==' ')expr++;
+        char *expr=(char*)p; while(*expr==' ')expr++;
         int elen=strlen(expr);
         while(elen>0&&expr[elen-1]==' ')expr[--elen]=0;
         char a[64],b[64]; char op='+';

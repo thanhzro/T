@@ -24,9 +24,14 @@ func upper(str) {
     chars(str=P1) ~> P2
     F(P2) {
         charCode(str=now) ~> O1
-        Gate O1 (>= 97 && <= 122) >> now
         O1 - 32 >> O4
-        fromChar(val=O4) ~> now
+        fromChar(val=O4) ~> up
+        0 >> il
+        Gate O1 (>= 97 && <= 122) >> il
+        [] >> opts
+        push(arr=opts, val=now) ~> opts
+        push(arr=opts, val=up) ~> opts
+        get(arr=opts, idx=il) ~> now
     }
     join(arr=P2, sep="") ~> O5
     O5 >> out
@@ -37,9 +42,15 @@ func lower(str) {
     chars(str=P1) ~> P2
     F(P2) {
         charCode(str=now) ~> O1
-        Gate O1 (>= 65 && <= 90) >> now
+        fromChar(val=O1) ~> orig
         O1 + 32 >> O4
-        fromChar(val=O4) ~> now
+        fromChar(val=O4) ~> lo
+        0 >> il
+        Gate O1 (>= 65 && <= 90) >> il
+        [] >> opts
+        push(arr=opts, val=orig) ~> opts
+        push(arr=opts, val=lo) ~> opts
+        get(arr=opts, idx=il) ~> now
     }
     join(arr=P2, sep="") ~> O5
     O5 >> out
