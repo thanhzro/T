@@ -8,5 +8,5 @@ trim(str=fails) ~> fails
 Gate errs (== "0") >> build_ok
 Gate fails (== "0") >> test_ok
 [T+]
-show shall(build_ok)
-show shall(test_ok)
+shall(build_ok)
+shall(test_ok)

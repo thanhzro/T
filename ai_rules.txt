@@ -3752,3 +3752,11 @@ But capitalize returns "hello world" instead
 Issue: T lib upper/lower may conflict with C native priority
 After migration: T lib version used first → works
 But capitalize test fails → check if string2.t is imported in check_runtime.py
+Selection pressure implemented: worker scores in scores/ directory
+worker_score_update.t: run worker, pass=+1 fail=-1, write score back
+Score file format: single number in scores/worker_name.score
+opts pattern for if/else: push fail_val, push pass_val, get(idx=condition)
+Master should only spawn workers with score >= 0
+toString() fixed: use A1 + "" instead of "{A1}" - string interpolation bug
+worker_test.t silent: shall() not show shall() in T+
+worker_score_update.t working: score increments correctly

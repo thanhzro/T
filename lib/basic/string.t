@@ -58,7 +58,7 @@ func lower(str) {
 
 func toString(val) {
     past(val) ~> A1
-    "{A1}" >> out
+    A1 + "" >> out
 }
 
 func contains(str, sub) {
