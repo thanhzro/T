@@ -160,7 +160,7 @@ void run(VM*vm){
             case OP_PUSH_NUM:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;push(vm,make_num(vm->chunk->num_consts[i]));break;}
             case OP_PUSH_STR:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;push(vm,make_str(vm->chunk->str_consts[i]));break;}
             case OP_LOAD:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;BVal _fg; frame_get(&vm->frame,vm->chunk->str_consts[i],&_fg); push(vm,_fg);break;}
-            case OP_STORE:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;vm->top--;frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
+            case OP_STORE:{int i=(vm->chunk->code[vm->ip]<<8)|vm->chunk->code[vm->ip+1];vm->ip+=2;vm->top--;fprintf(stderr,"STORE[%s]=%g\n",vm->chunk->str_consts[i],vm->stack[vm->top].num);frame_set(&vm->frame,vm->chunk->str_consts[i],&vm->stack[vm->top]);break;}
             case OP_ADD:{
     vm->top--;
     BVal *rb=&vm->stack[vm->top];
@@ -364,7 +364,7 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 vm->top++;
                 break;
             }
-            case OP_ITER_START:{
+            case OP_ITER_START:{ fprintf(stderr,"ITER_START n=%d\n",(vm->stack[vm->top-1].arr_len>0?vm->stack[vm->top-1].arr_len:(int)vm->stack[vm->top-1].num));
                 vm->top--;
                 BVal *arr=&vm->stack[vm->top];
                 int n=arr->arr_len>0?arr->arr_len:(int)arr->num;
@@ -405,6 +405,8 @@ case OP_JUMP_IF_0:{int off=vm->chunk->code[vm->ip++];double v=vm->stack[--vm->to
                 if(_g_iter_is_arr[top] && _g_iter_arr[top]){
                     BVal _now_val={0};
                     frame_get(&vm->frame,vm->chunk->str_consts[inow],&_now_val);
+                    fprintf(stderr,"ITER_NEXT: inow=%d str=%s frame_now=%g\n",inow,(inow<vm->chunk->str_count&&vm->chunk->str_consts[inow])?vm->chunk->str_consts[inow]:"?",_now_val.num);
+                    fprintf(stderr,"ITER_NEXT write idx=%d num=%g\n",vm->iter_idx[top],_now_val.num);
                     ((BVal*)_g_iter_arr[top])[vm->iter_idx[top]]=_now_val;
                 }
                 /* Sync all frame vars back to outer frame */

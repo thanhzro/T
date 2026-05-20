@@ -3712,3 +3712,33 @@ Migration failed: revert upper/lower to C native
 RULE: after compile, run: python3 check_runtime.py 2>&1 | grep "^FAIL"
 If no output = 48/48 pass. No need to check tail -2
 Faster feedback loop
+T upper() returns "hello" not "HELLO" - F() body issue
+Gate >> now fires correctly (tested separately)
+Issue: F() map mode may not detect Gate >> now as "now assign"
+F() stays in accumulate mode instead of map mode
+Result: chars not updated, array unchanged
+Need to investigate F() has_now_assign detection
+F() map mode BROKEN: arr=[1,2,3] → F() now*2 → still [1,2,3]
+ITER_NEXT write-back not working
+arr not mutated in-place after F() loop
+This is a core T language bug - F() map cannot modify array
+ROOT CAUSE: F() not recognized in compile_program due to #L line prefix
+T0 lines stored as "#L3 F(arr) {" 
+compile_program checks strncmp(line,"F(",2) → compares "#L" vs "F(" → FAIL
+F() body compiled as individual lines without ITER_START/NEXT
+Fix: strip #L prefix in compile_program before structural checks
+PROGRESS: ITER_START fires (n=3), ITER_NEXT fires 3 times
+But num=0 instead of 2,4,6
+show_named arr IS in F() body (shows arr every iteration)
+→ body collection doesn't strip #L from "}" → never finds closing brace
+→ body includes: "now*2>>now", "#L5 }", "show_named arr"
+TWO bugs:
+1. Body collection doesn't strip #L → '}' not recognized
+2. show_named arr in body → frame["now"] might be corrupted
+Fix: strip #L in body collection too
+FIX: #L line prefix in T0 lines blocks F() and loop {} recognition in compile_program
+compile_program now strips #L prefix before structural checks
+Body collection also strips #L before checking { and }
+F() map mode: now*2>>now IS valid T syntax - has_now_assign detected
+F() modes: 1.Accumulator 2.Filter 3.Filter+Transform 4.Conditional Transform
+RULE: đọc PLang_T.md TRƯỚC khi debug T language bugs

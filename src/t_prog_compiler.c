@@ -831,6 +831,8 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
     int i=0;
     while(i<n){
         const char *line=lines[i];
+        /* Strip #L line number prefix */
+        if(line[0]=='#'&&line[1]=='L'){ const char *_lp=line+2; while(*_lp>= '0'&&*_lp<='9')_lp++; while(*_lp==' ')_lp++; line=_lp; }
         if(strncmp(line,"func ",5)==0 && strchr(line,'(')){
             char fname[64]={0};
             char *lp=strchr(line,'('), *rp=strchr(line,')');
@@ -861,9 +863,10 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             int bdepth=1;
             while(i<n&&bdepth>0){
                 const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
-                int _ll=(int)strlen(lines[i]);
-                while(_ll>0&&(lines[i][_ll-1]==' '||lines[i][_ll-1]=='\t'))_ll--;
-                if(_ll>0&&lines[i][_ll-1]=='{')bdepth++;
+                if(_tp[0]=='#'&&_tp[1]=='L'){_tp+=2;while(*_tp>='0'&&*_tp<='9')_tp++;while(*_tp==' ')_tp++;}
+                int _ll=(int)strlen(_tp);
+                while(_ll>0&&(_tp[_ll-1]==' '||_tp[_ll-1]=='\t'))_ll--;
+                if(_ll>0&&_tp[_ll-1]=='{')bdepth++;
                 if(_tp[0]=='}')bdepth--;
                 if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
@@ -916,9 +919,10 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             int bdepth=1;
             while(i<n&&bdepth>0){
                 const char*_tp=lines[i]; while(*_tp==' '||*_tp=='\t')_tp++;
-                int _ll=(int)strlen(lines[i]);
-                while(_ll>0&&(lines[i][_ll-1]==' '||lines[i][_ll-1]=='\t'))_ll--;
-                if(_ll>0&&lines[i][_ll-1]=='{')bdepth++;
+                if(_tp[0]=='#'&&_tp[1]=='L'){_tp+=2;while(*_tp>='0'&&*_tp<='9')_tp++;while(*_tp==' ')_tp++;}
+                int _ll=(int)strlen(_tp);
+                while(_ll>0&&(_tp[_ll-1]==' '||_tp[_ll-1]=='\t'))_ll--;
+                if(_ll>0&&_tp[_ll-1]=='{')bdepth++;
                 if(_tp[0]=='}')bdepth--;
                 if(bdepth>0&&lines[i][0]!=0&&bc<255)body[bc++]=lines[i];
                 i++;
