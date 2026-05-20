@@ -1009,6 +1009,28 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             snprintf(_fat,sizeof(_fat),"fat_arrow(data=%s, dest=%s) ~> _fa_rslt",_lp,_rhs);
             compile_line(c,_fat);
             i++;
+        } else if(strcmp(line,"loop {")==0||strcmp(line,"loop{")==0){
+            const char **lbody=calloc(256,sizeof(char*)); int lbc=0;
+            i++;
+            int ldepth=1;
+            while(i<n&&ldepth>0){
+                const char*_lt=lines[i]; while(*_lt==' '||*_lt=='	')_lt++;
+                if(_lt[0]=='#'&&_lt[1]=='L'){_lt+=2;while(*_lt>='0'&&*_lt<='9')_lt++;while(*_lt==' ')_lt++;}
+                int _ll2=(int)strlen(_lt);
+                while(_ll2>0&&(_lt[_ll2-1]==' '||_lt[_ll2-1]=='	'))_ll2--;
+                if(_ll2>0&&_lt[_ll2-1]=='{')ldepth++;
+                if(_lt[0]=='}')ldepth--;
+                if(ldepth>0&&lines[i][0]!=0&&lbc<255)lbody[lbc++]=lines[i];
+                i++;
+            }
+            int body_ip=c->count;
+            for(int li=0;li<lbc;li++) compile_line(c,lbody[li]);
+            int idone=chunk_add_str(c,"done");
+            chunk_write(c,OP_LOAD); chunk_write(c,(idone>>8)&0xFF); chunk_write(c,idone&0xFF);
+            chunk_write(c,OP_JUMP_IF_0);
+            int _off=(int8_t)(body_ip-(c->count+1));
+            chunk_write(c,(uint8_t)_off);
+            free(lbody);
         } else {
             compile_line(c,lines[i]); i++;
         }

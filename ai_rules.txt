@@ -3768,3 +3768,7 @@ Gate block { } implemented: Gate condition { block } = conditional execution
 JUMP_IF_0 uses 1-byte offset, not 2-byte
 Gate block in compile_program, before F() handler
 Gate block + Gate >> coexist: same keyword, different mode
+loop {} now properly implemented in bytecode compiler
+JUMP_IF_0 reads int8_t (signed) for backward jumps
+loop body collected with #L strip, jumps back when done==0
+Gate done >> done to exit loop
