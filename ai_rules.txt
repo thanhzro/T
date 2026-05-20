@@ -3764,3 +3764,7 @@ tcon_master.t: score check implemented but spawn still runs all workers
 Selection pressure via score: worker score < -3 = deprecated, human removes
 spawn_file cannot be conditionally called via opts pattern
 Score update integrated into master loop
+Gate block { } implemented: Gate condition { block } = conditional execution
+JUMP_IF_0 uses 1-byte offset, not 2-byte
+Gate block in compile_program, before F() handler
+Gate block + Gate >> coexist: same keyword, different mode

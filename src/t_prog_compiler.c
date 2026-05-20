@@ -920,6 +920,49 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             continue;
         }
 
+        /* Gate condition { block } */
+        if(strncmp(line,"Gate ",5)==0 && strchr(line,'{') && !find_arrow_outside_quotes(line)){
+            char *lp=strchr(line,'('),*rp=strchr(line,')'),*ob=strchr(line,'{');
+            if(lp&&rp&&ob){
+                /* Compile condition same as Gate >> but with JUMP_IF_0 over block */
+                char _gtmp[64]={0}; strncpy(_gtmp,line+5,lp-line-5); _gtmp[lp-line-5]=0;
+                char *_gv=_gtmp; while(*_gv==' ')_gv++;
+                int _gvl=strlen(_gv); while(_gvl>0&&_gv[_gvl-1]==' ')_gv[--_gvl]=0;
+                char _gin[64]={0}; strncpy(_gin,lp+1,rp-lp-1);
+                char _gop[8]={0},_gval[64]={0};
+                sscanf(_gin,"%7s",_gop);
+                char *_gvp=_gin+strlen(_gop); while(*_gvp==' ')_gvp++;
+                sscanf(_gvp,"%63s",_gval);
+                int _giv=chunk_add_str(c,_gv);
+                chunk_write(c,OP_LOAD); chunk_write(c,(_giv>>8)&0xFF); chunk_write(c,_giv&0xFF);
+                char *_ge; double _gd=strtod(_gval,&_ge);
+                if(_ge==_gval||*_ge!=0){int _gi2=chunk_add_str(c,_gval);chunk_write(c,OP_LOAD);chunk_write(c,(_gi2>>8)&0xFF);chunk_write(c,_gi2&0xFF);}
+                else{int _gi2=chunk_add_num(c,_gd);chunk_write(c,OP_PUSH_NUM);chunk_write(c,(_gi2>>8)&0xFF);chunk_write(c,_gi2&0xFF);}
+                if(strcmp(_gop,">")==0) chunk_write(c,OP_GT);
+                else if(strcmp(_gop,"<")==0) chunk_write(c,OP_LT);
+                else if(strcmp(_gop,"==")==0) chunk_write(c,OP_EQ);
+                else if(strcmp(_gop,">=")==0) chunk_write(c,OP_GE);
+                else if(strcmp(_gop,"<=")==0) chunk_write(c,OP_LE);
+                else if(strcmp(_gop,"!=")==0) chunk_write(c,OP_NEQ);
+                /* JUMP_IF_0 placeholder */
+                int _jpos=c->count;
+                chunk_write(c,OP_JUMP_IF_0); chunk_write(c,0);
+                int _body_start=c->count;
+                /* Collect body */
+                i++;
+                while(i<n){
+                    const char *_bt=lines[i]; while(*_bt==' '||*_bt=='	')_bt++;
+                    if(_bt[0]=='#'&&_bt[1]=='L'){_bt+=2;while(*_bt>='0'&&*_bt<='9')_bt++;while(*_bt==' ')_bt++;}
+                    if(_bt[0]=='}'){i++;break;}
+                    compile_line(c,lines[i]); i++;
+                }
+                /* Patch jump offset */
+                int _body_end=c->count;
+                int _offset=_body_end-_body_start;
+                c->code[_jpos+1]=(uint8_t)_offset;
+                continue;
+            }
+        }
         if(strncmp(line,"F(",2)==0 && strchr(line,'{')){
             char arr_var[64]={0};
             char *lp=strchr(line,'('); char *rp=strchr(line,')');
