@@ -1,7 +1,7 @@
 #pragma once
 /* Global iter state */
-static void* _g_iter_arr[16];
-static int _g_iter_is_arr[16];
+static void* _g_iter_arr[32];
+static int _g_iter_is_arr[32];
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,7 +71,7 @@ int chunk_add_num(Chunk*c,double v){for(int _i=0;_i<c->num_count;_i++){if(c->num
 int chunk_add_str(Chunk*c,const char*s){for(int _i=0;_i<c->str_count;_i++){if(strcmp(c->str_consts[_i],s)==0)return _i;}c->str_consts=realloc(c->str_consts,sizeof(char*)*(c->str_count+1));c->str_consts[c->str_count]=strdup(s);return c->str_count++;}
 
 /* ===== FRAME ===== */
-#define FRAME_MAX 2048
+#define FRAME_MAX 512
 typedef struct {
     char keys[FRAME_MAX][64];
     BVal vals[FRAME_MAX];
@@ -139,8 +139,8 @@ typedef struct {
     CallFrame calls[CALL_MAX]; int call_depth;
     TFunc *funcs; int func_count; int func_capacity;
     /* ITER stack */
-    int iter_count[16];
-    int iter_idx[16];
+    int iter_count[32];
+    int iter_idx[32];
     int iter_top;
 
 } VM;
