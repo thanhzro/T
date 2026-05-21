@@ -1,1 +1,0 @@
-sed s/PLACEHOLDER/is_prime(n=17) ~> O1/ _template.t > _t.t && ./t _t.t
