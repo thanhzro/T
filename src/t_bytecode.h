@@ -24,7 +24,7 @@ typedef enum {
 } OpCode;
 
 /* ===== VALUE ===== */
-typedef enum { VT_NIL, VT_NUM, VT_STR, VT_ARR, VT_ERR } VType;
+typedef enum { VT_NIL, VT_NUM, VT_STR, VT_ARR, VT_ERR, VT_DICT } VType;
 typedef struct BVal {
     VType type;
     double num;
@@ -36,6 +36,13 @@ typedef struct BVal {
 BVal make_num(double n){BVal v;v.type=VT_NUM;v.num=n;v.str=NULL;v.arr=NULL;v.arr_len=0;return v;}
 BVal make_str(const char*s){BVal v;v.type=VT_STR;v.num=0;v.str=s?strdup(s):NULL;v.arr=NULL;v.arr_len=0;return v;}
 BVal make_arr(int len){BVal v;v.type=VT_ARR;v.num=len;v.str=NULL;v.arr=len>0?(BVal*)calloc(len,sizeof(BVal)):NULL;v.arr_len=len;return v;}
+BVal make_dict(int pairs){
+    BVal v; v.type=VT_DICT; v.num=pairs;
+    v.str=NULL;
+    v.arr=pairs>0?(BVal*)calloc(pairs*2,sizeof(BVal)):NULL;
+    v.arr_len=pairs*2;
+    return v;
+}
 void bval_free(BVal*v){if(v->str){free(v->str);v->str=NULL;}if(v->arr){free(v->arr);v->arr=NULL;}}
 BVal bval_copy(BVal v){if(v.type==VT_STR&&v.str)return make_str(v.str);return v;}
 BVal bval_concat(BVal a,BVal b){
@@ -513,6 +520,16 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
                         else printf("%g",v->arr[i].num);
                     }
                     printf("]\n");
+                }
+                else if(v->type==VT_DICT){
+                    printf("{");
+                    for(int i=0;i<v->arr_len;i+=2){
+                        if(i>0)printf(", ");
+                        printf("%s: ",v->arr[i].str?v->arr[i].str:"?");
+                        if(v->arr[i+1].type==VT_STR)printf("%s",v->arr[i+1].str?v->arr[i+1].str:"");
+                        else printf("%g",v->arr[i+1].num);
+                    }
+                    printf("}\n");
                 }
                 else printf("%g\n",v->num);
                 break;

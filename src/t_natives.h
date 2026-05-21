@@ -988,6 +988,33 @@ static void nat_shell_exec(BVal *stack, int argc, BVal *out) {
     out->str=buf?buf:strdup("");
 }
 
+
+/* ===== DICT NATIVES ===== */
+void nat_dict_new(BVal *stack, int argc, BVal *out){
+    out->type=VT_DICT; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
+}
+
+void nat_dict_get(BVal *stack, int argc, BVal *out){
+    out->type=VT_NIL;
+    if(argc<2||stack[0].type!=VT_DICT||!stack[1].str) return;
+    for(int i=0;i<stack[0].arr_len;i+=2)
+        if(stack[0].arr[i].str&&strcmp(stack[0].arr[i].str,stack[1].str)==0){*out=stack[0].arr[i+1];return;}
+}
+void nat_dict_set(BVal *stack, int argc, BVal *out){
+    if(argc<3||stack[0].type!=VT_DICT){*out=stack[0];return;}
+    int n=stack[0].arr_len;
+    BVal*newarr=(BVal*)calloc(n+2,sizeof(BVal));
+    for(int i=0;i<n;i++) newarr[i]=stack[0].arr[i];
+    newarr[n]=make_str(stack[1].str?stack[1].str:"");
+    newarr[n+1]=stack[2];
+    out->type=VT_DICT;out->arr=newarr;out->arr_len=n+2;out->num=(n+2)/2;
+}
+void nat_dict_keys(BVal *stack, int argc, BVal *out){
+    if(argc<1||stack[0].type!=VT_DICT){out->type=VT_ARR;out->arr_len=0;return;}
+    int n=stack[0].arr_len/2;
+    out->type=VT_ARR;out->arr=(BVal*)calloc(n,sizeof(BVal));out->arr_len=n;
+    for(int i=0;i<n;i++) out->arr[i]=make_str(stack[0].arr[i*2].str?stack[0].arr[i*2].str:"");
+}
 void register_all_natives(VM *vm) {
     TFunc*f;
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"arr_filter_not_starts");f2->is_native=4;f2->native_v=nat_filter_not_starts;f2->param_count=2;strcpy(f2->params[0],"arr");strcpy(f2->params[1],"prefix");}
@@ -1046,10 +1073,16 @@ void register_all_natives(VM *vm) {
 
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"file_read");f2->is_native=4;f2->native_v=nat_file_read;f2->param_count=1;strcpy(f2->params[0],"path");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"toNumber");f2->is_native=3;f2->native_m=nat_toNumber_mix;f2->param_count=1;strcpy(f2->params[0],"val");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"dict_new");f2->is_native=4;f2->native_v=nat_dict_new;f2->param_count=0;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"dict_new");f2->is_native=4;f2->native_v=nat_dict_new;f2->param_count=0;}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"dict_get");f2->is_native=4;f2->native_v=nat_dict_get;f2->param_count=2;strcpy(f2->params[0],"dict");strcpy(f2->params[1],"key");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"dict_set");f2->is_native=4;f2->native_v=nat_dict_set;f2->param_count=3;strcpy(f2->params[0],"dict");strcpy(f2->params[1],"key");strcpy(f2->params[2],"val");}
+    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"dict_keys");f2->is_native=4;f2->native_v=nat_dict_keys;f2->param_count=1;strcpy(f2->params[0],"dict");}
     #undef REG1
     #undef REG2
     #undef REG_S1
     #undef REG_S2
 }
+
 
 
