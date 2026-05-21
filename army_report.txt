@@ -1,1 +1,1 @@
-0
+FAIL: lower(str="HELLO") ~> O1
