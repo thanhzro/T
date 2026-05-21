@@ -1,8 +1,0 @@
-#!/bin/bash
-python3 check_conflicts.py
-python3 check_runtime.py
-make test-all 2>&1 | tee ~/t_out.txt
-cat ~/t_out.txt | termux-clipboard-set
-
-
-echo "Copied!"
