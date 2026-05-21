@@ -334,7 +334,6 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
             for(int _fi=0;_fi<vm->frame.count;_fi++)
                 fprintf(stderr,"  %s = %g\n",vm->frame.keys[_fi],vm->frame.vals[_fi].num);
         }
-                FILE*_rd=fopen("ret_dbg.txt","w");if(_rd){fprintf(_rd,"top=%d stack[top-1].num=%g\n",vm->top,vm->stack[vm->top-1].num);fclose(_rd);}
                 vm->top--;
                 int ret_top=vm->top;
                 CallFrame*cf=&vm->calls[--vm->call_depth];
@@ -364,7 +363,7 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
                 vm->top++;
                 break;
             }
-            case OP_ITER_START:{ fprintf(stderr,"ITER_START n=%d\n",(vm->stack[vm->top-1].arr_len>0?vm->stack[vm->top-1].arr_len:(int)vm->stack[vm->top-1].num));
+            case OP_ITER_START:{
                 vm->top--;
                 BVal *arr=&vm->stack[vm->top];
                 int n=arr->arr_len>0?arr->arr_len:(int)arr->num;
@@ -405,8 +404,6 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
                 if(_g_iter_is_arr[top] && _g_iter_arr[top]){
                     BVal _now_val={0};
                     frame_get(&vm->frame,vm->chunk->str_consts[inow],&_now_val);
-                    fprintf(stderr,"ITER_NEXT: inow=%d str=%s frame_now=%g\n",inow,(inow<vm->chunk->str_count&&vm->chunk->str_consts[inow])?vm->chunk->str_consts[inow]:"?",_now_val.num);
-                    fprintf(stderr,"ITER_NEXT write idx=%d num=%g\n",vm->iter_idx[top],_now_val.num);
                     ((BVal*)_g_iter_arr[top])[vm->iter_idx[top]]=_now_val;
                 }
                 /* Sync all frame vars back to outer frame */
