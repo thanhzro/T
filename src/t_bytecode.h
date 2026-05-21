@@ -167,13 +167,14 @@ void run(VM*vm){
     vm->top--;
     BVal *ra=&vm->stack[vm->top];
     if(ra->type==VT_STR||rb->type==VT_STR){
-        char _ab[4096];
         const char *sa=ra->type==VT_STR&&ra->str?ra->str:"";
         const char *sb=rb->type==VT_STR&&rb->str?rb->str:"";
-        snprintf(_ab,sizeof(_ab),"%s%s",sa,sb);
+        int _slen=strlen(sa)+strlen(sb)+1;
+        char *_ab=malloc(_slen);
+        snprintf(_ab,_slen,"%s%s",sa,sb);
         vm->stack[vm->top].type=VT_STR;
         vm->stack[vm->top].num=0;
-        vm->stack[vm->top].str=strdup(_ab);
+        vm->stack[vm->top].str=_ab;
         vm->stack[vm->top].arr=NULL;
         vm->stack[vm->top].arr_len=0;
     }else{
@@ -349,15 +350,16 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
             case OP_CONCAT:{
                 int tb=--vm->top;
                 int ta=--vm->top;
-                char _cbuf[4096];
                 BVal _bva=bval_tostr(vm->stack[ta]);
                 BVal _bvb=bval_tostr(vm->stack[tb]);
-                snprintf(_cbuf,sizeof(_cbuf),"%s%s",
-                    _bva.str?_bva.str:"",
-                    _bvb.str?_bvb.str:"");
+                const char *_sa=_bva.str?_bva.str:"";
+                const char *_sb=_bvb.str?_bvb.str:"";
+                int _clen=strlen(_sa)+strlen(_sb)+1;
+                char *_cbuf=malloc(_clen);
+                snprintf(_cbuf,_clen,"%s%s",_sa,_sb);
                 vm->stack[vm->top].type=VT_STR;
                 vm->stack[vm->top].num=0;
-                vm->stack[vm->top].str=strdup(_cbuf);
+                vm->stack[vm->top].str=_cbuf;
                 vm->stack[vm->top].arr=NULL;
                 vm->stack[vm->top].arr_len=0;
                 vm->top++;
