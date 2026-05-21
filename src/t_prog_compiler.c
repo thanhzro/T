@@ -167,6 +167,8 @@ void compile_assign(Chunk *c, const char *a, char op, const char *b, const char 
 
 void compile_line(Chunk *chunk, const char *line) {
     static char buf[65536]; strncpy(buf, line, 65535); buf[65535]=0;
+    /* Strip full-line # comments (# must be first non-space char) */
+    {char *_cp=buf; while(*_cp==' '||*_cp=='\t')_cp++; if(*_cp=='#'&&*(_cp+1)!='L')buf[0]=0;}
     char *p = buf;
     /* Extract line number prefix #Lnnn */
     if(p[0]=='#' && p[1]=='L'){
