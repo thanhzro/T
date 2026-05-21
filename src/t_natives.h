@@ -570,7 +570,9 @@ static void nat_fat_arrow(BVal *stack, int argc, BVal *out) {
     if(f){fprintf(f,"%s",buf);fclose(f);}
     
     /* Spawn target T con */
-    char *tbc_path = "/data/data/com.termux/files/home/t-lang/t_bc";
+    /* Find t_bc relative to cwd or PATH */
+    char tbc_path[512];
+    snprintf(tbc_path,sizeof(tbc_path),"%s/t_bc",getcwd(NULL,0)?getcwd(NULL,0):".");
     pid_t pid=fork();
     if(pid==0){
         chdir("/data/data/com.termux/files/home/t-lang");
