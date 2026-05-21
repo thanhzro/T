@@ -104,6 +104,10 @@ char* nat_tcon_query(char**a,int n){
             if(strlen(tok)>2 && strcasestr(line,tok)) score++;
             tok=strtok(NULL," ");
         }
+        /* Boost FIX: lines when query contains FAIL */
+        int is_fix=strncmp(line,"FIX:",4)==0;
+        int has_fail=strcasestr(query,"FAIL")!=NULL;
+        if(is_fix&&has_fail) score+=10;
         if(score>best_score){best_score=score;strncpy(best,line,511);}
     }
     fclose(f);
