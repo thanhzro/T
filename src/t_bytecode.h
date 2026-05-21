@@ -78,6 +78,7 @@ void frame_set(Frame*f,const char*k,BVal*v){
             f->vals[i].arr_len=v->arr_len; return;
         }
     }
+    if(f->count>=FRAME_MAX){fprintf(stderr,"[T Error] Too many variables (max %d)\n",FRAME_MAX);exit(1);}
     strcpy(f->keys[f->count],k);
     f->vals[f->count].type=v->type; f->vals[f->count].num=v->num;
     f->vals[f->count].str=v->str; f->vals[f->count].arr=v->arr;
@@ -137,6 +138,7 @@ typedef struct {
 } VM;
 
 void push(VM*vm,BVal v){
+    if(vm->top>=STACK_MAX){fprintf(stderr,"[T Error] Stack overflow at line %d in %s\n",_g_current_line,_g_current_file?_g_current_file:"?");exit(1);}
     vm->stack[vm->top].type=v.type;
     vm->stack[vm->top].num=v.num;
     vm->stack[vm->top].str=v.str;
