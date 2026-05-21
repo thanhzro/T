@@ -210,7 +210,7 @@ void nat_get_val(BVal *stack, int argc, BVal *out){
     if(argc<2) return;
     if(stack[0].type==VT_ARR){
         int idx=(int)stack[1].num;
-        if(idx<0||idx>=stack[0].arr_len) return;
+        if(idx<0||idx>=stack[0].arr_len){fprintf(stderr,"[T Error] array index %d out of bounds (len=%d)\n",idx,stack[0].arr_len);return;}
         out->type=stack[0].arr[idx].type;
         out->num=stack[0].arr[idx].num;
         out->str=stack[0].arr[idx].str?strdup(stack[0].arr[idx].str):NULL;
