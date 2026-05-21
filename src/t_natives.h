@@ -1038,11 +1038,11 @@ void register_all_natives(VM *vm) {
     REG_S2("split_first", nat_split_first, "str","sep")
     /* Mixed natives */
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"shell_exec");f2->is_native=4;f2->native_v=nat_shell_exec;f2->param_count=1;strcpy(f2->params[0],"cmd");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"infer_v2");f2->is_native=4;f2->native_v=nat_infer_v2;f2->param_count=5;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"odim");strcpy(f2->params[4],"idim");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"vec_concat");f2->is_native=4;f2->native_v=nat_vec_concat;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop_v2");f2->is_native=4;f2->native_v=nat_train_loop_v2;f2->param_count=8;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");strcpy(f2->params[7],"ctx");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop");f2->is_native=4;f2->native_v=nat_train_loop;f2->param_count=7;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"outer_update");f2->is_native=4;f2->native_v=nat_outer_update;f2->param_count=6;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"err");strcpy(f2->params[2],"inp");strcpy(f2->params[3],"lr");strcpy(f2->params[4],"rows");strcpy(f2->params[5],"cols");}
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"infer_v2");f2->is_native=4;f2->native_v=nat_infer_v2;f2->param_count=5;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"odim");strcpy(f2->params[4],"idim");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"vec_concat");f2->is_native=4;f2->native_v=nat_vec_concat;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop_v2");f2->is_native=4;f2->native_v=nat_train_loop_v2;f2->param_count=8;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");strcpy(f2->params[7],"ctx");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"train_loop");f2->is_native=4;f2->native_v=nat_train_loop;f2->param_count=7;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"ys");strcpy(f2->params[4],"lr");strcpy(f2->params[5],"steps");strcpy(f2->params[6],"dim");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"outer_update");f2->is_native=4;f2->native_v=nat_outer_update;f2->param_count=6;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"err");strcpy(f2->params[2],"inp");strcpy(f2->params[3],"lr");strcpy(f2->params[4],"rows");strcpy(f2->params[5],"cols");} */
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"spawn_file");f2->is_native=4;f2->native_v=nat_spawn_file;f2->param_count=1;strcpy(f2->params[0],"fpath");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"compile_all");f2->is_native=4;f2->native_v=nat_compile_all;f2->param_count=1;strcpy(f2->params[0],"lines");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fat_arrow");f2->is_native=4;f2->native_v=nat_fat_arrow;f2->param_count=2;strcpy(f2->params[0],"data");strcpy(f2->params[1],"dest");}
@@ -1050,12 +1050,12 @@ void register_all_natives(VM *vm) {
     /* migrated to lib/basic/string.t */
     /* migrated to lib/basic/string.t */
 
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"softmax_n");f2->is_native=4;f2->native_v=native_softmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"embed_n");f2->is_native=4;f2->native_v=native_embed_n;f2->param_count=3;strcpy(f2->params[0],"cid");strcpy(f2->params[1],"tbl");strcpy(f2->params[2],"dim");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_update_flat");f2->is_native=4;f2->native_v=native_mat_update_flat;f2->param_count=3;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"grad");strcpy(f2->params[2],"lrv");}
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"softmax_n");f2->is_native=4;f2->native_v=native_softmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"embed_n");f2->is_native=4;f2->native_v=native_embed_n;f2->param_count=3;strcpy(f2->params[0],"cid");strcpy(f2->params[1],"tbl");strcpy(f2->params[2],"dim");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_update_flat");f2->is_native=4;f2->native_v=native_mat_update_flat;f2->param_count=3;strcpy(f2->params[0],"mat");strcpy(f2->params[1],"grad");strcpy(f2->params[2],"lrv");} */
 
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"argmax_n");f2->is_native=4;f2->native_v=native_argmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
-    {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_mmv");f2->is_native=4;f2->native_v=native_mat_mmv;f2->param_count=3;strcpy(f2->params[0],"src");strcpy(f2->params[1],"sz");strcpy(f2->params[2],"inp");}
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"argmax_n");f2->is_native=4;f2->native_v=native_argmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");} */
+    /* T-ML: {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"mat_mmv");f2->is_native=4;f2->native_v=native_mat_mmv;f2->param_count=3;strcpy(f2->params[0],"src");strcpy(f2->params[1],"sz");strcpy(f2->params[2],"inp");} */
     f=&vm->funcs[vm->func_count++];
     strcpy(f->name,"len"); f->is_native=3; f->native_m=nat_len_mix;
     f->param_count=1; strcpy(f->params[0],"val");
