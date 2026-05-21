@@ -271,7 +271,7 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
                 TFunc*fn=NULL;
                 for(int fi=0;fi<vm->func_count;fi++)
                     if(strcmp(vm->funcs[fi].name,fname)==0){fn=&vm->funcs[fi];break;}
-                if(fn==NULL){break;}
+                if(fn==NULL){fprintf(stderr,"[T Error] line %d: function '%s' not found\n",_g_current_line,fname);vm->top-=argc;BVal _nil={0};_nil.type=VT_NIL;push(vm,_nil);break;}
                 strcpy(_g_current_func,fn->name); _g_current_ip=vm->ip;
                 if(fn->is_native==1){
                     int base=vm->top-argc;
