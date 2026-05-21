@@ -39,9 +39,10 @@ BVal make_arr(int len){BVal v;v.type=VT_ARR;v.num=len;v.str=NULL;v.arr=len>0?(BV
 void bval_free(BVal*v){if(v->str){free(v->str);v->str=NULL;}if(v->arr){free(v->arr);v->arr=NULL;}}
 BVal bval_copy(BVal v){if(v.type==VT_STR&&v.str)return make_str(v.str);return v;}
 BVal bval_concat(BVal a,BVal b){
-    char buf[4096];
-    snprintf(buf,sizeof(buf),"%s%s",a.str?a.str:"",b.str?b.str:"");
-    return make_str(buf);
+    int _blen=strlen(a.str?a.str:"")+strlen(b.str?b.str:"")+1;
+    char *buf=malloc(_blen);
+    snprintf(buf,_blen,"%s%s",a.str?a.str:"",b.str?b.str:"");
+    BVal _r=make_str(buf); free(buf); return _r;
 }
 BVal bval_tostr(BVal v){
     if(v.type==VT_STR)return bval_copy(v);
