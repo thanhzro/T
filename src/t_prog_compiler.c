@@ -428,7 +428,7 @@ void compile_line(Chunk *chunk, const char *line) {
                     chunk_write(chunk,OP_MUL);
                 }
             }
-            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,6);
+            chunk_write(chunk,OP_JUMP_IF_0); chunk_write(chunk,0); chunk_write(chunk,6);
             int i1g=chunk_add_num(chunk,1);
             chunk_write(chunk,OP_PUSH_NUM); chunk_write(chunk,(i1g)>>8&0xFF); chunk_write(chunk,(i1g)&0xFF);
             int it=chunk_add_str(chunk,tgt);
@@ -1028,8 +1028,9 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
             int idone=chunk_add_str(c,"done");
             chunk_write(c,OP_LOAD); chunk_write(c,(idone>>8)&0xFF); chunk_write(c,idone&0xFF);
             chunk_write(c,OP_JUMP_IF_0);
-            int _off=(int8_t)(body_ip-(c->count+1));
-            chunk_write(c,(uint8_t)_off);
+            int _off=body_ip-(c->count+2);
+            chunk_write(c,(uint8_t)((_off>>8)&0xFF));
+            chunk_write(c,(uint8_t)(_off&0xFF));
             free(lbody);
         } else {
             compile_line(c,lines[i]); i++;
