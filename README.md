@@ -118,18 +118,22 @@ Apache 2.0
 
 ## T Con Army — Self-Healing Runtime
 
-T ships with an autonomous agent army that monitors and self-heals:
+T ships with an autonomous agent army:
 
 ```bash
-nohup ./run_army.sh > army.log 2>&1 &Every 60s the army:
-Checks worker scores (selection pressure)
-Runs 48 tests
-Detects failures → finds CMD fix pattern → executes
-Updates scores — workers below 0 are deprecated
-No human intervention needed.
-Philosophy
-T is not trying to replace Python or C. T is a coordination language for the AI era:
-Python computes. T coordinates.
-LLMs reason. T army executes.
-Humans set goals. T con army achieves them.
-"Small workers, clear pipelines, emergent intelligence."
+nohup ./run_army.sh > army.log 2>&1 &
+```
+
+Every 60s:
+1. Check worker scores
+2. Run 48 tests
+3. Detect failures → find CMD fix → execute
+4. Update scores
+
+## Philosophy
+
+T is a **coordination language** for the AI era:
+- Python computes. T coordinates.
+- Humans set goals. T con army achieves them.
+
+*"Small workers, clear pipelines, emergent intelligence."*
