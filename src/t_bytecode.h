@@ -321,6 +321,7 @@ case OP_JUMP_IF_0:{int off=(int16_t)((vm->chunk->code[vm->ip]<<8)|vm->chunk->cod
                     vm->top++;
                     break;
                 }
+                if(vm->call_depth>=CALL_MAX){fprintf(stderr,"[T Error] line %d: call stack overflow (max depth %d)\n",_g_current_line,CALL_MAX);exit(1);}
                 CallFrame*cf=&vm->calls[vm->call_depth++];
                 cf->frame=vm->frame;cf->return_ip=vm->ip;cf->return_chunk=vm->chunk;
                 memset(&vm->frame,0,sizeof(Frame));
