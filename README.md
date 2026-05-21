@@ -121,13 +121,12 @@ Apache 2.0
 T ships with an autonomous agent army that monitors and self-heals:
 
 ```bash
-nohup ./run_army.sh > army.log 2>&1 &
-The army runs every 60s:
+nohup ./run_army.sh > army.log 2>&1 &Every 60s the army:
 Checks worker scores (selection pressure)
 Runs 48 tests
-Detects failures → finds fix pattern → applies fix
-Updates scores
-Workers with score < 0 are deprecated. No human intervention needed.
+Detects failures → finds CMD fix pattern → executes
+Updates scores — workers below 0 are deprecated
+No human intervention needed.
 Philosophy
 T is not trying to replace Python or C. T is a coordination language for the AI era:
 Python computes. T coordinates.
