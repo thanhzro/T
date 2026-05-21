@@ -1,48 +1,33 @@
-# Contributing to T
+# Contributing to T Language
 
-## Build
-
-Clone and build:
+## Quick Start
 
     git clone https://github.com/thanhzro/T.git
     cd T
-    make
+    gcc src/t_prog_compiler.c -lm -lpthread -o t_bc
+    python3 check_runtime.py 2>&1 | grep "^FAIL"
 
-## Project structure
+No output = 48/48 tests pass.
 
-    src/        — Interpreter source (C)
-    lib/        — Standard library (written in T)
-    tests/      — Test programs
+## Rules
 
-## Core files
+- T-first: implement in T before writing C native
+- No debug prints in code
+- After change: tests must pass
+- Commit format: fix: feat: docs: refactor:
 
-- src/t_lexer.c — Tokenizer
-- src/t_parser.c — Parser, builds AST
-- src/t_vm.c — Virtual machine, executes AST
-- src/t_types.h — Shared type definitions
+## Architecture
 
-## Every T program has three sections
+- src/t_prog_compiler.c - compiler + VM
+- src/t_bytecode.h - bytecode VM
+- src/t_natives.h - C native functions
+- lib/ - T standard library
+- lib/advanced/ - T con army workers
+- scores/ - worker scores
+- ai_rules.txt - army knowledge base
 
-    [T-]   Static data — defined once, never changed
-    [T0]   Logic — pipelines, F(), Gate, functions
-    [T+]   Output — show only, no logic
+## T Con Army
 
-## F() modes
+    nohup ./run_army.sh > army.log 2>&1 &
 
-F() detects its mode automatically:
-
-- Accumulate: O1 + now >> O1
-- Filter: Gate now (> 0) >> O1
-- Transform: ... ~> now
-- Conditional Transform: Gate ... >> now + ~> now
-
-## Running tests
-
-    make test
-
-## Reporting bugs
-
-Open an issue on GitHub with:
-- T version
-- Code that reproduces the bug
-- Expected vs actual output
+Add self-healing: FIX:keyword:CMD:bash_command in ai_rules.txt
