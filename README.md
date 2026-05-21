@@ -112,10 +112,6 @@ make
 ./t yourfile.t
 ```
 
-## License
-
-Apache 2.0
-
 ## T Con Army — Self-Healing Runtime
 
 T ships with an autonomous agent army:
@@ -137,3 +133,7 @@ T is a **coordination language** for the AI era:
 - Humans set goals. T con army achieves them.
 
 *"Small workers, clear pipelines, emergent intelligence."*
+
+## License
+
+Apache 2.0
