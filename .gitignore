@@ -70,3 +70,4 @@ new_w.txt
 debug_*.t
 tesst.t
 t_bc\n_t.t\n*.log\nscores/\nret_dbg.txt\nout.txt
+scores/
