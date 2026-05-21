@@ -108,6 +108,7 @@ char* nat_tcon_query(char**a,int n){
         int is_fix=strncmp(line,"FIX:",4)==0;
         int has_fail=strcasestr(query,"FAIL")!=NULL;
         if(is_fix&&has_fail) score+=10;
+        if(is_fix&&has_fail&&strcasestr(line,"CMD:")) score+=10;
         if(score>best_score){best_score=score;strncpy(best,line,511);}
     }
     fclose(f);

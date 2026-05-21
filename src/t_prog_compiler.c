@@ -932,11 +932,14 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 char _gop[8]={0},_gval[64]={0};
                 sscanf(_gin,"%7s",_gop);
                 char *_gvp=_gin+strlen(_gop); while(*_gvp==' ')_gvp++;
-                sscanf(_gvp,"%63s",_gval);
+                int _g_is_str=(*_gvp==34);
+                if(_g_is_str){_gvp++;int _vi=0;while(*_gvp&&*_gvp!=34&&_vi<63)_gval[_vi++]=*_gvp++;_gval[_vi]=0;}
+                else{sscanf(_gvp,"%63s",_gval);}
                 int _giv=chunk_add_str(c,_gv);
                 chunk_write(c,OP_LOAD); chunk_write(c,(_giv>>8)&0xFF); chunk_write(c,_giv&0xFF);
                 char *_ge; double _gd=strtod(_gval,&_ge);
-                if(_ge==_gval||*_ge!=0){int _gi2=chunk_add_str(c,_gval);chunk_write(c,OP_LOAD);chunk_write(c,(_gi2>>8)&0xFF);chunk_write(c,_gi2&0xFF);}
+                if(_g_is_str){int _gi2=chunk_add_str(c,_gval);chunk_write(c,OP_PUSH_STR);chunk_write(c,(_gi2>>8)&0xFF);chunk_write(c,_gi2&0xFF);}
+                else if(_ge==_gval||*_ge!=0){int _gi2=chunk_add_str(c,_gval);chunk_write(c,OP_LOAD);chunk_write(c,(_gi2>>8)&0xFF);chunk_write(c,_gi2&0xFF);}
                 else{int _gi2=chunk_add_num(c,_gd);chunk_write(c,OP_PUSH_NUM);chunk_write(c,(_gi2>>8)&0xFF);chunk_write(c,_gi2&0xFF);}
                 if(strcmp(_gop,">")==0) chunk_write(c,OP_GT);
                 else if(strcmp(_gop,"<")==0) chunk_write(c,OP_LT);
@@ -946,7 +949,7 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 else if(strcmp(_gop,"!=")==0) chunk_write(c,OP_NEQ);
                 /* JUMP_IF_0 placeholder */
                 int _jpos=c->count;
-                chunk_write(c,OP_JUMP_IF_0); chunk_write(c,0);
+                chunk_write(c,OP_JUMP_IF_0); chunk_write(c,0); chunk_write(c,0);
                 int _body_start=c->count;
                 /* Collect body */
                 i++;
@@ -959,7 +962,8 @@ void compile_program(VM *vm, Chunk *c, const char *lines[], int n) {
                 /* Patch jump offset */
                 int _body_end=c->count;
                 int _offset=_body_end-_body_start;
-                c->code[_jpos+1]=(uint8_t)_offset;
+                c->code[_jpos+1]=(_offset>>8)&0xFF;
+                c->code[_jpos+2]=_offset&0xFF;
                 continue;
             }
         }

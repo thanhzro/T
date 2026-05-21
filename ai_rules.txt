@@ -3772,5 +3772,8 @@ loop {} now properly implemented in bytecode compiler
 JUMP_IF_0 reads int8_t (signed) for backward jumps
 loop body collected with #L strip, jumps back when done==0
 Gate done >> done to exit loop
-FIX:lower fail:lower() uses O1 + 32 for lowercase conversion. If lower fails check O1 + 32 >> O4 in lib/basic/string.t
-FIX:upper fail:upper() uses O1 - 32 for uppercase conversion. If upper fails check O1 - 32 >> O4 in lib/basic/string.t
+FIX:lower fail:CMD:sed -i 's/O1 + [0-9]* >> O4/O1 + 32 >> O4/g' lib/basic/string.t
+FIX:upper fail:CMD:sed -i 's/O1 - [0-9]* >> O4/O1 - 32 >> O4/g' lib/basic/string.t
+MILESTONE: T con army tự fix bug lần đầu tiên!
+worker_fix_from_rules detected lower fail, found CMD rule, executed sed, tests pass
+Self-healing army achieved - Step 9 complete

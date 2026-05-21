@@ -1,0 +1,1 @@
+FIX:lower fail:CMD:sed -i 's/O1 + [0-9]* >> O4/O1 + 32 >> O4/g' lib/basic/string.t
