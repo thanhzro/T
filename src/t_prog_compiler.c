@@ -137,6 +137,29 @@ void compile_expr(Chunk *c, const char *expr) {
     if(expr[0] == 34) {
         static char buf[65536]; strncpy(buf, expr+1, 65535);
         int l=strlen(buf); if(l>0&&buf[l-1]==34) buf[l-1]=0;
+        /* Check for {var} interpolation */
+        char *_lb=strchr(buf,'{'); char *_rb=_lb?strchr(_lb,'}'):NULL;
+        if(_lb&&_rb){
+            int _parts=0;
+            char *_p=buf;
+            while(*_p){
+                char *_l=strchr(_p,'{'); char *_r=_l?strchr(_l,'}'):NULL;
+                if(!_l||!_r){
+                    /* rest is literal */
+                    if(*_p){int _i=chunk_add_str(c,_p);chunk_write(c,OP_PUSH_STR);chunk_write(c,(_i>>8)&0xFF);chunk_write(c,_i&0xFF);_parts++;}
+                    break;
+                }
+                /* literal before { */
+                if(_l>_p){char _tmp[1024]={0};strncpy(_tmp,_p,_l-_p);int _i=chunk_add_str(c,_tmp);chunk_write(c,OP_PUSH_STR);chunk_write(c,(_i>>8)&0xFF);chunk_write(c,_i&0xFF);_parts++;}
+                /* variable inside {} */
+                char _var[64]={0}; strncpy(_var,_l+1,_r-_l-1);
+                int _i=chunk_add_str(c,_var);chunk_write(c,OP_LOAD);chunk_write(c,(_i>>8)&0xFF);chunk_write(c,_i&0xFF);_parts++;
+                _p=_r+1;
+            }
+            /* concat all parts */
+            for(int _ci=1;_ci<_parts;_ci++) chunk_write(c,OP_CONCAT);
+            return;
+        }
         int idx=chunk_add_str(c, buf);
         chunk_write(c, OP_PUSH_STR); chunk_write(c,(idx>>8)&0xFF); chunk_write(c,idx&0xFF);
         return;
