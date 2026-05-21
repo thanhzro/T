@@ -8,13 +8,13 @@
 #include <math.h>
 #include "t_bytecode.h"
 
-/* ===== NATIVE FUNCTIONS =====
+/* ===== NATIVE FUNCTIONS ===== */
 
 
 
 
 
-/* Simple array encoding as comma-separated string
+/* Simple array encoding as comma-separated string */
 char* nat_range_s(char**a,int n){
     int count=(int)atof(a[0]);
     char buf[4096]; buf[0]=0;
@@ -30,7 +30,7 @@ char* nat_range_s(char**a,int n){
 
 #include <ctype.h>
 
-/* Mixed native: access full BVal stack
+/* Mixed native: access full BVal stack */
 
 
 
@@ -104,7 +104,7 @@ char* nat_tcon_query(char**a,int n){
             if(strlen(tok)>2 && strcasestr(line,tok)) score++;
             tok=strtok(NULL," ");
         }
-        /* Boost FIX: lines when query contains FAIL
+        /* Boost FIX: lines when query contains FAIL */
         int is_fix=strncmp(line,"FIX:",4)==0;
         int has_fail=strcasestr(query,"FAIL")!=NULL;
         if(is_fix&&has_fail) score+=10;
@@ -163,10 +163,10 @@ void nat_sort_c(BVal *stack, int argc, BVal *out){
 
 
 void nat_range_c(BVal *stack, int argc, BVal *out){
-    /* Return number not array - VM handles as lazy counter
+    /* Return number not array - VM handles as lazy counter */
     int n;
-    if(argc<1) n=2147483647; /* no arg = infinite
-    else n=(int)stack[0].num; /* arg=0 means 0 iterations
+    if(argc<1) n=2147483647; /* no arg = infinite */
+    else n=(int)stack[0].num; /* arg=0 means 0 iterations */
     out->type=VT_NUM; out->num=n; out->arr=NULL; out->arr_len=0;
 }
 
@@ -183,7 +183,7 @@ void nat_file_read(BVal *stack, int argc, BVal *out){
     out->type=VT_STR; out->str=buf;
 }
 void nat_push_val(BVal *stack, int argc, BVal *out){
-    /* stack[0]=arr, stack[1]=val
+    /* stack[0]=arr, stack[1]=val */
     out->type=VT_ARR; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
     if(argc<2||stack[0].type!=VT_ARR) return;
     int n=stack[0].arr_len;
@@ -248,11 +248,11 @@ char* nat_nat_replace(char**a,int n){
     char *p=buf; const char *cur=s;
     while((cur=strstr(cur,f))){
         int pre=cur-s-(p-buf-(p-buf));
-        /* simple version
+        /* simple version */
         break;
     }
     free(buf);
-    /* Simple replace first occurrence
+    /* Simple replace first occurrence */
     char *found=strstr(s,f);
     if(!found) return strdup(s);
     int pre=found-s;
@@ -263,7 +263,7 @@ char* nat_nat_replace(char**a,int n){
     return res;
 }
 char* nat_split_first(char**a,int n){
-    /* Return part before separator
+    /* Return part before separator */
     char *s=a[0],*sep=a[1];
     char *found=strstr(s,sep);
     if(!found) return strdup(s);
@@ -273,7 +273,7 @@ char* nat_split_first(char**a,int n){
 }
 
 
-/* String natives
+/* String natives */
 
 char* nat_upper(char**a,int n){
     char *s=a[0]; int len=strlen(s);
@@ -308,7 +308,7 @@ char* nat_trim(char**a,int n){
 
 
 
-/* ===== REGISTER ALL NATIVES =====
+/* ===== REGISTER ALL NATIVES ===== */
 
 
 
@@ -322,7 +322,7 @@ char* nat_trim(char**a,int n){
 
 
 char* nat_md5_s(char**a,int n){
-    /* Simple MD5 stub - use exec md5sum
+    /* Simple MD5 stub - use exec md5sum */
     char cmd[512]; snprintf(cmd,511,"echo -n '%s' | md5sum | cut -d' ' -f1",a[0]?a[0]:"");
     FILE*fp=popen(cmd,"r"); if(!fp) return strdup("");
     char buf[64]; buf[0]=0; fgets(buf,63,fp); pclose(fp);
@@ -360,7 +360,7 @@ void nat_trim_v(BVal *stack, int argc, BVal *out){
     if(argc<1||!stack[0].str){out->type=VT_STR;out->str=strdup("");return;}
     char *s=stack[0].str;
     while(*s==' '||*s=='\t'||*s=='\n'||*s=='\r') s++;
-    if(*s==0){out->type=VT_STR;out->str=strdup("");return;} /* all spaces
+    if(*s==0){out->type=VT_STR;out->str=strdup("");return;} /* all spaces */
     char *e=s+strlen(s)-1;
     while(e>s&&(*e==' '||*e=='\t'||*e=='\n'||*e=='\r')) e--;
     int n=e-s+1; if(n<0)n=0;
@@ -398,7 +398,7 @@ void nat_write_file(BVal *stack, int argc, BVal *out){
     const char *content=stack[1].str;
     FILE *f=fopen(path,"w");
     if(!f){out->type=VT_NUM;out->num=0;return;}
-    /* Interpret \n as actual newline
+    /* Interpret \n as actual newline */
     const char *p=content;
     while(*p){
         if(*p=='\\'&&*(p+1)=='n'){fputc('\n',f);p+=2;}
@@ -542,11 +542,11 @@ static void nat_fat_arrow(BVal *stack, int argc, BVal *out) {
     BVal target = stack[1];
     if(!target.str&&target.type!=VT_STR){*out=make_num(0);return;}
     
-    /* Serialize data to input file
+    /* Serialize data to input file */
     char input_path[512];
     snprintf(input_path, sizeof(input_path), "%s.input", target.str);
     
-    /* Convert data to string
+    /* Convert data to string */
     char buf[65536]={0};
     if(data.type==VT_NUM){
         snprintf(buf,sizeof(buf),"%g",data.num);
@@ -565,11 +565,11 @@ static void nat_fat_arrow(BVal *stack, int argc, BVal *out) {
         pos+=snprintf(buf+pos,sizeof(buf)-pos,"]");
     }
     
-    /* Write to input file
+    /* Write to input file */
     FILE *f=fopen(input_path,"w");
     if(f){fprintf(f,"%s",buf);fclose(f);}
     
-    /* Spawn target T con
+    /* Spawn target T con */
     char *tbc_path = "/data/data/com.termux/files/home/t-lang/t_bc";
     pid_t pid=fork();
     if(pid==0){
@@ -585,32 +585,32 @@ static void nat_fat_arrow(BVal *stack, int argc, BVal *out) {
 static void nat_compile_all(BVal *stack, int argc, BVal *out) {
     BVal lines = stack[0];
     int n = lines.arr_len;
-    /* Build output array of instruction strings
+    /* Build output array of instruction strings */
     *out = make_arr(0);
     for(int i=0;i<n;i++){
         if(!lines.arr[i].str) continue;
         const char *line = lines.arr[i].str;
-        /* Skip empty lines
+        /* Skip empty lines */
         int len=strlen(line);
         int all_space=1;
         for(int j=0;j<len;j++) if(line[j]!=' '&&line[j]!='\t'){all_space=0;break;}
         if(all_space) continue;
-        /* Direct C compilation of line
+        /* Direct C compilation of line */
         char instr[512]={0};
-        /* Detect >> assign
+        /* Detect >> assign */
         char *arr_op=strstr(line," >> ");
         char *til_op=strstr(line," ~> ");
         char *gate_op=strstr(line,"Gate ");
         if(arr_op && !gate_op){
-            /* x + 1 >> r → LOAD x, ADD, LOAD 1, STORE r
+            /* x + 1 >> r → LOAD x, ADD, LOAD 1, STORE r */
             char expr[256]={0}; char tgt[64]={0};
             strncpy(expr,line,arr_op-line);
             strcpy(tgt,arr_op+4);
-            /* trim
+            /* trim */
             char *tp=tgt+strlen(tgt)-1;
             while(tp>tgt&&(*tp==' '||*tp=='\n'))tp--;tp[1]=0;
             char *ep=expr; while(*ep==' ')ep++;
-            /* tokenize expr
+            /* tokenize expr */
             char tmp[256]; strcpy(tmp,ep);
             char *tok2=strtok(tmp," ");
             while(tok2){
@@ -627,7 +627,7 @@ static void nat_compile_all(BVal *stack, int argc, BVal *out) {
             out->arr[out->arr_len++]=make_str(sbuf);
             out->num=out->arr_len;
         } else if(til_op){
-            /* func(args) ~> target → LOAD args, CALL func n, STORE target
+            /* func(args) ~> target → LOAD args, CALL func n, STORE target */
             char call[256]={0}; char tgt[64]={0};
             strncpy(call,line,til_op-line);
             strcpy(tgt,til_op+3);
@@ -702,7 +702,7 @@ static void nat_spawn_file(BVal *stack, int argc, BVal *out) {
 
 
 static void nat_outer_update(BVal *stack, int argc, BVal *out) {
-    /* outer_update(mat, err, inp, lr, rows, cols)
+    /* outer_update(mat, err, inp, lr, rows, cols) */
     if(argc < 6) { *out = make_num(0); return; }
     BVal mat = stack[0];
     BVal err = stack[1];
@@ -711,7 +711,7 @@ static void nat_outer_update(BVal *stack, int argc, BVal *out) {
     int rows   = (int)stack[4].num;
     int cols   = (int)stack[5].num;
     if(!mat.arr || !err.arr || !inp.arr) { *out = make_num(0); return; }
-    /* Create new matrix
+    /* Create new matrix */
     BVal *res = calloc(rows*cols, sizeof(BVal));
     for(int i = 0; i < rows; i++) {
         double ei = (i < err.arr_len) ? err.arr[i].num : 0.0;
@@ -730,22 +730,22 @@ static void nat_outer_update(BVal *stack, int argc, BVal *out) {
 
 
 static void nat_train_loop(BVal *stack, int argc, BVal *out) {
-    /* train_loop(wmat, emb, xs, ys, lr, steps, dim)
+    /* train_loop(wmat, emb, xs, ys, lr, steps, dim) */
     if(argc < 7) { *out = make_num(0); return; }
     BVal wmat = stack[0];
     BVal emb  = stack[1];
-    BVal xs   = stack[2]; /* input char ids
-    BVal ys   = stack[3]; /* target char ids
+    BVal xs   = stack[2]; /* input char ids */
+    BVal ys   = stack[3]; /* target char ids */
     double lr = stack[4].num;
     int steps = (int)stack[5].num;
     int dim   = (int)stack[6].num;
 
     if(!wmat.arr||!emb.arr||!xs.arr||!ys.arr){*out=make_num(0);return;}
 
-    /* Copy wmat to working buffer
+    /* Copy wmat to working buffer */
     int wsize = dim*dim;
     double *W = calloc(wsize, sizeof(double));
-    double *E = calloc(wsize, sizeof(double)); /* emb: vocab*dim, use dim*dim
+    double *E = calloc(wsize, sizeof(double)); /* emb: vocab*dim, use dim*dim */
     for(int i=0;i<wsize&&i<wmat.arr_len;i++) W[i]=wmat.arr[i].num;
     for(int i=0;i<wsize&&i<emb.arr_len;i++) E[i]=emb.arr[i].num;
 
@@ -757,40 +757,40 @@ static void nat_train_loop(BVal *stack, int argc, BVal *out) {
         int yid = (int)ys.arr[s].num;
         if(xid<0||xid>=dim||yid<0||yid>=dim) continue;
 
-        /* Embed: ev = E[xid*dim .. xid*dim+dim]
+        /* Embed: ev = E[xid*dim .. xid*dim+dim] */
         double ev[64]={0};
         for(int j=0;j<dim;j++) ev[j]=E[xid*dim+j];
 
-        /* Forward: pp = W @ ev
+        /* Forward: pp = W @ ev */
         double pp[64]={0};
         for(int i=0;i<dim;i++)
             for(int j=0;j<dim;j++)
                 pp[i]+=W[i*dim+j]*ev[j];
 
-        /* Softmax
+        /* Softmax */
         double maxv=pp[0];
         for(int i=1;i<dim;i++) if(pp[i]>maxv) maxv=pp[i];
         double sum=0;
         for(int i=0;i<dim;i++){pp[i]=exp(pp[i]-maxv);sum+=pp[i];}
         for(int i=0;i<dim;i++) pp[i]/=sum;
 
-        /* Error: gg = prob - onehot(yid)
+        /* Error: gg = prob - onehot(yid) */
         double gg[64]={0};
         for(int i=0;i<dim;i++) gg[i]=pp[i];
         gg[yid]-=1.0;
 
-        /* Loss
+        /* Loss */
         double ls=0;
         for(int i=0;i<dim;i++) ls+=gg[i]*gg[i];
         last_loss=ls;
 
-        /* Outer update: W[i][j] -= lr * gg[i] * ev[j]
+        /* Outer update: W[i][j] -= lr * gg[i] * ev[j] */
         for(int i=0;i<dim;i++)
             for(int j=0;j<dim;j++)
                 W[i*dim+j]-=lr*gg[i]*ev[j];
     }
 
-    /* Return updated wmat as array
+    /* Return updated wmat as array */
     BVal *res = calloc(wsize, sizeof(BVal));
     for(int i=0;i<wsize;i++){
         res[i].type=VT_NUM;
@@ -805,8 +805,8 @@ static void nat_train_loop(BVal *stack, int argc, BVal *out) {
 
 
 static void nat_train_loop_v2(BVal *stack, int argc, BVal *out) {
-    /* train_loop_v2(wmat, emb, xs, ys, lr, steps, dim, ctx)
-    /* xs shape: steps*ctx (flattened context windows)
+    /* train_loop_v2(wmat, emb, xs, ys, lr, steps, dim, ctx) */
+    /* xs shape: steps*ctx (flattened context windows) */
     if(argc < 8) { *out = make_num(0); return; }
     BVal wmat = stack[0];
     BVal emb  = stack[1];
@@ -816,7 +816,7 @@ static void nat_train_loop_v2(BVal *stack, int argc, BVal *out) {
     int steps = (int)stack[5].num;
     int dim   = (int)stack[6].num;
     int ctx   = (int)stack[7].num;
-    int inp_dim = dim * ctx; /* concatenated context embeddings
+    int inp_dim = dim * ctx; /* concatenated context embeddings */
 
     if(!wmat.arr||!emb.arr||!xs.arr||!ys.arr){*out=make_num(0);return;}
 
@@ -824,7 +824,7 @@ static void nat_train_loop_v2(BVal *stack, int argc, BVal *out) {
     double *W = calloc(wsize, sizeof(double));
     double *E = calloc(xs.arr_len * dim + dim*dim, sizeof(double));
     for(int i=0;i<wsize&&i<wmat.arr_len;i++) W[i]=wmat.arr[i].num;
-    /* emb: vocab_size × dim
+    /* emb: vocab_size × dim */
     int emb_len = emb.arr_len;
     double *EM = calloc(emb_len, sizeof(double));
     for(int i=0;i<emb_len;i++) EM[i]=emb.arr[i].num;
@@ -841,7 +841,7 @@ static void nat_train_loop_v2(BVal *stack, int argc, BVal *out) {
         int yid = (s < ys.arr_len) ? (int)ys.arr[s].num : 0;
         if(yid<0||yid>=dim) yid=0;
 
-        /* Build context embedding: concat ctx embeddings
+        /* Build context embedding: concat ctx embeddings */
         for(int ci=0;ci<ctx;ci++){
             int xid = (s*ctx+ci < xs.arr_len) ? (int)xs.arr[s*ctx+ci].num : 0;
             if(xid<0) xid=0;
@@ -852,30 +852,30 @@ static void nat_train_loop_v2(BVal *stack, int argc, BVal *out) {
             }
         }
 
-        /* Forward: pp = W @ ev
+        /* Forward: pp = W @ ev */
         for(int i=0;i<dim;i++){
             pp[i]=0;
             for(int j=0;j<inp_dim;j++)
                 pp[i]+=W[i*inp_dim+j]*ev[j];
         }
 
-        /* Softmax
+        /* Softmax */
         double maxv=pp[0];
         for(int i=1;i<dim;i++) if(pp[i]>maxv) maxv=pp[i];
         double sum=0;
         for(int i=0;i<dim;i++){pp[i]=exp(pp[i]-maxv);sum+=pp[i];}
         for(int i=0;i<dim;i++) pp[i]/=sum;
 
-        /* Error
+        /* Error */
         for(int i=0;i<dim;i++) gg[i]=pp[i];
         gg[yid]-=1.0;
 
-        /* Loss
+        /* Loss */
         double ls=0;
         for(int i=0;i<dim;i++) ls+=gg[i]*gg[i];
         last_loss=ls;
 
-        /* Outer update
+        /* Outer update */
         for(int i=0;i<dim;i++)
             for(int j=0;j<inp_dim;j++)
                 W[i*inp_dim+j]-=lr*gg[i]*ev[j];
@@ -917,13 +917,13 @@ static void nat_vec_concat(BVal *stack, int argc, BVal *out) {
 
 
 static void nat_infer_v2(BVal *stack, int argc, BVal *out) {
-    /* infer_v2(wmat, emb, xs, out_dim, inp_dim)
+    /* infer_v2(wmat, emb, xs, out_dim, inp_dim) */
     if(argc < 5) { *out = make_num(0); return; }
     BVal wmat = stack[0];
     BVal emb  = stack[1];
-    BVal xs   = stack[2]; /* ctx char ids
+    BVal xs   = stack[2]; /* ctx char ids */
     int out_dim = (int)stack[3].num;
-    int inp_dim = (int)stack[4].num; /* dim * ctx
+    int inp_dim = (int)stack[4].num; /* dim * ctx */
     int dim = inp_dim / (xs.arr_len > 0 ? xs.arr_len : 1);
 
     if(!wmat.arr||!emb.arr||!xs.arr){*out=make_num(0);return;}
@@ -932,7 +932,7 @@ static void nat_infer_v2(BVal *stack, int argc, BVal *out) {
     int ctx = xs.arr_len;
     int edim = inp_dim / ctx;
 
-    /* Build context vector
+    /* Build context vector */
     double *ev = calloc(inp_dim, sizeof(double));
     for(int ci=0;ci<ctx;ci++){
         int xid = (int)xs.arr[ci].num;
@@ -944,7 +944,7 @@ static void nat_infer_v2(BVal *stack, int argc, BVal *out) {
         }
     }
 
-    /* Forward: pp = W @ ev, W is out_dim × inp_dim
+    /* Forward: pp = W @ ev, W is out_dim × inp_dim */
     double *pp = calloc(out_dim, sizeof(double));
     for(int i=0;i<out_dim;i++){
         for(int j=0;j<inp_dim;j++){
@@ -953,14 +953,14 @@ static void nat_infer_v2(BVal *stack, int argc, BVal *out) {
         }
     }
 
-    /* Softmax
+    /* Softmax */
     double maxv=pp[0];
     for(int i=1;i<out_dim;i++) if(pp[i]>maxv) maxv=pp[i];
     double sum=0;
     for(int i=0;i<out_dim;i++){pp[i]=exp(pp[i]-maxv);sum+=pp[i];}
     for(int i=0;i<out_dim;i++) pp[i]/=sum;
 
-    /* Argmax
+    /* Argmax */
     int best=0;
     for(int i=1;i<out_dim;i++) if(pp[i]>pp[best]) best=i;
 
@@ -973,7 +973,7 @@ static void nat_shell_exec(BVal *stack, int argc, BVal *out) {
     if(argc<1||!stack[0].str){*out=make_str("");return;}
     FILE*fp=popen(stack[0].str,"r");
     if(!fp){*out=make_str("error:popen_failed");return;}
-    /* Read ALL output dynamically
+    /* Read ALL output dynamically */
     char *buf=NULL; size_t total=0; size_t cap=4096;
     buf=(char*)malloc(cap);
     char tmp[4096];
@@ -989,7 +989,7 @@ static void nat_shell_exec(BVal *stack, int argc, BVal *out) {
 }
 
 
-/* ===== DICT NATIVES =====
+/* ===== DICT NATIVES ===== */
 void nat_dict_new(BVal *stack, int argc, BVal *out){
     out->type=VT_DICT; out->num=0; out->str=NULL; out->arr=NULL; out->arr_len=0;
 }
@@ -1036,7 +1036,7 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"range");f2->is_native=4;f2->native_v=nat_range_c;f2->param_count=1;strcpy(f2->params[0],"n");}
     REG_S2("replace_first", nat_nat_replace, "str","from")
     REG_S2("split_first", nat_split_first, "str","sep")
-    /* Mixed natives
+    /* Mixed natives */
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"shell_exec");f2->is_native=4;f2->native_v=nat_shell_exec;f2->param_count=1;strcpy(f2->params[0],"cmd");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"infer_v2");f2->is_native=4;f2->native_v=nat_infer_v2;f2->param_count=5;strcpy(f2->params[0],"wmat");strcpy(f2->params[1],"emb");strcpy(f2->params[2],"xs");strcpy(f2->params[3],"odim");strcpy(f2->params[4],"idim");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"vec_concat");f2->is_native=4;f2->native_v=nat_vec_concat;f2->param_count=2;strcpy(f2->params[0],"a");strcpy(f2->params[1],"b");}
@@ -1047,8 +1047,8 @@ void register_all_natives(VM *vm) {
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"compile_all");f2->is_native=4;f2->native_v=nat_compile_all;f2->param_count=1;strcpy(f2->params[0],"lines");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"fat_arrow");f2->is_native=4;f2->native_v=nat_fat_arrow;f2->param_count=2;strcpy(f2->params[0],"data");strcpy(f2->params[1],"dest");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"par_spawn");f2->is_native=4;f2->native_v=nat_par_spawn;f2->param_count=1;strcpy(f2->params[0],"files");}
-    /* migrated to lib/basic/string.t
-    /* migrated to lib/basic/string.t
+    /* migrated to lib/basic/string.t */
+    /* migrated to lib/basic/string.t */
 
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"softmax_n");f2->is_native=4;f2->native_v=native_softmax_n;f2->param_count=1;strcpy(f2->params[0],"arr");}
     {TFunc*f2=&vm->funcs[vm->func_count++];strcpy(f2->name,"embed_n");f2->is_native=4;f2->native_v=native_embed_n;f2->param_count=3;strcpy(f2->params[0],"cid");strcpy(f2->params[1],"tbl");strcpy(f2->params[2],"dim");}
