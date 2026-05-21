@@ -1,1 +1,1 @@
-FAIL: lower(str="HELLO") ~> O1
+ALL_PASS
